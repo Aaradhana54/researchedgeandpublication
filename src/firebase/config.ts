@@ -18,17 +18,17 @@ const firebaseConfig = {
 
 // --- SERVICE INITIALIZATION ---
 
-let firebaseApp: FirebaseApp;
-
-// Check if Firebase has already been initialized
-if (getApps().length > 0) {
-  firebaseApp = getApp();
-} else {
-  firebaseApp = initializeApp(firebaseConfig);
+// Use a function to ensure initialization happens once, on the client.
+function initializeFirebaseApp(): FirebaseApp {
+  if (getApps().length > 0) {
+    return getApp();
+  }
+  return initializeApp(firebaseConfig);
 }
 
-const auth: Auth = getAuth(firebaseApp);
-const firestore: Firestore = getFirestore(firebaseApp);
-const storage: FirebaseStorage = getStorage(firebaseApp);
+const firebaseApp = initializeFirebaseApp();
+const auth = getAuth(firebaseApp);
+const firestore = getFirestore(firebaseApp);
+const storage = getStorage(firebaseApp);
 
 export { firebaseApp, auth, firestore, storage };
