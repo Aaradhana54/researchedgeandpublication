@@ -30,7 +30,7 @@ export function useCollection<T extends DocumentData>(
     // set loading to false and do nothing. This is the critical check.
     if (!queryMemo) {
       setState({ data: null, loading: false, error: null });
-      return;
+      return () => {}; // Return an empty cleanup function
     }
 
     // Set loading to true only when we have a valid query and are about to fetch.
