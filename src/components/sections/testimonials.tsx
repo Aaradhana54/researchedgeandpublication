@@ -1,5 +1,6 @@
 'use client';
 import Image from 'next/image';
+import { useMemo } from 'react';
 import {
   Carousel,
   CarouselContent,
@@ -40,7 +41,11 @@ const staticTestimonials: Testimonial[] = [
 
 export function Testimonials() {
   const firestore = useFirestore();
-  const testimonialsQuery = firestore ? query(collection(firestore, 'testimonials'), where('approved', '==', true)) : null;
+  const testimonialsQuery = useMemo(() => {
+    if (!firestore) return null;
+    return query(collection(firestore, 'testimonials'), where('approved', '==', true));
+  }, [firestore]);
+  
   const { data: dynamicTestimonials, loading } = useCollection<Testimonial>(testimonialsQuery);
 
   const allTestimonials = [...staticTestimonials, ...(dynamicTestimonials || [])];
@@ -90,6 +95,11 @@ export function Testimonials() {
                           )}
                            {!image && testimonial.avatarId && (
                              <div className="w-20 h-20 rounded-full border-4 border-primary/10 bg-muted flex items-center justify-center">
+                               <span className="text-2xl font-bold text-primary">{testimonial.name.charAt(0)}</span>
+                             </div>
+                           )}
+                           {!testimonial.avatarId && (
+                              <div className="w-20 h-20 rounded-full border-4 border-primary/10 bg-muted flex items-center justify-center">
                                <span className="text-2xl font-bold text-primary">{testimonial.name.charAt(0)}</span>
                              </div>
                            )}
