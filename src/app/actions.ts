@@ -56,10 +56,11 @@ export async function submitContactForm(
     return { message: 'Success: Your message has been sent!' };
   } catch (e: any) {
     if (e.code === 'permission-denied') {
+      const { createdAt, ...serializableData } = leadData;
       const permissionError = new FirestorePermissionError({
         path: leadsRef.path,
         operation: 'create',
-        requestResourceData: leadData,
+        requestResourceData: serializableData,
       }, e);
       // This is a server action, so we can't rely on the client-side listener.
       // We'll log it server-side and return a generic error to the client.
@@ -125,10 +126,11 @@ export async function submitTestimonialForApproval(
             await addDoc(testimonialsRef, testimonialData);
         } catch (e: any) {
              if (e.code === 'permission-denied') {
+                const { createdAt, ...serializableData } = testimonialData;
                 const permissionError = new FirestorePermissionError({
                     path: testimonialsRef.path,
                     operation: 'create',
-                    requestResourceData: testimonialData,
+                    requestResourceData: serializableData,
                 }, e);
                 console.error(permissionError.message);
              } else {
