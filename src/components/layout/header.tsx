@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Menu, LogOut, ChevronDown, User } from 'lucide-react';
+import { Menu, LogOut, ChevronDown, User, Shield, Briefcase } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 import { useScrollSpy } from '@/hooks/use-scroll-spy';
@@ -117,13 +117,25 @@ export function Header() {
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-             <div className="hidden md:flex items-center gap-2">
-                <Button variant="outline" asChild>
-                  <Link href="/admin/login">Admin Login</Link>
-                </Button>
-                <Button asChild>
-                  <Link href="/login">Client Login</Link>
-                </Button>
+            <div className="hidden md:flex items-center gap-2">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button>
+                      Portals
+                      <ChevronDown className="ml-2 h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => router.push('/admin/login')}>
+                      <Shield className="mr-2 h-4 w-4" />
+                      <span>Admin Login</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => router.push('/login')}>
+                      <Briefcase className="mr-2 h-4 w-4" />
+                      <span>Client Login</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
             </div>
           )}
 
@@ -171,10 +183,10 @@ export function Header() {
                         </>
                       ) : (
                          <>
-                           <Button asChild onClick={() => setIsMobileMenuOpen(false)}>
+                           <Button asChild onClick={() => { router.push('/login'); setIsMobileMenuOpen(false); }}>
                               <Link href="/login">Client Login</Link>
                             </Button>
-                             <Button variant="outline" asChild onClick={() => setIsMobileMenuOpen(false)}>
+                             <Button variant="outline" asChild onClick={() => { router.push('/admin/login'); setIsMobileMenuOpen(false); }}>
                               <Link href="/admin/login">Admin Login</Link>
                             </Button>
                          </>
