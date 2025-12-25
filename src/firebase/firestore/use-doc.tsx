@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import type { DocumentReference, DocumentData } from 'firebase/firestore';
 import { onSnapshot } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
@@ -20,8 +20,9 @@ export function useDoc<T extends DocumentData>(
     loading: true,
     error: null,
   });
-
-  const docPath = useMemo(() => ref?.path, [ref]);
+  
+  const errorEmittedRef = useRef(false);
+  const docPath = ref?.path;
 
   useEffect(() => {
     if (!ref) {
@@ -30,6 +31,7 @@ export function useDoc<T extends DocumentData>(
     }
 
     setState((prevState) => ({ ...prevState, loading: true }));
+    errorEmittedRef.current = false;
 
     const unsubscribe = onSnapshot(
       ref,
@@ -45,7 +47,7 @@ export function useDoc<T extends DocumentData>(
         }
       },
       (error) => {
-        if (error.code === 'permission-denied') {
+        if (error.code === 'permission-denied' && !errorEmittedRef.current) {
           const permissionError = new FirestorePermissionError(
             {
               path: ref.path,
@@ -54,6 +56,7 @@ export function useDoc<T extends DocumentData>(
             error
           );
           errorEmitter.emit('permission-error', permissionError);
+          errorEmittedRef.current = true;
         }
         console.error('useDoc error:', error);
         setState({ data: null, loading: false, error });
