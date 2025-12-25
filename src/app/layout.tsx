@@ -6,6 +6,7 @@ import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
 import { FirebaseErrorListener } from '@/components/firebase-error-listener';
+import { UserProvider } from '@/firebase/auth/use-user';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
@@ -32,13 +33,15 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased bg-background">
         <FirebaseClientProvider>
-          <div className="flex flex-col min-h-screen">
-              <Header />
-              <main className="flex-1">{children}</main>
-              <Footer />
-          </div>
-          <Toaster />
-          {process.env.NODE_ENV === 'development' && <FirebaseErrorListener />}
+          <UserProvider>
+            <div className="flex flex-col min-h-screen">
+                <Header />
+                <main className="flex-1">{children}</main>
+                <Footer />
+            </div>
+            <Toaster />
+            {process.env.NODE_ENV === 'development' && <FirebaseErrorListener />}
+          </UserProvider>
         </FirebaseClientProvider>
       </body>
     </html>

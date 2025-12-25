@@ -2,13 +2,26 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Menu } from 'lucide-react';
+import { Menu, LogOut } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 import { useScrollSpy } from '@/hooks/use-scroll-spy';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Logo } from '@/components/ui/logo';
+import { useUser } from '@/firebase/auth/use-user';
+import { logout } from '@/firebase/auth';
+import { useRouter } from 'next/navigation';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+
 
 const navItems = [
   { label: 'Home', href: 'home' },
@@ -24,6 +37,9 @@ export function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const sectionIds = navItems.map((item) => item.href);
   const activeId = useScrollSpy(sectionIds, { rootMargin: '-20% 0px -80% 0px' });
+  const { user, loading } = useUser();
+  const router = useRouter();
+
 
   useEffect(() => {
     const handleScroll = () => {
@@ -32,6 +48,15 @@ export function Header() {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  const handleLogout = async () => {
+    await logout();
+    router.push('/');
+  };
+
+  const getInitials = (name = '') => {
+    return name.split(' ').map((n) => n[0]).join('').toUpperCase();
+  }
 
   return (
     <header
@@ -62,9 +87,46 @@ export function Header() {
         </nav>
 
         <div className="flex items-center gap-2">
-           <Button asChild>
-              <Link href="/#contact">Get a Quote</Link>
-            </Button>
+          {!loading && user ? (
+             <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                  <Avatar className='h-10 w-10'>
+                     <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
+                  </Avatar>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56" align="end" forceMount>
+                <DropdownMenuLabel className="font-normal">
+                  <div className="flex flex-col space-y-1">
+                    <p className="text-sm font-medium leading-none">{user.name}</p>
+                    <p className="text-xs leading-none text-muted-foreground">
+                      {user.email}
+                    </p>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => router.push('/dashboard')}>
+                    Dashboard
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Log out</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+             <div className="hidden md:flex items-center gap-2">
+                <Button variant="ghost" asChild>
+                    <Link href="/login">Client Login</Link>
+                </Button>
+                <Button asChild>
+                    <Link href="/#contact">Get a Quote</Link>
+                </Button>
+            </div>
+          )}
+
 
           <div className="md:hidden">
             <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
@@ -97,9 +159,26 @@ export function Header() {
                     ))}
                   </nav>
                    <div className="mt-auto flex flex-col gap-2 border-t pt-4">
-                      <Button asChild>
-                        <Link href="/#contact">Get a Quote</Link>
-                      </Button>
+                      {!loading && user ? (
+                        <>
+                          <Button asChild onClick={() => setIsMobileMenuOpen(false)}>
+                            <Link href="/dashboard">Go to Dashboard</Link>
+                          </Button>
+                          <Button variant="outline" onClick={() => { handleLogout(); setIsMobileMenuOpen(false); }}>
+                            <LogOut className="mr-2 h-4 w-4" />
+                            Log Out
+                          </Button>
+                        </>
+                      ) : (
+                        <>
+                         <Button asChild onClick={() => setIsMobileMenuOpen(false)}>
+                            <Link href="/login">Client Login</Link>
+                          </Button>
+                          <Button variant="outline" asChild onClick={() => setIsMobileMenuOpen(false)}>
+                            <Link href="/#contact">Get a Quote</Link>
+                          </Button>
+                        </>
+                      )}
                    </div>
                 </div>
               </SheetContent>

@@ -14,6 +14,13 @@ export type Service = {
 
 // --- Firestore Data Types ---
 
+export type UserProfile = {
+  uid: string;
+  name: string;
+  email: string;
+  createdAt: Timestamp;
+};
+
 export type ProjectServiceType =
   | 'thesis-dissertation'
   | 'research-paper'
