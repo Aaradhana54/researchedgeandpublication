@@ -17,10 +17,11 @@ export async function signup(email: string, password: string, name: string) {
   const user = userCredential.user;
 
   // Create user profile in Firestore
-  const userProfile: Omit<UserProfile, 'role'> = {
+  const userProfile: UserProfile = {
     uid: user.uid,
     name,
     email,
+    role: 'client', // Assign 'client' role by default
     createdAt: serverTimestamp() as any, // Let the server generate the timestamp
   };
 

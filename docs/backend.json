@@ -8,9 +8,10 @@
         "uid": { "type": "string", "description": "The user's unique ID from Firebase Auth." },
         "name": { "type": "string", "description": "The user's full name." },
         "email": { "type": "string", "format": "email", "description": "The user's email address." },
+        "role": { "type": "string", "enum": ["client", "admin"], "description": "The user's role."},
         "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp of when the user account was created." }
       },
-      "required": ["uid", "name", "email", "createdAt"]
+      "required": ["uid", "name", "email", "role", "createdAt"]
     },
     "Project": {
       "title": "Project",
