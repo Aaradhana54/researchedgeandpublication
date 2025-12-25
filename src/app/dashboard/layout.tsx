@@ -43,7 +43,7 @@ export default function DashboardLayout({
   const pathname = usePathname();
 
   useEffect(() => {
-    // Wait until the loading is complete before checking for a user
+    // If loading is finished and there's still no user, redirect to login.
     if (!loading && !user) {
       router.push('/login');
     }
@@ -55,7 +55,7 @@ export default function DashboardLayout({
   };
 
   // While authentication is in progress, show a global loading screen.
-  // This prevents a flash of content or incorrect redirects.
+  // This prevents any flashes of content or incorrect redirects.
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">

@@ -21,25 +21,24 @@ export function useUser(): UseUserHook {
     let unsubscribeProfile: Unsubscribe | undefined;
 
     const unsubscribeAuth = onAuthStateChanged(auth, (authUser) => {
-      // If a profile listener is active, unsubscribe from it
+      // If a profile listener is active from a previous user, unsubscribe from it
       if (unsubscribeProfile) {
         unsubscribeProfile();
       }
 
       if (authUser) {
-        // User is logged in, set the user object
         setUser(authUser);
-        
-        // Set up a new listener for the user's profile document
+        // Set up a new listener for the current user's profile document
         const userDocRef = doc(firestore, 'users', authUser.uid);
+        
         unsubscribeProfile = onSnapshot(userDocRef, (docSnap) => {
           if (docSnap.exists()) {
             setUserProfile({ ...docSnap.data(), uid: docSnap.id } as UserProfile);
           } else {
-            // Profile doesn't exist
+            // This can happen if the user exists in Auth but not Firestore
             setUserProfile(null);
           }
-          // Finished loading auth state and profile data
+          // The entire auth process (auth check + profile fetch) is now complete.
           setLoading(false);
         }, (error) => {
           console.error("Error fetching user profile:", error);
@@ -48,21 +47,21 @@ export function useUser(): UseUserHook {
         });
 
       } else {
-        // User is signed out, reset all state
+        // User is signed out, reset all state and stop loading.
         setUser(null);
         setUserProfile(null);
         setLoading(false);
       }
     });
 
-    // Cleanup function to unsubscribe from both listeners on component unmount
+    // Cleanup function: Unsubscribe from both listeners on component unmount
     return () => {
       unsubscribeAuth();
       if (unsubscribeProfile) {
         unsubscribeProfile();
       }
     };
-  }, []); // Empty dependency array ensures this effect runs only once on mount
+  }, []); // The empty dependency array is critical: this effect runs only ONCE.
 
   return { user, userProfile, loading };
 }
