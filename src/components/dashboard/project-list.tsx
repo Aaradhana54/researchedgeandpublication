@@ -96,7 +96,7 @@ const serviceCategories: Record<
     label: 'Book & Publishing',
     services: {
       'research-publication': 'Research Publication',
-      'book-publishing': 'Book Publication',
+      'book-publishing': 'Book Publishing',
     },
   },
 };
@@ -715,3 +715,5 @@ export function ProjectList({ userId }: { userId: string }) {
     </div>
   );
 }
+
+    
