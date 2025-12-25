@@ -38,17 +38,21 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         }
 
         if (authUser) {
+          // Still loading until we get the profile
           setLoading(true);
           const profileRef = doc(firestore, 'users', authUser.uid);
+          
           profileUnsubscribe = onSnapshot(
             profileRef,
             (docSnapshot) => {
               if (docSnapshot.exists()) {
                 setUser(docSnapshot.data() as UserProfile);
               } else {
-                // This case might happen if profile creation fails after signup
+                // This case can happen briefly during signup or if profile creation fails.
+                // We shouldn't treat it as a hard error that blocks the UI.
+                // The user is authenticated but has no profile document.
+                // For this app's logic, we can treat them as logged out until the profile appears.
                 setUser(null);
-                setError(new Error('User profile does not exist.'));
               }
               setLoading(false);
             },
