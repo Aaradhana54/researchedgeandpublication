@@ -1,13 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { LoaderCircle, LogIn, ShieldCheck } from 'lucide-react';
+import { LoaderCircle, LogIn } from 'lucide-react';
 
 import { login } from '@/firebase/auth';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { getFirebaseErrorMessage } from '@/firebase/errors';
@@ -27,8 +26,7 @@ export default function AdminLoginPage() {
 
     try {
       await login(email, password);
-      // You might want to add a check here to ensure the user has an 'admin' role
-      // before redirecting to the admin dashboard. This is handled in the layout for now.
+      // The layout will handle role checking and redirection.
       router.push('/admin/dashboard');
     } catch (err: any) {
       setError(getFirebaseErrorMessage(err.code));
@@ -39,11 +37,8 @@ export default function AdminLoginPage() {
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-secondary p-4">
-      <Card className="w-full max-w-md mx-auto shadow-lift relative">
+      <Card className="w-full max-w-md mx-auto shadow-lift">
         <CardHeader className="text-center">
-           <div className="mx-auto bg-primary text-primary-foreground rounded-full p-3 w-fit mb-4">
-            <ShieldCheck className="h-8 w-8" />
-          </div>
           <CardTitle className="text-2xl font-bold">Admin Login</CardTitle>
           <CardDescription>Access the administrative dashboard.</CardDescription>
         </CardHeader>
@@ -90,11 +85,6 @@ export default function AdminLoginPage() {
             </Button>
           </form>
         </CardContent>
-        <CardFooter className="flex justify-center">
-           <Link href="/" className="text-sm font-medium text-primary hover:underline">
-              &larr; Back to Home
-            </Link>
-        </CardFooter>
       </Card>
     </div>
   );
