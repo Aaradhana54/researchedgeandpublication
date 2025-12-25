@@ -6,12 +6,22 @@ service cloud.firestore {
     function isOwner(userId) {
       return request.auth != null && request.auth.uid == userId;
     }
+    
+    // Function to check if the user has an 'admin' role in their profile
+    function isAdmin() {
+      return request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
 
     match /users/{userId} {
-      // Allow users to create their own profile document
-      allow create: if isOwner(userId);
-      // Allow authenticated users to read and update their own profile
-      allow read, update: if isOwner(userId);
+      // Allow users to create their own profile, but they cannot assign themselves as admin
+      allow create: if isOwner(userId) && request.resource.data.role == 'client';
+      
+      // Allow authenticated users to read their own profile
+      allow read: if isOwner(userId) || isAdmin();
+      
+      // Allow users to update their own profile, but not change their role
+      allow update: if isOwner(userId) && request.resource.data.role == resource.data.role;
+
       // Deny deletion and listing of user profiles from the client
       allow delete, list: if false;
     }
@@ -19,9 +29,9 @@ service cloud.firestore {
     match /projects/{projectId} {
       // Allow authenticated users to create projects
       allow create: if request.auth != null;
-      // Allow users to read, update, and delete their own projects
-      allow read, update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
-       // Allow authenticated users to list their own projects
+      // Allow users to read, update, and delete their own projects, or if they are admin
+      allow read, update, delete: if (request.auth != null && resource.data.userId == request.auth.uid) || isAdmin();
+       // Allow authenticated users to list their own projects, or if they are admin
       allow list: if request.auth != null;
     }
     
@@ -29,14 +39,15 @@ service cloud.firestore {
       // Anyone can submit the contact form.
       allow create: if true;
       // No one can read/update/delete from the client. This data is for backend use.
-      allow read, update, delete: if false;
+      allow read, update, delete: if isAdmin();
+      allow list: if isAdmin();
     }
 
     match /testimonials/{testimonialId} {
       // Anyone can view testimonials.
       allow get, list: if true;
-      // No one can create/update/delete from the client.
-      allow create, update, delete: if false;
+      // No one can create/update/delete from the client, except an admin.
+      allow create, update, delete: if isAdmin();
     }
   }
 }

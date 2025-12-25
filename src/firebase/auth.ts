@@ -22,6 +22,7 @@ export async function signup(email: string, password: string, name: string) {
     name,
     email,
     createdAt: serverTimestamp() as any, // Let the server generate the timestamp
+    role: 'client', // Default role for new signups
   };
 
   await setDoc(doc(firestore, 'users', user.uid), userProfile);
