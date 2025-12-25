@@ -43,11 +43,12 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { LoaderCircle, PlusCircle, FolderKanban, PenSquare, BookUp, ArrowLeft, CalendarIcon, Upload } from 'lucide-react';
+import { LoaderCircle, PlusCircle, FolderKanban, PenSquare, BookUp, ArrowLeft, CalendarIcon, Upload, CheckCircle, Clock } from 'lucide-react';
 import { type Project, type ProjectServiceType, type CourseLevel } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
+import { Badge } from '@/components/ui/badge';
 
 
 const fileSchema = z.instanceof(File).optional().refine(file => !file || file.size <= 5 * 1024 * 1024, 'File size must be 5MB or less.');
@@ -520,7 +521,7 @@ export function CreateProjectDialog({ userId }: { userId: string}) {
                   </>
                 )}
 
-                {currentServiceType === 'book-writing' && (
+                {(currentServiceType === 'book-writing' || currentServiceType === 'book-publishing') && (
                   <>
                     <FormField control={form.control} name="topic" render={({ field }) => (
                         <FormItem>
@@ -636,7 +637,13 @@ function ProjectCard({ project }: { project: Project }) {
   return (
     <Card className="shadow-soft hover:shadow-lift transition-all duration-300">
       <CardHeader>
-        <CardTitle className="text-primary text-xl">{project.title}</CardTitle>
+        <div className="flex justify-between items-start">
+          <CardTitle className="text-primary text-xl">{project.title}</CardTitle>
+          <Badge variant={project.approved ? "default" : "secondary"}>
+            {project.approved ? <CheckCircle className="mr-1 h-3 w-3" /> : <Clock className="mr-1 h-3 w-3" />}
+            {project.approved ? 'Approved' : 'Pending'}
+          </Badge>
+        </div>
         <CardDescription>{label}</CardDescription>
       </CardHeader>
       <CardContent>

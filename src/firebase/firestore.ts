@@ -47,6 +47,7 @@ export async function createProject(
     currentStage: 'Initiation',
     progressPercent: 0,
     status: 'active',
+    approved: false, // Default to not approved
     assignedTeam: [],
     createdAt: serverTimestamp() as any, // Cast because SDK returns a sentinel value
     updatedAt: serverTimestamp() as any,

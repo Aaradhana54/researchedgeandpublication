@@ -51,6 +51,7 @@ export interface Project {
   currentStage: string;
   progressPercent: number; // 0-100
   status: 'active' | 'completed' | 'on-hold';
+  approved: boolean;
   assignedTeam: string[]; // Array of staff/admin UIDs
   createdAt: Timestamp;
   updatedAt: Timestamp;

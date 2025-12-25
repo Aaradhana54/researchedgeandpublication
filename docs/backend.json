@@ -49,11 +49,12 @@
         "currentStage": { "type": "string" },
         "progressPercent": { "type": "number" },
         "status": { "type": "string", "enum": ["active", "completed", "on-hold"] },
+        "approved": { "type": "boolean", "description": "Whether the project has been approved by staff." },
         "assignedTeam": { "type": "array", "items": { "type": "string" } },
         "createdAt": { "type": "string", "format": "date-time" },
         "updatedAt": { "type": "string", "format": "date-time" }
       },
-      "required": ["userId", "title", "serviceType", "status", "createdAt"]
+      "required": ["userId", "title", "serviceType", "status", "createdAt", "approved"]
     },
     "ContactLead": {
       "title": "Contact Lead",
