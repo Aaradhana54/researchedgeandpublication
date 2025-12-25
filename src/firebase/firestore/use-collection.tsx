@@ -21,19 +21,14 @@ export function useCollection<T extends DocumentData>(
     error: null,
   });
 
-  // We memoize the query itself to prevent re-running the effect on every render.
-  // The user of the hook is responsible for memoizing the query object if it's complex.
   const queryMemo = useMemo(() => query, [query]);
 
   useEffect(() => {
-    // If the query is not yet available (e.g., waiting for firestore instance),
-    // set loading to false and do nothing. This is the critical check.
     if (!queryMemo) {
       setState({ data: null, loading: false, error: null });
       return () => {}; // Return an empty cleanup function
     }
 
-    // Set loading to true only when we have a valid query and are about to fetch.
     setState({ data: null, loading: true, error: null });
 
     const unsubscribe = onSnapshot(
@@ -60,9 +55,8 @@ export function useCollection<T extends DocumentData>(
       }
     );
 
-    // Cleanup the subscription on unmount.
     return () => unsubscribe();
-  }, [queryMemo]); // The effect now correctly depends only on the memoized query.
+  }, [queryMemo]);
 
   return state;
 }

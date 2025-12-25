@@ -304,7 +304,7 @@ export function CreateProjectDialog({ userId }: { userId: string}) {
                       <FormField control={form.control} name="topic" render={({ field }) => (
                           <FormItem>
                               <FormLabel>Topic</FormLabel>
-                              <FormControl><Input placeholder="Your research topic" {...field} /></FormControl>
+                              <FormControl><Input placeholder="Your research topic" {...field} value={field.value || ''} /></FormControl>
                               <FormMessage />
                           </FormItem>
                       )} />
@@ -388,7 +388,7 @@ export function CreateProjectDialog({ userId }: { userId: string}) {
                           <FormField control={form.control} name="referencingStyle" render={({ field }) => (
                               <FormItem>
                                   <FormLabel>Referencing Style</FormLabel>
-                                  <FormControl><Input placeholder="e.g., APA 7th Ed." {...field} /></FormControl>
+                                  <FormControl><Input placeholder="e.g., APA 7th Ed." {...field} value={field.value || ''} /></FormControl>
                                   <FormMessage />
                               </FormItem>
                           )} />
@@ -396,7 +396,7 @@ export function CreateProjectDialog({ userId }: { userId: string}) {
                           <FormField control={form.control} name="language" render={({ field }) => (
                               <FormItem>
                                   <FormLabel>Language</FormLabel>
-                                  <FormControl><Input {...field} /></FormControl>
+                                  <FormControl><Input {...field} value={field.value || ''} /></FormControl>
                                   <FormMessage />
                               </FormItem>
                           )} />
@@ -429,7 +429,7 @@ export function CreateProjectDialog({ userId }: { userId: string}) {
                       <FormField control={form.control} name="topic" render={({ field }) => (
                           <FormItem>
                               <FormLabel>Topic</FormLabel>
-                              <FormControl><Input placeholder="Your research topic" {...field} /></FormControl>
+                              <FormControl><Input placeholder="Your research topic" {...field} value={field.value || ''} /></FormControl>
                               <FormMessage />
                           </FormItem>
                       )} />
@@ -446,7 +446,7 @@ export function CreateProjectDialog({ userId }: { userId: string}) {
                           <FormField control={form.control} name="language" render={({ field }) => (
                               <FormItem>
                                   <FormLabel>Language</FormLabel>
-                                  <FormControl><Input {...field} /></FormControl>
+                                  <FormControl><Input {...field} value={field.value || ''}/></FormControl>
                                   <FormMessage />
                               </FormItem>
                           )} />
@@ -571,7 +571,7 @@ export function CreateProjectDialog({ userId }: { userId: string}) {
                                   <FormItem>
                                       <FormLabel>Where do you want to publish?</FormLabel>
                                       <FormControl>
-                                      <Input placeholder="e.g., Scopus, SCI, a specific journal name" {...field} />
+                                      <Input placeholder="e.g., Scopus, SCI, a specific journal name" {...field} value={field.value || ''} />
                                       </FormControl>
                                       <FormMessage />
                                   </FormItem>
@@ -587,7 +587,7 @@ export function CreateProjectDialog({ userId }: { userId: string}) {
                     <FormField control={form.control} name="topic" render={({ field }) => (
                         <FormItem>
                             <FormLabel>Topic / Title of the Book</FormLabel>
-                            <FormControl><Input placeholder="Your book's topic or working title" {...field} /></FormControl>
+                            <FormControl><Input placeholder="Your book's topic or working title" {...field} value={field.value || ''} /></FormControl>
                             <FormMessage />
                         </FormItem>
                     )} />
@@ -604,7 +604,7 @@ export function CreateProjectDialog({ userId }: { userId: string}) {
                         <FormField control={form.control} name="language" render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Language</FormLabel>
-                                <FormControl><Input {...field} /></FormControl>
+                                <FormControl><Input {...field} value={field.value || ''} /></FormControl>
                                 <FormMessage />
                             </FormItem>
                         )} />

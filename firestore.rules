@@ -1,25 +1,3 @@
-/**
- * Core Philosophy: This ruleset implements a Role-Based Access Control (RBAC) model tailored for the Revio Research platform.
- * It strictly separates users into 'client', 'staff', and 'admin' roles, granting permissions based on these roles and
- * resource ownership. The default posture is denial of access, with explicit permissions granted for specific actions.
- *
- * Data Structure: The data is organized hierarchically with most operational data (stages, deliverables, chats, etc.) nested
- * as subcollections under a top-level `projects` collection. This enforces a clear relational structure. User profiles are
- * stored in a separate top-level `users` collection. Public-facing data, like `testimonials` and `contact_leads`, are
- * also in their own top-level collections to isolate them from secure user and project data.
- *
- * Key Security Decisions:
- * - Privilege Escalation Prevention: A user cannot create themselves with an elevated role ('admin' or 'staff') and cannot
- *   modify their own role after creation. This is the most critical security feature.
- * - Admin Supremacy: Users with the 'admin' role have universal read/write access for administrative purposes.
- * - Project-Scoped Access: A user's access to a project and its subcollections is determined by their ownership (the `userId`
- *   field on the project) or their membership in the `assignedTeam` array. This check is performed using a `get()` call to the
- *   parent project document, ensuring consistent permissions across all project-related data.
- * - User Data Privacy: Users can only read their own profile document. Listing all users is explicitly forbidden to prevent
- *   data scraping and user enumeration.
- * - Public Data Segregation: `contact_leads` is configured to be write-only for the public, while `testimonials` are public-read.
- *   This separation prevents public access from bleeding into secure collections.
- */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -28,182 +6,78 @@ service cloud.firestore {
     // Helper Functions
     // ----------------------------------------------------------------------
 
-    /**
-     * Returns true if the user is authenticated.
-     */
     function isSignedIn() {
       return request.auth != null;
     }
 
-    /**
-     * Returns true if the requesting user's UID matches the provided userId.
-     */
-    function isOwner(userId) {
-      return isSignedIn() && request.auth.uid == userId;
+    function uid() {
+      return request.auth.uid;
     }
 
-    /**
-     * Retrieves the user document for a given UID.
-     */
+    // Function to get the user's profile document
     function getUserDoc(userId) {
       return get(/databases/$(database)/documents/users/$(userId));
     }
 
-    /**
-     * Retrieves the project document for a given project ID.
-     */
-    function getProjectDoc(projectId) {
-      return get(/databases/$(database)/documents/projects/$(projectId));
+    // Function to check if the user has a profile document
+    function hasUserDoc() {
+      return isSignedIn() && exists(/databases/$(database)/documents/users/$(uid()));
     }
 
-    /**
-     * Returns true if the requesting user has the 'admin' role.
-     * This grants god-mode access and should be used at the top of permission chains.
-     */
-    function isAdmin() {
-      return isSignedIn() && getUserDoc(request.auth.uid).data.role == 'admin';
-    }
-    
-    /**
-     * Returns true if the requesting user has the 'staff' role.
-     */
-    function isStaff() {
-      return isSignedIn() && getUserDoc(request.auth.uid).data.role == 'staff';
+    // Function to check the user's role from their profile
+    function roleIs(role) {
+      return hasUserDoc() && getUserDoc(uid()).data.role == role;
     }
 
-    /**
-     * Returns true if the requesting user is the owner of the given project document.
-     */
-    function isProjectOwner(projectDoc) {
-      return request.auth.uid == projectDoc.data.userId;
-    }
+    function isAdmin() { return roleIs("admin"); }
+    function isStaff() { return roleIs("staff"); }
+    function isClient() { return roleIs("client"); }
 
-    /**
-     * Returns true if the requesting user is in the assigned team of the given project document.
-     */
-    function isProjectTeamMember(projectDoc) {
-      return request.auth.uid in projectDoc.data.assignedTeam;
-    }
 
-    /**
-     * Checks if the requesting user is either the owner or an assigned team member for a given project.
-     * This is the primary function for securing all project-related subcollections.
-     */
-    function isProjectParticipant(projectId) {
-      let project = getProjectDoc(projectId);
-      return isSignedIn() && (isProjectOwner(project) || isProjectTeamMember(project));
-    }
-    
-    /**
-     * Checks if the user is a participant in a specific chat by checking the parent chat document.
-     */
-    function isChatParticipant(projectId, chatId) {
-      let chat = get(/databases/$(database)/documents/projects/$(projectId)/chats/$(chatId));
-      return isSignedIn() && request.auth.uid in chat.data.participants;
-    }
-    
     // ----------------------------------------------------------------------
     // Collection Rules
     // ----------------------------------------------------------------------
 
-    /**
-     * @description Users can create their own profile, read their own data, and update non-critical fields.
-     * @path /users/{userId}
-     * @allow (create) a new user creating their own profile with `role: 'client'`. e.g., `users/abc` by user `abc`.
-     * @deny (create) a user attempting to create their profile with `role: 'admin'`.
-     * @deny (update) a user trying to change their own role.
-     * @deny (list) any user trying to get a list of all platform users.
-     * @principle Enforces Self-Creation, Ownership, and prevents Privilege Escalation.
-     */
     match /users/{userId} {
-      allow get: if isOwner(userId) || isAdmin();
+      // A user can create their own profile, but cannot assign a role other than 'client'.
+      allow create: if isSignedIn() && userId == uid()
+        && request.resource.data.role == "client"
+        && request.resource.data.email == request.auth.token.email;
+
+      // A user can read their own profile. Admins can read any profile.
+      allow get: if (isSignedIn() && userId == uid()) || isAdmin();
       allow list: if isAdmin();
-      // On signup, a user can create their own document, but CANNOT assign a role other than 'client'.
-      // We check that the user is creating a document where the ID matches their own auth UID.
-      allow create: if request.auth.uid == userId && request.resource.data.role == 'client';
-      // A user can update their own document, but the role must remain unchanged.
-      // An admin can update any part of the document.
-      allow update: if (isOwner(userId) && request.resource.data.role == resource.data.role) || isAdmin();
+
+      // A user can update their own profile, but cannot change their role. Admins can.
+      allow update: if (isSignedIn() && userId == uid() && request.resource.data.role == resource.data.role) || isAdmin();
+      
       allow delete: if isAdmin();
     }
 
-    /**
-     * @description A project can be read/written by its owner or assigned team. Clients create their own projects.
-     * @path /projects/{projectId}
-     * @allow (create) an authenticated user creating a project where `userId` is their own UID.
-     * @allow (get, list) the project owner (`userId`) or a user in `assignedTeam`.
-     * @deny (create) a user creating a project on behalf of another user.
-     * @principle Enforces Shared Access (Closed Collaborators) for a project's core document.
-     */
     match /projects/{projectId} {
-      // GET: A user can get a specific project if they are a participant.
-      allow get: if isProjectParticipant(projectId) || isAdmin();
-      
-      // LIST: A client can only list projects they own. Staff/Admins can list any.
-      allow list: if (isSignedIn() && request.query.where.get('userId', '') == request.auth.uid) || isStaff() || isAdmin();
+      // A client can create a project for themselves.
+      allow create: if isClient() && request.resource.data.userId == uid();
 
-      // CREATE: An authenticated user can create a project for themselves.
-      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      // For LIST operations (queries), Firestore checks the `read` permission on each potential document.
+      // This rule allows a document to be read if the requester is the owner, staff, or admin.
+      // This implicitly secures the `list` operation when combined with a `where('userId', '==', uid())` clause.
+      allow read: if (isSignedIn() && resource.data.userId == uid()) || isStaff() || isAdmin();
       
-      // UPDATE: A participant can update certain fields, staff/admins can update more.
-      allow update: if (isProjectParticipant(projectId) || isAdmin()) &&
-                      ( (isOwner(request.resource.data.userId) && request.resource.data.keys().hasOnly(['title', 'updatedAt'])) || 
-                        (isStaff() || isAdmin()) );
-      
-      // DELETE: Only the project owner or an admin can delete.
-      allow delete: if (isOwner(resource.data.userId)) || isAdmin();
-      
-      // -- Subcollections --
-      
-      /**
-       * @description Generic rule for most project subcollections (stages, deliverables, etc.).
-       * @path /projects/{projectId}/{subcollection}/{docId}
-       * @allow (all) a user who is the project owner or on the assigned team.
-       * @deny (any) a user who is not associated with the parent project.
-       * @principle Inherits permissions from the parent project document.
-       */
-      match /stages/{stageId} {
-        allow read, write: if isProjectParticipant(projectId) || isAdmin();
-      }
-      match /deliverables/{deliverableId} {
-        allow read, write: if isProjectParticipant(projectId) || isAdmin();
-      }
-      match /uploads/{uploadId} {
-        allow read, write: if isProjectParticipant(projectId) || isAdmin();
-      }
-       match /revision_requests/{requestId} {
-        allow read, write: if isProjectParticipant(projectId) || isAdmin();
-      }
-      match /payments/{paymentId} {
-        allow read, write: if isProjectParticipant(projectId) || isAdmin();
-      }
+      // The `list` operation itself is granted if the query is correctly filtered.
+      allow list: if (isClient() && request.query.where.get('userId', '') == uid()) || isStaff() || isAdmin();
 
-      /**
-       * @description Secures chat messages based on the parent chat's participant list.
-       * @path /projects/{projectId}/chats/{chatId}
-       */
-      match /chats/{chatId} {
-        allow read, write: if isChatParticipant(projectId, chatId) || isAdmin();
-        
-        match /messages/{messageId} {
-           allow read, write: if isChatParticipant(projectId, chatId) || isAdmin();
-        }
-      }
+      // A user can update their own project. Staff/Admins can update any.
+      allow update: if (isSignedIn() && resource.data.userId == uid()) || isStaff() || isAdmin();
+
+      // Only admins can delete projects.
+      allow delete: if isAdmin();
     }
-
-    /**
-     * @description Allows anyone to submit a contact lead form, but only admins can read them.
-     * @path /contact_leads/{contactLeadId}
-     */
+    
     match /contact_leads/{contactLeadId} {
       allow read, list, update, delete: if isAdmin();
       allow create: if true;
     }
 
-    /**
-     * @description Allows public read access for testimonials, but only admins can manage them.
-     * @path /testimonials/{testimonialId}
-     */
     match /testimonials/{testimonialId} {
       allow get, list: if true;
       allow create, update, delete: if isAdmin();
