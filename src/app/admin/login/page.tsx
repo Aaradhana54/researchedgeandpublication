@@ -10,7 +10,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { getFirebaseErrorMessage } from '@/firebase/errors';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Logo } from '@/components/ui/logo';
 import { doc, getDoc } from 'firebase/firestore';
 import { firestore } from '@/firebase/client';
 
@@ -48,10 +47,7 @@ export default function AdminLoginPage() {
   return (
     <div className="flex items-center justify-center min-h-screen bg-secondary p-4">
       <Card className="w-full max-w-md mx-auto shadow-lift relative">
-        <CardHeader className="text-center pt-12">
-            <div className="mx-auto w-fit mb-4">
-               <Logo />
-            </div>
+        <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold">Admin Login</CardTitle>
           <CardDescription>Enter your credentials to access the admin dashboard.</CardDescription>
         </CardHeader>
@@ -82,7 +78,7 @@ export default function AdminLoginPage() {
                 type="password"
                 required
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => setPassword(e.targe.value)}
                 disabled={loading}
               />
             </div>
