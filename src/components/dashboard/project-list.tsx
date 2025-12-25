@@ -70,7 +70,7 @@ const serviceTypeLabels: Record<ProjectServiceType, string> = {
   institutional: 'Institutional Branding',
 };
 
-function CreateProjectDialog({ userId }: { userId: string }) {
+function CreateProjectDialog({ userId, asHero = false }: { userId: string, asHero?: boolean }) {
   const [open, setOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -106,10 +106,17 @@ function CreateProjectDialog({ userId }: { userId: string }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button>
-          <PlusCircle className="mr-2 h-4 w-4" />
-          Create New Project
-        </Button>
+        {asHero ? (
+           <Button size="lg">
+              <PlusCircle className="mr-2 h-5 w-5" />
+              Create Your First Project
+            </Button>
+        ) : (
+          <Button>
+            <PlusCircle className="mr-2 h-4 w-4" />
+            Create New Project
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
@@ -202,7 +209,7 @@ export function ProjectList({ userId }: { userId: string }) {
 
   if (loading) {
     return (
-      <div className="flex justify-center">
+      <div className="flex justify-center py-16">
         <LoaderCircle className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
@@ -221,14 +228,14 @@ export function ProjectList({ userId }: { userId: string }) {
 
   if (!projects || projects.length === 0) {
     return (
-      <div className="text-center py-16 border-2 border-dashed rounded-lg">
-        <FolderKanban className="mx-auto h-12 w-12 text-muted-foreground" />
-        <h3 className="mt-4 text-lg font-medium">No projects found</h3>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Get started by creating your first project.
+      <div className="text-center py-16 px-4 border-2 border-dashed rounded-lg bg-card">
+        <FolderKanban className="mx-auto h-16 w-16 text-muted-foreground" />
+        <h3 className="mt-6 text-xl font-semibold text-foreground">No Projects Found</h3>
+        <p className="mt-2 text-md text-muted-foreground">
+          It looks like you haven't started any projects yet.
         </p>
-        <div className="mt-6">
-          <CreateProjectDialog userId={userId} />
+        <div className="mt-8">
+          <CreateProjectDialog userId={userId} asHero={true} />
         </div>
       </div>
     );

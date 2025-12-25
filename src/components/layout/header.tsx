@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { LogOut, Menu } from 'lucide-react';
+import { Menu } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 import { useScrollSpy } from '@/hooks/use-scroll-spy';
@@ -10,7 +10,6 @@ import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Logo } from '@/components/ui/logo';
 import { useUser } from '@/firebase';
-import { logout } from '@/firebase/auth';
 
 const navItems = [
   { label: 'Home', href: 'home' },
@@ -35,11 +34,6 @@ export function Header() {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
-
-  const handleLogout = async () => {
-    await logout();
-    // Redirect or show a message after logout if needed
-  };
 
   return (
     <header
@@ -72,15 +66,9 @@ export function Header() {
         <div className="flex items-center gap-2">
           {!loading &&
             (user ? (
-              <>
                 <Button asChild>
                   <Link href="/dashboard">Dashboard</Link>
                 </Button>
-                <Button variant="ghost" size="icon" onClick={handleLogout}>
-                  <LogOut className="h-5 w-5" />
-                  <span className="sr-only">Logout</span>
-                </Button>
-              </>
             ) : (
               <Button asChild variant="outline">
                 <Link href="/login">Login</Link>
