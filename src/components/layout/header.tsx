@@ -70,9 +70,14 @@ export function Header() {
                   <Link href="/dashboard">Dashboard</Link>
                 </Button>
             ) : (
-              <Button asChild variant="outline">
-                <Link href="/login">Login</Link>
-              </Button>
+              <>
+                <Button asChild variant="outline">
+                  <Link href="/login">Client Login</Link>
+                </Button>
+                <Button asChild>
+                  <Link href="/admin">Admin Login</Link>
+                </Button>
+              </>
             ))}
 
           <div className="md:hidden">
@@ -103,6 +108,23 @@ export function Header() {
                       </Link>
                     ))}
                   </nav>
+                   <div className="mt-auto flex flex-col gap-2 border-t pt-4">
+                     {!loading &&
+                        (user ? (
+                            <Button asChild>
+                              <Link href="/dashboard">Dashboard</Link>
+                            </Button>
+                        ) : (
+                          <>
+                            <Button asChild variant="outline">
+                              <Link href="/login">Client Login</Link>
+                            </Button>
+                            <Button asChild>
+                              <Link href="/admin">Admin Login</Link>
+                            </Button>
+                          </>
+                        ))}
+                   </div>
                 </div>
               </SheetContent>
             </Sheet>
