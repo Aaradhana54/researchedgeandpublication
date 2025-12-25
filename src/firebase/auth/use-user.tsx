@@ -6,30 +6,37 @@ import { doc, onSnapshot, type Unsubscribe } from 'firebase/firestore';
 import { auth, firestore } from '@/firebase/client';
 import type { UserProfile } from '@/lib/types';
 
-export function useUser() {
+interface UseUserHook {
+  user: User | null;
+  userProfile: UserProfile | null;
+  loading: boolean;
+}
+
+export function useUser(): UseUserHook {
   const [user, setUser] = useState<User | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    let profileUnsubscribe: Unsubscribe | undefined;
+    let unsubscribeProfile: Unsubscribe | undefined;
 
-    const authUnsubscribe = onAuthStateChanged(auth, (authUser) => {
-      // Clean up any existing profile listener
-      if (profileUnsubscribe) {
-        profileUnsubscribe();
-        profileUnsubscribe = undefined;
+    const unsubscribeAuth = onAuthStateChanged(auth, (authUser) => {
+      // If a profile listener is active, unsubscribe from it
+      if (unsubscribeProfile) {
+        unsubscribeProfile();
       }
 
       if (authUser) {
+        // User is logged in, set the user object
         setUser(authUser);
-        const userDocRef = doc(firestore, 'users', authUser.uid);
         
-        // Listen for profile changes
-        profileUnsubscribe = onSnapshot(userDocRef, (docSnap) => {
+        // Set up a new listener for the user's profile document
+        const userDocRef = doc(firestore, 'users', authUser.uid);
+        unsubscribeProfile = onSnapshot(userDocRef, (docSnap) => {
           if (docSnap.exists()) {
             setUserProfile({ ...docSnap.data(), uid: docSnap.id } as UserProfile);
           } else {
+            // Profile doesn't exist
             setUserProfile(null);
           }
           // Finished loading auth state and profile data
@@ -41,21 +48,21 @@ export function useUser() {
         });
 
       } else {
-        // User is signed out.
+        // User is signed out, reset all state
         setUser(null);
         setUserProfile(null);
-        setLoading(false); // Finished loading, user is not logged in.
+        setLoading(false);
       }
     });
 
-    // Cleanup both subscriptions on unmount
+    // Cleanup function to unsubscribe from both listeners on component unmount
     return () => {
-      authUnsubscribe();
-      if (profileUnsubscribe) {
-        profileUnsubscribe();
+      unsubscribeAuth();
+      if (unsubscribeProfile) {
+        unsubscribeProfile();
       }
     };
-  }, []); // This effect runs only once on mount
+  }, []); // Empty dependency array ensures this effect runs only once on mount
 
   return { user, userProfile, loading };
 }

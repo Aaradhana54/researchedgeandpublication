@@ -1,6 +1,6 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useEffect } from 'react';
 import {
   Sidebar,
@@ -25,8 +25,6 @@ import { useUser } from '@/firebase';
 import { logout } from '@/firebase/auth';
 import { Logo } from '@/components/ui/logo';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { Button } from '@/components/ui/button';
 
 const navItems = [
   { href: '/dashboard', label: 'Overview', icon: <LayoutDashboard /> },
@@ -45,6 +43,7 @@ export default function DashboardLayout({
   const pathname = usePathname();
 
   useEffect(() => {
+    // Wait until the loading is complete before checking for a user
     if (!loading && !user) {
       router.push('/login');
     }
@@ -55,12 +54,20 @@ export default function DashboardLayout({
     router.push('/login');
   };
 
-  if (loading || !user) {
+  // While authentication is in progress, show a global loading screen.
+  // This prevents a flash of content or incorrect redirects.
+  if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <LoaderCircle className="h-12 w-12 animate-spin text-primary" />
       </div>
     );
+  }
+
+  // If loading is complete but there is still no user, it means the redirect is about to happen.
+  // Rendering null avoids a brief flash of the dashboard layout.
+  if (!user) {
+    return null;
   }
 
   return (
@@ -75,7 +82,7 @@ export default function DashboardLayout({
               <SidebarMenuItem key={item.href}>
                 <SidebarMenuButton
                   asChild
-                  isActive={pathname === item.href}
+                  isActive={pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))}
                   tooltip={{
                     children: item.label,
                   }}
@@ -92,7 +99,7 @@ export default function DashboardLayout({
         <SidebarHeader>
            <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton onClick={handleLogout}>
+                <SidebarMenuButton onClick={handleLogout} tooltip={{ children: 'Logout' }}>
                   <LogOut />
                   <span>Logout</span>
                 </SidebarMenuButton>
