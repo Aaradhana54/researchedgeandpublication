@@ -342,23 +342,28 @@ export function CreateProjectDialog({ userId }: { userId: string}) {
                                   <FormControl>
                                     <div className="relative">
                                       <Input
+                                        readOnly
                                         placeholder="Pick a date"
                                         value={field.value ? format(field.value, 'PPP') : ''}
-                                        onChange={(e) => {
-                                          const date = new Date(e.target.value);
-                                          if (!isNaN(date.getTime())) {
-                                            field.onChange(date);
-                                          }
-                                        }}
                                       />
-                                      <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8">
+                                      <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="icon"
+                                        className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8"
+                                      >
                                         <CalendarIcon className="h-4 w-4 opacity-50" />
                                       </Button>
                                     </div>
                                   </FormControl>
                                 </PopoverTrigger>
                                 <PopoverContent className="w-auto p-0" align="start">
-                                  <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
+                                  <Calendar
+                                    mode="single"
+                                    selected={field.value}
+                                    onSelect={field.onChange}
+                                    initialFocus
+                                  />
                                 </PopoverContent>
                               </Popover>
                               <FormMessage />
@@ -476,25 +481,30 @@ export function CreateProjectDialog({ userId }: { userId: string}) {
                               <Popover>
                                 <PopoverTrigger asChild>
                                   <FormControl>
-                                     <div className="relative">
+                                    <div className="relative">
                                       <Input
+                                        readOnly
                                         placeholder="Pick a date"
                                         value={field.value ? format(field.value, 'PPP') : ''}
-                                        onChange={(e) => {
-                                          const date = new Date(e.target.value);
-                                          if (!isNaN(date.getTime())) {
-                                            field.onChange(date);
-                                          }
-                                        }}
                                       />
-                                      <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8">
+                                      <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="icon"
+                                        className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8"
+                                      >
                                         <CalendarIcon className="h-4 w-4 opacity-50" />
                                       </Button>
                                     </div>
                                   </FormControl>
                                 </PopoverTrigger>
                                 <PopoverContent className="w-auto p-0" align="start">
-                                  <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
+                                  <Calendar
+                                    mode="single"
+                                    selected={field.value}
+                                    onSelect={field.onChange}
+                                    initialFocus
+                                  />
                                 </PopoverContent>
                               </Popover>
                               <FormMessage />
@@ -600,30 +610,35 @@ export function CreateProjectDialog({ userId }: { userId: string}) {
                       render={({ field }) => (
                         <FormItem className="flex flex-col">
                           <FormLabel>Expected Deadline</FormLabel>
-                            <Popover>
-                              <PopoverTrigger asChild>
-                                <FormControl>
-                                  <div className="relative">
-                                    <Input
-                                      placeholder="Pick a date"
-                                      value={field.value ? format(field.value, 'PPP') : ''}
-                                      onChange={(e) => {
-                                        const date = new Date(e.target.value);
-                                        if (!isNaN(date.getTime())) {
-                                          field.onChange(date);
-                                        }
-                                      }}
-                                    />
-                                    <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8">
-                                      <CalendarIcon className="h-4 w-4 opacity-50" />
-                                    </Button>
-                                  </div>
-                                </FormControl>
-                              </PopoverTrigger>
-                              <PopoverContent className="w-auto p-0" align="start">
-                                <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
-                              </PopoverContent>
-                            </Popover>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <FormControl>
+                                <div className="relative">
+                                  <Input
+                                    readOnly
+                                    placeholder="Pick a date"
+                                    value={field.value ? format(field.value, 'PPP') : ''}
+                                  />
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8"
+                                  >
+                                    <CalendarIcon className="h-4 w-4 opacity-50" />
+                                  </Button>
+                                </div>
+                              </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <Calendar
+                                mode="single"
+                                selected={field.value}
+                                onSelect={field.onChange}
+                                initialFocus
+                              />
+                            </PopoverContent>
+                          </Popover>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -739,9 +754,11 @@ export function ProjectList({ userId }: { userId: string }) {
   if (error) {
     return (
       <Alert variant="destructive">
-        <AlertTitle>Error</AlertTitle>
+        <AlertTitle>Error Loading Projects</AlertTitle>
         <AlertDescription>
-          Could not load your projects. Please try again later.
+          {error.message === 'permission-denied'
+            ? 'You do not have permission to view these projects. Please check your security rules.'
+            : 'Could not load your projects. Please try again later.'}
         </AlertDescription>
       </Alert>
     );
