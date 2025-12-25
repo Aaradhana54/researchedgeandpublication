@@ -89,6 +89,81 @@ body {
   body {
     @apply bg-background text-foreground;
   }
+  /* ShadCN Calendar styles */
+  .rdp {
+    --rdp-cell-size: 40px;
+    --rdp-caption-font-size: 18px;
+    --rdp-accent-color: hsl(var(--primary));
+    --rdp-background-color: hsl(var(--card));
+    --rdp-accent-color-dark: hsl(var(--primary));
+    --rdp-background-color-dark: hsl(var(--card));
+    --rdp-outline: 2px solid var(--rdp-accent-color);
+    --rdp-outline-selected: 3px solid var(--rdp-accent-color);
+    --rdp-selected-color: hsl(var(--primary-foreground));
+  }
+  .rdp-month {
+    @apply space-y-4;
+  }
+  .rdp-caption {
+    @apply flex justify-center pt-1 relative items-center;
+  }
+  .rdp-caption_label {
+    @apply text-sm font-medium;
+  }
+  .rdp-nav {
+    @apply space-x-1 flex items-center;
+  }
+  .rdp-nav_button {
+    @apply h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100;
+  }
+  .rdp-nav_button_previous {
+    @apply absolute left-1;
+  }
+  .rdp-nav_button_next {
+    @apply absolute right-1;
+  }
+  .rdp-table {
+    @apply w-full border-collapse space-y-1;
+  }
+  .rdp-head_row {
+    @apply flex;
+  }
+  .rdp-head_cell {
+    @apply text-muted-foreground rounded-md w-9 font-normal text-[0.8rem];
+  }
+  .rdp-row {
+    @apply flex w-full mt-2;
+  }
+  .rdp-cell {
+    @apply h-9 w-9 text-center text-sm p-0 relative;
+  }
+  .rdp-cell:has([aria-selected]) {
+    @apply bg-accent;
+  }
+  .rdp-cell:has([aria-selected]):first-child {
+    @apply rounded-l-md;
+  }
+  .rdp-cell:has([aria-selected]):last-child {
+    @apply rounded-r-md;
+  }
+  .rdp-cell:has([aria-selected].day-outside) {
+    @apply bg-accent/50;
+  }
+  .rdp-day {
+    @apply h-9 w-9 p-0 font-normal;
+  }
+  .rdp-day_selected {
+    @apply bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground;
+  }
+  .rdp-day_today {
+    @apply bg-accent text-accent-foreground;
+  }
+  .rdp-day_outside {
+    @apply text-muted-foreground opacity-50;
+  }
+  .rdp-day_disabled {
+    @apply text-muted-foreground opacity-50;
+  }
 }
 
 @layer utilities {
