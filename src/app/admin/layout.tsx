@@ -3,7 +3,7 @@
 import { useUser } from '@/firebase';
 import { useRouter, usePathname } from 'next/navigation';
 import { useEffect } from 'react';
-import { LoaderCircle, FolderKanban, Users, FileText, CircleDollarSign, Bell, LogOut } from 'lucide-react';
+import { LoaderCircle, FolderKanban, Users, FileText, CircleDollarSign, Bell, LogOut, MessageSquareQuote } from 'lucide-react';
 import {
   Sidebar,
   SidebarContent,
@@ -22,6 +22,7 @@ import { logout } from '@/firebase/auth';
 const adminNavItems = [
   { href: '/admin/projects', label: 'Projects', icon: <FolderKanban /> },
   { href: '/admin/users', label: 'Users', icon: <Users /> },
+  { href: '/admin/testimonials', label: 'Testimonials', icon: <MessageSquareQuote /> },
   { href: '/admin/deliverables', label: 'Deliverables', icon: <FileText /> },
   { href: '/admin/payments', label: 'Payments', icon: <CircleDollarSign /> },
   { href: '/admin/notifications', label: 'Notifications', icon: <Bell /> },
