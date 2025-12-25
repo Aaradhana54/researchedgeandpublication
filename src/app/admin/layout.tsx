@@ -8,6 +8,7 @@ import {
   Wallet,
   DollarSign,
   ChevronDown,
+  Bell,
 } from 'lucide-react';
 import React from 'react';
 import { useEffect } from 'react';
@@ -47,6 +48,7 @@ const adminNavItems = [
   { href: '/admin/projects', label: 'Projects', icon: <FolderKanban /> },
   { href: '/admin/accounts', label: 'Accounts', icon: <Wallet /> },
   { href: '/admin/sales', label: 'Sales', icon: <DollarSign /> },
+  { href: '/admin/notifications', label: 'Notifications', icon: <Bell /> },
 ];
 
 function AdminSidebar() {
