@@ -22,7 +22,7 @@ export function Hero() {
             priority
           />
       )}
-      <div className="absolute inset-0 bg-background/60 -z-10" />
+      <div className="absolute inset-0 bg-background/80 -z-10" />
 
       <div className="container mx-auto">
         <AnimatedWrapper>
