@@ -1,6 +1,6 @@
 'use client';
 
-import { useFormState, useFormStatus } from 'react-dom';
+import { useActionState, useFormStatus } from 'react-dom';
 import { useEffect, useRef } from 'react';
 import { submitTestimonialForApproval, type TestimonialApprovalState } from '@/app/actions';
 
@@ -26,7 +26,7 @@ function SubmitButton() {
 }
 
 export function TestimonialApprovalForm() {
-  const [state, formAction] = useFormState(submitTestimonialForApproval, initialState);
+  const [state, formAction] = useActionState(submitTestimonialForApproval, initialState);
   const formRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
