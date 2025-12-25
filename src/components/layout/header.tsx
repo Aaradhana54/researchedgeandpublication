@@ -125,11 +125,11 @@ export function Header() {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => router.push('/login')}>
-                      Client Login
+                    <DropdownMenuItem asChild>
+                      <Link href="/login">Client Login</Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => router.push('/admin/login')}>
-                      Admin Login
+                    <DropdownMenuItem asChild>
+                      <Link href="/admin/login">Admin Login</Link>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -180,10 +180,10 @@ export function Header() {
                         </>
                       ) : (
                         <>
-                         <Button asChild onClick={() => { setIsMobileMenuOpen(false); router.push('/login'); }}>
+                         <Button asChild onClick={() => setIsMobileMenuOpen(false)}>
                             <Link href="/login">Client Login</Link>
                           </Button>
-                          <Button variant="outline" asChild onClick={() => { setIsMobileMenuOpen(false); router.push('/admin/login'); }}>
+                          <Button variant="outline" asChild onClick={() => setIsMobileMenuOpen(false)}>
                              <Link href="/admin/login">Admin Login</Link>
                           </Button>
                         </>
