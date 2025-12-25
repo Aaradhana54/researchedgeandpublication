@@ -18,7 +18,7 @@ export interface UserProfile {
   uid: string;
   name: string;
   email: string;
-  role: 'client' | 'admin' | 'staff';
+  role: 'client';
   createdAt: Timestamp;
   updatedAt: Timestamp;
 }
@@ -51,8 +51,7 @@ export interface Project {
   currentStage: string;
   progressPercent: number; // 0-100
   status: 'active' | 'completed' | 'on-hold';
-  approved: boolean;
-  assignedTeam: string[]; // Array of staff/admin UIDs
+  approved: boolean; // Simple approval by company, not role based
   createdAt: Timestamp;
   updatedAt: Timestamp;
 }

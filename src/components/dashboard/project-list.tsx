@@ -718,7 +718,7 @@ function ProjectCard({ project }: { project: Project }) {
   const label = serviceTypeLabels[project.serviceType] || project.serviceType;
   
   const badgeVariant = project.approved ? 'default' : 'secondary';
-  const badgeText = project.approved ? 'Approved' : 'Pending Approval';
+  const badgeText = project.approved ? 'Approved' : 'Pending Review';
   const BadgeIcon = project.approved ? CheckCircle : Clock;
   
   return (

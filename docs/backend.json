@@ -10,7 +10,7 @@
         "email": { "type": "string", "format": "email" },
         "role": {
           "type": "string",
-          "enum": ["client", "admin", "staff"],
+          "enum": ["client"],
           "description": "The user's role in the system."
         },
         "createdAt": { "type": "string", "format": "date-time" },
@@ -49,37 +49,11 @@
         "currentStage": { "type": "string" },
         "progressPercent": { "type": "number" },
         "status": { "type": "string", "enum": ["active", "completed", "on-hold"] },
-        "approved": { "type": "boolean", "description": "Whether the project has been approved by staff." },
-        "assignedTeam": { "type": "array", "items": { "type": "string" } },
+        "approved": { "type": "boolean", "description": "Whether the project has been approved." },
         "createdAt": { "type": "string", "format": "date-time" },
         "updatedAt": { "type": "string", "format": "date-time" }
       },
       "required": ["userId", "title", "serviceType", "status", "createdAt", "approved"]
-    },
-    "ContactLead": {
-      "title": "Contact Lead",
-      "description": "A lead from the public contact form.",
-      "type": "object",
-      "properties": {
-          "name": { "type": "string" },
-          "email": { "type": "string", "format": "email" },
-          "phone": { "type": "string" },
-          "message": { "type": "string" },
-          "serviceType": { "type": "string" }
-      },
-      "required": ["name", "email", "message"]
-    },
-    "Testimonial": {
-        "title": "Testimonial",
-        "description": "A customer testimonial.",
-        "type": "object",
-        "properties": {
-            "name": { "type": "string" },
-            "designation": { "type": "string" },
-            "message": { "type": "string" },
-            "approved": { "type": "boolean" }
-        },
-        "required": ["name", "message", "approved"]
     }
   },
   "auth": {
@@ -93,14 +67,6 @@
     "/projects/{projectId}": {
       "schema": { "$ref": "#/entities/Project" },
       "description": "Top-level collection for all research projects."
-    },
-    "/contact_leads/{contactLeadId}": {
-      "schema": { "$ref": "#/entities/ContactLead" },
-      "description": "Collection for public contact form submissions."
-    },
-     "/testimonials/{testimonialId}": {
-      "schema": { "$ref": "#/entities/Testimonial" },
-      "description": "Collection for customer testimonials."
     }
   }
 }

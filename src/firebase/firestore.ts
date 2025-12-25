@@ -32,8 +32,7 @@ export async function createProject(
     currentStage: 'Initiation',
     progressPercent: 0,
     status: 'active',
-    approved: false,
-    assignedTeam: [],
+    approved: false, // Default to false, can be changed by staff/admin
     createdAt: serverTimestamp() as Timestamp,
     updatedAt: serverTimestamp() as Timestamp,
   };
@@ -95,34 +94,6 @@ export async function updateProjectTitle(projectId: string, newTitle: string) {
             requestResourceData: updateData
           }, error);
           errorEmitter.emit('permission-error', permissionError);
-        }
-        throw error;
-    });
-}
-
-/**
- * Example of a function restricted to staff/admin.
- * Security rules will enforce this, but client-side checks can improve UX.
- */
-export async function staffUpdateProjectProgress(
-  projectId: string,
-  progress: number
-) {
-  const projectDocRef = doc(firestore, 'projects', projectId);
-  const updateData = {
-    progressPercent: progress,
-    updatedAt: serverTimestamp(),
-  };
-
-  updateDoc(projectDocRef, updateData)
-    .catch(error => {
-        if (error.code === 'permission-denied') {
-            const permissionError = new FirestorePermissionError({
-                path: projectDocRef.path,
-                operation: 'update',
-                requestResourceData: updateData
-            }, error);
-            errorEmitter.emit('permission-error', permissionError);
         }
         throw error;
     });

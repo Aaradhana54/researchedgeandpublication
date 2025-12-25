@@ -24,73 +24,57 @@ service cloud.firestore {
     function hasUserDoc() {
       return isSignedIn() && exists(/databases/$(database)/documents/users/$(uid()));
     }
-
-    // Function to check the user's role from their profile
-    function roleIs(role) {
-      // This is safe because it only runs if the user document exists
-      return hasUserDoc() && getUserDoc(uid()).data.role == role;
+    
+    function isClient() {
+        return hasUserDoc() && getUserDoc(uid()).data.role == 'client';
     }
-
-    function isAdmin() { return roleIs("admin"); }
-    function isStaff() { return roleIs("staff"); }
-    function isClient() { return roleIs("client"); }
 
     // ----------------------------------------------------------------------
     // Collection Rules
     // ----------------------------------------------------------------------
 
     match /users/{userId} {
-      // READ:
-      // - Admins can read any user profile.
-      // - Any signed-in user can read their own profile.
-      allow get: if isAdmin() || (isSignedIn() && userId == uid());
-      allow list: if isAdmin(); // Only admins can list all users.
+      // READ: Any signed-in user can read their own profile.
+      allow get: if isSignedIn() && userId == uid();
+      allow list: if false; // Users should not be able to list other users.
 
-      // CREATE:
-      // - Any authenticated user can create their OWN user document if signing up as a client.
-      // - Admin creation is done manually or via a secure backend process, not via this rule.
+      // CREATE: Any authenticated user can create their OWN user document.
+      // The role must be 'client'.
       allow create: if isSignedIn() && userId == uid() && request.resource.data.role == 'client';
 
-      // UPDATE:
-      // - Admins can update any user profile (including changing roles).
-      // - A user can update their own profile, but they CANNOT change their own role.
-      allow update: if isAdmin() || (isSignedIn() && userId == uid() && request.resource.data.role == resource.data.role);
+      // UPDATE: A user can update their own profile, but they CANNOT change their own role.
+      allow update: if isSignedIn() && userId == uid() && request.resource.data.role == resource.data.role;
       
-      // DELETE:
-      // - Only admins can delete user profiles.
-      allow delete: if isAdmin();
+      // DELETE: No one should be able to delete user profiles from the client.
+      allow delete: if false;
     }
 
     match /projects/{projectId} {
-      // CREATE: A client can create a project for themselves. Admins can create any project.
-      allow create: if (isClient() && request.resource.data.userId == uid()) || isAdmin();
+      // CREATE: A client can create a project for themselves.
+      allow create: if isClient() && request.resource.data.userId == uid();
 
-      // READ (get, list):
-      // - A user can read a project if they are the owner.
-      // - Staff and Admins can read any project.
-      // - For list queries, Firestore checks this rule on EACH document returned.
-      allow read: if (isSignedIn() && resource.data.userId == uid()) || isStaff() || isAdmin();
+      // READ (get, list): A user can read a project if they are the owner.
+      allow read: if isSignedIn() && resource.data.userId == uid();
       
-      // UPDATE: Owner, Staff, or Admin can update.
-      allow update: if (isSignedIn() && resource.data.userId == uid()) || isStaff() || isAdmin();
+      // UPDATE: Owner can update their project.
+      allow update: if isSignedIn() && resource.data.userId == uid();
 
-      // DELETE: Only admins can delete projects.
-      allow delete: if isAdmin();
+      // DELETE: No one should be able to delete projects from the client.
+      allow delete: if false;
     }
     
     match /contact_leads/{contactLeadId} {
       // Anyone can submit the contact form.
       allow create: if true;
-      // Only admins and staff can view or manage leads.
-      allow read, update, delete: if isAdmin() || isStaff();
-      allow list: if isAdmin() || isStaff();
+      // No one can read/update/delete from the client. This data is for backend use.
+      allow read, update, delete: if false;
     }
 
     match /testimonials/{testimonialId} {
-      // Anyone can view approved testimonials.
-      allow get, list: if resource.data.approved == true;
-      // Only admins can create, update, or delete testimonials.
-      allow create, update, delete: if isAdmin();
+      // Anyone can view testimonials.
+      allow get, list: if true;
+      // No one can create/update/delete from the client.
+      allow create, update, delete: if false;
     }
   }
 }
