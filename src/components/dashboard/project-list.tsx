@@ -43,9 +43,11 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { LoaderCircle, PlusCircle, FolderKanban } from 'lucide-react';
+import { LoaderCircle, PlusCircle, FolderKanban, PenSquare, BookUp, ArrowLeft } from 'lucide-react';
 import { type Project, type ProjectServiceType } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
+
 
 const projectSchema = z.object({
   title: z.string().min(5, 'Title must be at least 5 characters.'),
@@ -61,18 +63,41 @@ const projectSchema = z.object({
 
 type ProjectFormValues = z.infer<typeof projectSchema>;
 
-const serviceTypeLabels: Record<ProjectServiceType, string> = {
-  thesis: 'Thesis/Dissertation',
-  dissertation: 'Dissertation',
-  'data-analysis': 'Data Analysis',
-  paper: 'Research Paper',
-  book: 'Book Publishing',
-  institutional: 'Institutional Branding',
+type ServiceCategory = 'writing' | 'publication';
+
+const serviceCategories: Record<
+  ServiceCategory,
+  { label: string; services: Record<ProjectServiceType, string> }
+> = {
+  writing: {
+    label: 'Writing & Research',
+    services: {
+      thesis: 'Thesis Writing',
+      dissertation: 'Dissertation Writing',
+      paper: 'Research Paper',
+      'data-analysis': 'Data Analysis',
+    } as Record<ProjectServiceType, string>,
+  },
+  publication: {
+    label: 'Book & Publishing',
+    services: {
+      book: 'Book Publishing',
+      institutional: 'Institutional Branding',
+    } as Record<ProjectServiceType, string>,
+  },
 };
+
+const serviceTypeLabels: Record<ProjectServiceType, string> = {
+  ...serviceCategories.writing.services,
+  ...serviceCategories.publication.services,
+};
+
 
 export function CreateProjectDialog({ userId }: { userId: string}) {
   const [open, setOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [step, setStep] = useState(1);
+  const [selectedCategory, setSelectedCategory] = useState<ServiceCategory | null>(null);
   const { toast } = useToast();
 
   const form = useForm<ProjectFormValues>({
@@ -81,6 +106,24 @@ export function CreateProjectDialog({ userId }: { userId: string}) {
       title: '',
     },
   });
+
+  const handleCategorySelect = (category: ServiceCategory) => {
+    setSelectedCategory(category);
+    setStep(2);
+  };
+
+  const resetDialog = () => {
+    setStep(1);
+    setSelectedCategory(null);
+    form.reset();
+  };
+  
+  const handleOpenChange = (isOpen: boolean) => {
+    setOpen(isOpen);
+    if (!isOpen) {
+      resetDialog();
+    }
+  }
 
   const onSubmit = async (data: ProjectFormValues) => {
     setIsLoading(true);
@@ -91,7 +134,7 @@ export function CreateProjectDialog({ userId }: { userId: string}) {
         description: 'Your new project has been successfully created.',
       });
       form.reset();
-      setOpen(false);
+      handleOpenChange(false);
     } catch (error) {
       toast({
         variant: 'destructive',
@@ -104,70 +147,102 @@ export function CreateProjectDialog({ userId }: { userId: string}) {
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
           <Button size="lg">
               <PlusCircle className="mr-2 h-5 w-5" />
-              Create Your First Project
+              Create a New Project
           </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Create a New Project</DialogTitle>
-          <DialogDescription>
-            Fill in the details below to get started with a new research project.
+           {step > 1 && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute left-4 top-4 h-7 w-7"
+              onClick={() => setStep(step - 1)}
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+          )}
+          <DialogTitle className={cn(step > 1 && "text-center")}>
+            {step === 1 ? 'Create a New Project' : serviceCategories[selectedCategory!]?.label}
+          </DialogTitle>
+          <DialogDescription className={cn(step > 1 && "text-center")}>
+            {step === 1 ? 'What kind of project are you starting?' : 'Fill in the details below to get started.'}
           </DialogDescription>
         </DialogHeader>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
-            <FormField
-              control={form.control}
-              name="title"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Project Title</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g., My Doctoral Thesis" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="serviceType"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Service Type</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
+        {step === 1 && (
+          <div className="grid grid-cols-2 gap-4 py-4">
+             <Card
+              className="flex flex-col items-center justify-center p-6 text-center cursor-pointer hover:bg-accent hover:text-accent-foreground transition-colors group"
+              onClick={() => handleCategorySelect('writing')}
+            >
+                <PenSquare className="w-10 h-10 mb-2 text-primary group-hover:text-accent-foreground" />
+                <h3 className="font-semibold">{serviceCategories.writing.label}</h3>
+            </Card>
+            <Card
+              className="flex flex-col items-center justify-center p-6 text-center cursor-pointer hover:bg-accent hover:text-accent-foreground transition-colors group"
+              onClick={() => handleCategorySelect('publication')}
+            >
+                <BookUp className="w-10 h-10 mb-2 text-primary group-hover:text-accent-foreground" />
+                <h3 className="font-semibold">{serviceCategories.publication.label}</h3>
+            </Card>
+          </div>
+        )}
+        {step === 2 && selectedCategory && (
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
+              <FormField
+                control={form.control}
+                name="title"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Project Title</FormLabel>
                     <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a service type" />
-                      </SelectTrigger>
+                      <Input placeholder="e.g., My Doctoral Thesis" {...field} />
                     </FormControl>
-                    <SelectContent>
-                      {Object.entries(serviceTypeLabels).map(([value, label]) => (
-                        <SelectItem key={value} value={value}>
-                          {label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <DialogFooter>
-              <Button type="submit" disabled={isLoading}>
-                {isLoading && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />}
-                Create Project
-              </Button>
-            </DialogFooter>
-          </form>
-        </Form>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="serviceType"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Specific Service</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a service" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {Object.entries(serviceCategories[selectedCategory].services).map(([value, label]) => (
+                          <SelectItem key={value} value={value}>
+                            {label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <DialogFooter>
+                <Button type="submit" disabled={isLoading} className="w-full">
+                  {isLoading && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />}
+                  Create Project
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        )}
       </DialogContent>
     </Dialog>
   );
