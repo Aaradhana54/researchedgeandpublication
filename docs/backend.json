@@ -80,19 +80,6 @@
             "approved": { "type": "boolean" }
         },
         "required": ["name", "message", "approved"]
-    },
-    "InviteCode": {
-        "title": "Invite Code",
-        "description": "A one-time use code for admin signup.",
-        "type": "object",
-        "properties": {
-          "code": { "type": "string" },
-          "claimed": { "type": "boolean" },
-          "claimedBy": { "type": "string", "description": "UID of the user who claimed it." },
-          "claimedAt": { "type": "string", "format": "date-time" },
-          "createdAt": { "type": "string", "format": "date-time" }
-        },
-        "required": ["code", "claimed", "createdAt"]
     }
   },
   "auth": {
@@ -114,10 +101,6 @@
      "/testimonials/{testimonialId}": {
       "schema": { "$ref": "#/entities/Testimonial" },
       "description": "Collection for customer testimonials."
-    },
-    "/invites/{inviteId}": {
-        "schema": { "$ref": "#/entities/InviteCode" },
-        "description": "Stores one-time admin invite codes."
     }
   }
 }

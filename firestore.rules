@@ -47,8 +47,8 @@ service cloud.firestore {
       allow list: if isAdmin(); // Only admins can list all users.
 
       // CREATE:
-      // - An unauthenticated user can create their OWN user document IF they are signing up as a 'client'.
-      // - Admin creation is handled by the 'invites' rule logic and a server-side action, not this rule directly.
+      // - Any authenticated user can create their OWN user document if signing up as a client.
+      // - Admin creation is done manually or via a secure backend process, not via this rule.
       allow create: if isSignedIn() && userId == uid() && request.resource.data.role == 'client';
 
       // UPDATE:
@@ -66,9 +66,9 @@ service cloud.firestore {
       allow create: if (isClient() && request.resource.data.userId == uid()) || isAdmin();
 
       // READ (get, list):
-      // - For queries (list), this 'read' rule is checked on each document.
       // - A user can read a project if they are the owner.
       // - Staff and Admins can read any project.
+      // - For list queries, Firestore checks this rule on EACH document returned.
       allow read: if (isSignedIn() && resource.data.userId == uid()) || isStaff() || isAdmin();
       
       // UPDATE: Owner, Staff, or Admin can update.
@@ -81,8 +81,9 @@ service cloud.firestore {
     match /contact_leads/{contactLeadId} {
       // Anyone can submit the contact form.
       allow create: if true;
-      // Only admins can view or manage leads.
-      allow read, list, update, delete: if isAdmin();
+      // Only admins and staff can view or manage leads.
+      allow read, update, delete: if isAdmin() || isStaff();
+      allow list: if isAdmin() || isStaff();
     }
 
     match /testimonials/{testimonialId} {
@@ -90,13 +91,6 @@ service cloud.firestore {
       allow get, list: if resource.data.approved == true;
       // Only admins can create, update, or delete testimonials.
       allow create, update, delete: if isAdmin();
-    }
-
-    match /invites/{inviteId} {
-        // Only admins can create, read, or manage invite codes.
-        // The server action that validates a code will run with admin privileges
-        // and does not depend on client-side read permissions.
-        allow read, write, delete: if isAdmin();
     }
   }
 }

@@ -36,9 +36,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   useEffect(() => {
     if (loading) return; // Wait until user state is determined
 
-    // If on any admin page (except signup) and not logged in, redirect to signup
-    if (!user && pathname !== '/admin/signup') {
-      router.push('/admin/signup');
+    // If on any admin page (except login) and not logged in, redirect to login
+    if (!user && pathname !== '/admin/login') {
+      router.push('/admin/login');
       return;
     }
     
@@ -49,8 +49,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       return;
     }
 
-    // If logged in as admin but on signup page, redirect to admin dashboard
-    if (user && userProfile?.role === 'admin' && pathname === '/admin/signup') {
+    // If logged in as admin but on login page, redirect to admin dashboard
+    if (user && userProfile?.role === 'admin' && pathname === '/admin/login') {
       router.push('/admin');
     }
 
@@ -65,8 +65,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     );
   }
   
-  // For the signup page, don't render the admin layout
-  if (pathname === '/admin/signup') {
+  // For the login page, don't render the admin layout
+  if (pathname === '/admin/login') {
     return <>{children}</>;
   }
   
@@ -83,7 +83,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const handleLogout = async () => {
     await logout();
-    router.push('/login');
+    router.push('/admin/login');
   };
 
   return (

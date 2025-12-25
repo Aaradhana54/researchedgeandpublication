@@ -88,7 +88,7 @@ export function Header() {
                     <Link href="/login">Client Login</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="/admin">Admin Login</Link>
+                    <Link href="/admin/login">Admin Login</Link>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -134,7 +134,7 @@ export function Header() {
                               <Link href="/login">Client Login</Link>
                             </Button>
                             <Button asChild>
-                              <Link href="/admin">Admin Login</Link>
+                              <Link href="/admin/login">Admin Login</Link>
                             </Button>
                           </>
                         ))}
