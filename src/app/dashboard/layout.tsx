@@ -3,10 +3,10 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { LogOut, LoaderCircle, PanelLeft, Home, FilePlus, FolderKanban } from 'lucide-react';
+import { LogOut, LoaderCircle, Home, FilePlus, FolderKanban } from 'lucide-react';
 import { useUser } from '@/firebase/auth/use-user';
 import { logout } from '@/firebase/auth';
-import { useSidebar, SidebarProvider, Sidebar, SidebarTrigger, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter } from '@/components/ui/sidebar';
+import { useSidebar, SidebarProvider, Sidebar, SidebarTrigger, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Logo } from '@/components/ui/logo';
@@ -73,7 +73,7 @@ function DashboardHeader() {
 
 
 function DashboardSidebar() {
-    const { open, setOpen } = useSidebar();
+    const { setOpen } = useSidebar();
     
     return (
         <Sidebar>
@@ -84,7 +84,7 @@ function DashboardSidebar() {
                 <SidebarMenu>
                     {dashboardNavItems.map((item) => (
                         <SidebarMenuItem key={item.label}>
-                            <Link href={item.href} legacyBehavior passHref>
+                            <Link href={item.href}>
                                 <SidebarMenuButton onClick={() => setOpen(false)}>
                                     {item.icon}
                                     <span>{item.label}</span>
