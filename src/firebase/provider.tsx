@@ -39,7 +39,11 @@ export function FirebaseProvider({ children, value }: FirebaseProviderProps) {
 
 // --- Hooks ---
 export function useFirebase() {
-  return useContext(FirebaseContext);
+  const context = useContext(FirebaseContext);
+  if (context === undefined) {
+    throw new Error("useFirebase must be used within a FirebaseProvider");
+  }
+  return context;
 }
 
 export function useFirebaseApp() {

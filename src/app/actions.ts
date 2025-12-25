@@ -3,7 +3,7 @@
 import { z } from 'zod';
 import { approveTestimonial } from '@/ai/flows/approve-testimonials-flow';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { firestore } from '@/firebase/config';
+import { firestore } from '@/firebase/server';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 

@@ -1,8 +1,11 @@
 'use client';
 
-import { type ReactNode } from 'react';
-// IMPORTANT: We now import the lazily-initialized services
-import { firebaseApp, auth, firestore, storage } from './config';
+import { type ReactNode, useMemo } from 'react';
+import { initializeApp, getApps, getApp, type FirebaseApp } from 'firebase/app';
+import { getAuth, type Auth } from 'firebase/auth';
+import { getFirestore, type Firestore } from 'firebase/firestore';
+import { getStorage, type FirebaseStorage } from 'firebase/storage';
+import { firebaseConfig } from './config';
 import { FirebaseProvider } from './provider';
 import { FirebaseErrorListener } from '@/components/firebase-error-listener';
 
@@ -13,12 +16,19 @@ interface FirebaseClientProviderProps {
 export function FirebaseClientProvider({
   children,
 }: FirebaseClientProviderProps) {
-  // The services are now initialized lazily on the client in config.ts.
-  // We can safely pass them to the provider.
+
+  const { app, auth, firestore, storage } = useMemo(() => {
+    const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+    const auth = getAuth(app);
+    const firestore = getFirestore(app);
+    const storage = getStorage(app);
+    return { app, auth, firestore, storage };
+  }, []);
+
   return (
     <FirebaseProvider
       value={{
-        app: firebaseApp,
+        app: app,
         auth: auth,
         firestore: firestore,
         storage: storage,

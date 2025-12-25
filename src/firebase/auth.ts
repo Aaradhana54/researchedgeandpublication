@@ -9,7 +9,7 @@ import {
   updateProfile,
 } from 'firebase/auth';
 import { doc, setDoc, serverTimestamp, getDoc } from 'firebase/firestore';
-import { auth, firestore } from './config';
+import { auth, firestore } from './server'; // Use server-side instances
 import { getFirebaseErrorMessage } from './errors';
 
 

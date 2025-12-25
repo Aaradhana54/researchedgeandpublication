@@ -7,7 +7,10 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { login } from '@/firebase/auth'; // Only email login needed here
 import { doc, getDoc } from 'firebase/firestore';
-import { firestore } from '@/firebase/config';
+import { firestore } from '@/firebase/client';
+import { signOut } from 'firebase/auth';
+import { auth } from '@/firebase/client';
+
 
 import { Button } from '@/components/ui/button';
 import {
@@ -30,8 +33,6 @@ import { useToast } from '@/hooks/use-toast';
 import { LoaderCircle, ShieldCheck } from 'lucide-react';
 import { getFirebaseErrorMessage } from '@/firebase/errors';
 import { AnimatedWrapper } from '@/components/animated-wrapper';
-import { signOut } from 'firebase/auth';
-import { auth } from '@/firebase/config';
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address.'),
