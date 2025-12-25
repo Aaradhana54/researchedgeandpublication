@@ -12,7 +12,7 @@ body {
 
 @layer base {
   :root {
-    --background: 240 5.9% 95.9%; /* Very light gray */
+    --background: 221 44% 97%; /* Very light blue */
     --foreground: 240 5.9% 10%;
     --card: 0 0% 100%;
     --card-foreground: 240 5.9% 10%;
@@ -20,7 +20,7 @@ body {
     --popover-foreground: 240 5.9% 10%;
     --primary: 221 44% 47%; /* Deep Indigo */
     --primary-foreground: 0 0% 98%;
-    --secondary: 240 4.8% 95.9%;
+    --secondary: 221 44% 97%; /* Very light blue */
     --secondary-foreground: 240 5.9% 10%;
     --muted: 240 4.8% 95.9%;
     --muted-foreground: 240 3.8% 46.1%;
