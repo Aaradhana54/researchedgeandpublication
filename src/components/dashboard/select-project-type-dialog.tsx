@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import {
   Dialog,
   DialogContent,
@@ -17,14 +16,14 @@ import { ArrowRight, Book, Edit } from 'lucide-react';
 const serviceCategories = [
     {
         name: 'Writing',
-        description: 'For thesis, dissertations, research papers, and book writing.',
-        icon: <Edit className="w-10 h-10 text-primary" />,
+        description: 'Thesis, research papers, etc.',
+        icon: <Edit className="w-8 h-8 text-primary" />,
         href: '/dashboard/projects/create/writing',
     },
     {
         name: 'Publication',
-        description: 'For journal research publication and book publishing services.',
-        icon: <Book className="w-10 h-10 text-primary" />,
+        description: 'Journal and book publishing.',
+        icon: <Book className="w-8 h-8 text-primary" />,
         href: '/dashboard/projects/create/publication',
     },
 ];
@@ -43,35 +42,29 @@ export function SelectProjectTypeDialog({ children }: { children: React.ReactNod
             <DialogTrigger asChild>
                 {children}
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[825px]">
+            <DialogContent className="sm:max-w-md">
                 <DialogHeader>
-                    <DialogTitle className="text-2xl font-bold tracking-tight">Create a New Project</DialogTitle>
+                    <DialogTitle className="text-xl font-bold">Create a New Project</DialogTitle>
                     <DialogDescription>
-                        What type of service are you looking for? Select a category to continue.
+                        Select a service category to begin.
                     </DialogDescription>
                 </DialogHeader>
 
-                <div className="grid gap-8 md:grid-cols-2 pt-4">
+                <div className="grid gap-4 pt-4">
                     {serviceCategories.map((category) => (
                          <div
                             key={category.name}
                             onClick={() => handleSelect(category.href)}
-                            className="cursor-pointer"
+                            className="group relative cursor-pointer overflow-hidden rounded-lg border bg-card p-4 text-card-foreground shadow-sm transition-all duration-300 hover:border-primary hover:shadow-lg"
                         >
-                            <Card className="h-full shadow-soft hover:shadow-lift hover:-translate-y-1 transition-all duration-300 group">
-                                <CardHeader className="flex-row items-center gap-4">
-                                    {category.icon}
-                                    <div>
-                                        <CardTitle className="text-2xl">{category.name}</CardTitle>
-                                        <CardDescription>{category.description}</CardDescription>
-                                    </div>
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="flex items-center justify-end text-sm font-medium text-primary group-hover:underline">
-                                        Continue <ArrowRight className="ml-2 h-4 w-4" />
-                                    </div>
-                                </CardContent>
-                            </Card>
+                            <div className="flex items-center gap-4">
+                                {category.icon}
+                                <div>
+                                    <h3 className="text-lg font-semibold">{category.name}</h3>
+                                    <p className="text-sm text-muted-foreground">{category.description}</p>
+                                </div>
+                                <ArrowRight className="ml-auto h-5 w-5 text-muted-foreground transition-transform group-hover:translate-x-1 group-hover:text-primary" />
+                            </div>
                         </div>
                     ))}
                 </div>
