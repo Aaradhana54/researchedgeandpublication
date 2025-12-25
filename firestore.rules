@@ -136,12 +136,21 @@ service cloud.firestore {
      * @principle Enforces Shared Access (Closed Collaborators) for a project's core document.
      */
     match /projects/{projectId} {
-      allow get, list: if isProjectParticipant(projectId) || isAdmin();
+      // GET: A user can get a specific project if they are a participant.
+      allow get: if isProjectParticipant(projectId) || isAdmin();
+      
+      // LIST: A client can only list projects they own. Staff/Admins can list any.
+      allow list: if (isSignedIn() && request.query.where.get('userId', '') == request.auth.uid) || isStaff() || isAdmin();
+
+      // CREATE: An authenticated user can create a project for themselves.
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      // Clients can update title, staff/admins can update progress/status.
+      
+      // UPDATE: A participant can update certain fields, staff/admins can update more.
       allow update: if (isProjectParticipant(projectId) || isAdmin()) &&
                       ( (isOwner(request.resource.data.userId) && request.resource.data.keys().hasOnly(['title', 'updatedAt'])) || 
                         (isStaff() || isAdmin()) );
+      
+      // DELETE: Only the project owner or an admin can delete.
       allow delete: if (isOwner(resource.data.userId)) || isAdmin();
       
       // -- Subcollections --
