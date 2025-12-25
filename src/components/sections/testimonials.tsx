@@ -28,6 +28,7 @@ const staticTestimonials: Testimonial[] = PlaceHolderImages
 
 export function Testimonials() {
   const testimonialsQuery = useMemo(() => {
+    if (!firestore) return null;
     return query(collection(firestore, 'testimonials'), where('approved', '==', true));
   }, []);
   

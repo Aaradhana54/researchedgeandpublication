@@ -5,7 +5,7 @@ import { useState, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useCollection, useUser } from '@/firebase';
+import { useUser, useCollection } from '@/firebase';
 import { createProject } from '@/firebase/firestore';
 import { uploadFileAndGetURL } from '@/firebase/storage';
 import { collection, query, where } from 'firebase/firestore';
@@ -761,7 +761,7 @@ export function ProjectList({ userId }: { userId: string }) {
 
   const { data: projects, loading, error } = useCollection<Project>(projectsQuery);
 
-  if (loading || !projectsQuery) {
+  if (loading) {
     return (
       <div className="flex justify-center py-16">
         <LoaderCircle className="h-8 w-8 animate-spin text-primary" />
@@ -811,5 +811,3 @@ export function ProjectList({ userId }: { userId: string }) {
     </div>
   );
 }
-
-    
