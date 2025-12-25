@@ -5,11 +5,11 @@ import { useState, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useCollection } from '@/firebase';
+import { useCollection, useUser } from '@/firebase';
 import { createProject } from '@/firebase/firestore';
 import { uploadFileAndGetURL } from '@/firebase/storage';
 import { collection, query, where } from 'firebase/firestore';
-import { useFirestore, useUser } from '@/firebase';
+import { firestore } from '@/firebase/client';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -752,13 +752,12 @@ function ProjectCard({ project }: { project: Project }) {
 }
 
 export function ProjectList({ userId }: { userId: string }) {
-  const firestore = useFirestore();
   const { user } = useUser();
   
   const projectsQuery = useMemo(() => {
     if (!firestore || !userId) return null;
     return query(collection(firestore, 'projects'), where('userId', '==', userId));
-  }, [firestore, userId]);
+  }, [userId]);
 
   const { data: projects, loading, error } = useCollection<Project>(projectsQuery);
 

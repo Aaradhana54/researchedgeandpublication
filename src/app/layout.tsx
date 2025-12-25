@@ -1,10 +1,10 @@
 import type { Metadata } from 'next';
 import { Toaster } from '@/components/ui/toaster';
 import './globals.css';
-import { FirebaseClientProvider } from '@/firebase/client-provider';
 import { Inter } from 'next/font/google';
 import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
+import { FirebaseErrorListener } from '@/components/firebase-error-listener';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
@@ -30,14 +30,13 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body antialiased bg-background">
-        <FirebaseClientProvider>
           <div className="flex flex-col min-h-screen">
             <Header />
             <main className="flex-1">{children}</main>
             <Footer />
           </div>
           <Toaster />
-        </FirebaseClientProvider>
+        {process.env.NODE_ENV === 'development' && <FirebaseErrorListener />}
       </body>
     </html>
   );
