@@ -48,6 +48,7 @@ const projectSchema = z.object({
     'thesis-dissertation',
     'research-paper',
     'book-writing',
+    'review-paper',
     'research-publication',
     'book-publishing',
   ]),
@@ -67,6 +68,7 @@ const serviceCategories: Record<
       'thesis-dissertation': 'Thesis/Dissertation Writing',
       'research-paper': 'Research Paper Writing',
       'book-writing': 'Book Writing',
+      'review-paper': 'Review Paper Writing',
     },
   },
   publication: {
@@ -181,7 +183,7 @@ export function CreateProjectDialog({ userId }: { userId: string}) {
         </DialogHeader>
         
         {step === 1 && (
-          <div className="grid grid-cols-2 gap-4 py-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
              <Card
               className="flex flex-col items-center justify-center p-6 text-center cursor-pointer hover:bg-accent hover:text-accent-foreground transition-colors group"
               onClick={() => handleCategorySelect('writing')}
@@ -200,11 +202,11 @@ export function CreateProjectDialog({ userId }: { userId: string}) {
         )}
         
         {step === 2 && selectedCategory && (
-            <div className="grid grid-cols-2 gap-4 py-4">
+            <div className="grid grid-cols-1 gap-3 py-4">
                 {Object.entries(serviceCategories[selectedCategory].services).map(([value, label]) => (
                      <Card
                         key={value}
-                        className="flex flex-col items-center justify-center p-4 text-center cursor-pointer hover:bg-accent hover:text-accent-foreground transition-colors group h-24"
+                        className="flex items-center justify-center p-4 text-center cursor-pointer hover:bg-accent hover:text-accent-foreground transition-colors group h-16"
                         onClick={() => handleServiceSelect(value as ProjectServiceType)}
                      >
                          <h3 className="font-semibold text-sm">{label}</h3>
