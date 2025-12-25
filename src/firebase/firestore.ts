@@ -55,10 +55,12 @@ export async function createProject(
     })
     .catch(error => {
        if (error.code === 'permission-denied') {
+          // Destructure to remove non-serializable Timestamps for the error context
+          const { createdAt, updatedAt, ...serializableData } = newProjectData;
           const permissionError = new FirestorePermissionError({
             path: projectsColRef.path,
             operation: 'create',
-            requestResourceData: newProjectData
+            requestResourceData: serializableData
           }, error);
           errorEmitter.emit('permission-error', permissionError);
         }
