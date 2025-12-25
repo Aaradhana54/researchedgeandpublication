@@ -27,7 +27,7 @@ export function useUser() {
 
   useEffect(() => {
     // If there's no user, we don't need to fetch a profile
-    if (!user) {
+    if (!user?.uid) {
         setLoading(false);
         return;
     }
@@ -49,7 +49,7 @@ export function useUser() {
 
     // Cleanup subscription on unmount or if user changes
     return () => unsubscribe();
-  }, [user]); // Re-run this effect only when the user object changes
+  }, [user?.uid]); // Re-run this effect only when the user's UID changes
 
   return { user, userProfile, loading };
 }

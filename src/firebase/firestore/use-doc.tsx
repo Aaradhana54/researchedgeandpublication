@@ -21,6 +21,9 @@ export function useDoc<T extends DocumentData>(
     error: null,
   });
 
+  // Memoize the path of the document reference to use as a stable dependency.
+  const docPath = useMemo(() => ref?.path, [ref]);
+
   useEffect(() => {
     if (!ref) {
       setState({ data: null, loading: false, error: null });
@@ -59,7 +62,7 @@ export function useDoc<T extends DocumentData>(
     );
 
     return () => unsubscribe();
-  }, [ref]);
+  }, [docPath, ref]); // Depend on the stable path and the ref itself.
 
   return state;
 }
