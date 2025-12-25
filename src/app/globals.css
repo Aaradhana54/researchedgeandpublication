@@ -100,6 +100,7 @@ body {
     --rdp-outline: 2px solid var(--rdp-accent-color);
     --rdp-outline-selected: 3px solid var(--rdp-accent-color);
     --rdp-selected-color: hsl(var(--primary-foreground));
+    @apply p-3;
   }
   .rdp-month {
     @apply space-y-4;
