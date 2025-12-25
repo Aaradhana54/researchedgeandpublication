@@ -21,10 +21,17 @@ export function useCollection<T extends DocumentData>(
     error: null,
   });
 
+  // Memoize the path of the query to use as a stable dependency
+  const queryPath = useMemo(() => {
+    if (!query) return null;
+    return (query as any)._query.path.segments.join('/');
+  }, [query]);
+
+
   useEffect(() => {
     if (!query) {
       setState({ data: null, loading: false, error: null });
-      return () => {}; // Return an empty cleanup function
+      return () => {};
     }
 
     setState({ data: null, loading: true, error: null });
@@ -41,7 +48,7 @@ export function useCollection<T extends DocumentData>(
         if (error.code === 'permission-denied') {
           const permissionError = new FirestorePermissionError(
             {
-              path: (query as any)._query.path.segments.join('/'),
+              path: queryPath || 'unknown path',
               operation: 'list',
             },
             error
@@ -54,7 +61,8 @@ export function useCollection<T extends DocumentData>(
     );
 
     return () => unsubscribe();
-  }, [query]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [queryPath]); // Depend on the stable query path
 
   return state;
 }

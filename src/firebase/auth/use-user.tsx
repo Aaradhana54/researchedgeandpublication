@@ -12,31 +12,44 @@ export function useUser() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
       if (!user) {
+        // If user is null, we're not loading anymore
         setUserProfile(null);
         setLoading(false);
       }
     });
 
-    return () => unsubscribeAuth();
-  }, []);
+    // Cleanup subscription on unmount
+    return () => unsubscribe();
+  }, []); // Empty dependency array ensures this runs only once
 
   useEffect(() => {
-    if (user && firestore) {
-      const userDocRef = doc(firestore, 'users', user.uid);
-      const unsubscribeProfile = onSnapshot(userDocRef, (doc) => {
+    // If there's no user, we don't need to fetch a profile
+    if (!user) {
+        setLoading(false);
+        return;
+    }
+
+    setLoading(true);
+    const userDocRef = doc(firestore, 'users', user.uid);
+    const unsubscribe = onSnapshot(userDocRef, (doc) => {
         if (doc.exists()) {
           setUserProfile({ ...doc.data(), uid: doc.id } as UserProfile);
         } else {
           setUserProfile(null);
         }
         setLoading(false);
-      });
-      return () => unsubscribeProfile();
-    }
-  }, [user]);
+    }, (error) => {
+        console.error("Error fetching user profile:", error);
+        setUserProfile(null);
+        setLoading(false);
+    });
+
+    // Cleanup subscription on unmount or if user changes
+    return () => unsubscribe();
+  }, [user]); // Re-run this effect only when the user object changes
 
   return { user, userProfile, loading };
 }

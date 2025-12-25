@@ -30,7 +30,7 @@ export function Testimonials() {
   const testimonialsQuery = useMemo(() => {
     if (!firestore) return null;
     return query(collection(firestore, 'testimonials'), where('approved', '==', true));
-  }, [firestore]);
+  }, []);
   
   const { data: dynamicTestimonials, loading } = useCollection<Testimonial>(testimonialsQuery);
 
