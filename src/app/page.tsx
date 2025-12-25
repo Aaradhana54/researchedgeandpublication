@@ -1,4 +1,3 @@
-import { Header } from '@/components/layout/header';
 import { Hero } from '@/components/sections/hero';
 import { MissionVision } from '@/components/sections/mission-vision';
 import { About } from '@/components/sections/about';
@@ -9,25 +8,20 @@ import { InstitutionalBranding } from '@/components/sections/institutional-brand
 import { Process } from '@/components/sections/process';
 import { Testimonials } from '@/components/sections/testimonials';
 import { Contact } from '@/components/sections/contact';
-import { Footer } from '@/components/layout/footer';
 
 export default function Home() {
   return (
-    <div className="flex flex-col min-h-screen bg-background">
-      <Header />
-      <main className="flex-1">
-        <Hero />
-        <MissionVision />
-        <About />
-        <Features />
-        <Services />
-        <BookPublishing />
-        <InstitutionalBranding />
-        <Process />
-        <Testimonials />
-        <Contact />
-      </main>
-      <Footer />
-    </div>
+    <>
+      <Hero />
+      <MissionVision />
+      <About />
+      <Features />
+      <Services />
+      <BookPublishing />
+      <InstitutionalBranding />
+      <Process />
+      <Testimonials />
+      <Contact />
+    </>
   );
 }

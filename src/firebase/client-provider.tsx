@@ -1,6 +1,7 @@
 'use client';
 
 import { type ReactNode } from 'react';
+// IMPORTANT: We now import the lazily-initialized services
 import { firebaseApp, auth, firestore, storage } from './config';
 import { FirebaseProvider } from './provider';
 import { FirebaseErrorListener } from '@/components/firebase-error-listener';

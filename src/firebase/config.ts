@@ -24,20 +24,22 @@ let firestore: Firestore;
 let storage: FirebaseStorage;
 
 function initializeFirebase() {
-  if (!getApps().length) {
-    firebaseApp = initializeApp(firebaseConfig);
-    auth = getAuth(firebaseApp);
-    firestore = getFirestore(firebaseApp);
-    storage = getStorage(firebaseApp);
-  } else {
-    firebaseApp = getApp();
-    auth = getAuth(firebaseApp);
-    firestore = getFirestore(firebaseApp);
-    storage = getStorage(firebaseApp);
+  if (typeof window !== 'undefined') {
+    if (!getApps().length) {
+      firebaseApp = initializeApp(firebaseConfig);
+      auth = getAuth(firebaseApp);
+      firestore = getFirestore(firebaseApp);
+      storage = getStorage(firebaseApp);
+    } else {
+      firebaseApp = getApp();
+      auth = getAuth(firebaseApp);
+      firestore = getFirestore(firebaseApp);
+      storage = getStorage(firebaseApp);
+    }
   }
 }
 
-// Call initialize on first import
+// Call initialize on first import.
 initializeFirebase();
 
 // Export the initialized services
