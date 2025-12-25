@@ -189,13 +189,16 @@ export default function LoginPage() {
             Google
           </Button>
         </CardContent>
-        <CardFooter className="justify-center text-sm">
+        <CardFooter className="flex-col gap-4 text-center text-sm">
           <p>
             Don't have an account?{' '}
             <Link href="/signup" className="font-semibold text-primary hover:underline">
               Sign up
             </Link>
           </p>
+          <Link href="/" className="text-sm text-muted-foreground hover:text-primary hover:underline">
+            &larr; Back to Home
+          </Link>
         </CardFooter>
       </Card>
     </div>
