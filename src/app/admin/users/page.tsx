@@ -1,10 +1,10 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { collection, query } from 'firebase/firestore';
 import { useCollection } from '@/firebase';
 import { firestore } from '@/firebase/client';
-import type { UserProfile } from '@/lib/types';
+import type { UserProfile, UserRole } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoaderCircle, UserPlus } from 'lucide-react';
 import {
@@ -15,6 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
@@ -28,6 +29,41 @@ const roleVariantMap: { [key: string]: 'default' | 'secondary' | 'destructive' |
   'referral-partner': 'outline',
 };
 
+function UserTable({ users }: { users: UserProfile[] }) {
+    if (!users || users.length === 0) {
+        return <p className="text-center text-muted-foreground py-12">No users found for this role.</p>;
+    }
+    
+    return (
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+              <TableHead>Email</TableHead>
+              <TableHead>Role</TableHead>
+              <TableHead>Joined On</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {users.map((user) => (
+              <TableRow key={user.uid}>
+                <TableCell className="font-medium">{user.name}</TableCell>
+                <TableCell>{user.email}</TableCell>
+                <TableCell>
+                  <Badge variant={roleVariantMap[user.role] || 'default'} className="capitalize">
+                    {user.role.replace('-', ' ')}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                    {user.createdAt ? format(user.createdAt.toDate(), 'PPP') : 'N/A'}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+    );
+}
+
 export default function UserManagementPage() {
   const usersQuery = useMemo(() => {
     if (!firestore) return null;
@@ -36,12 +72,39 @@ export default function UserManagementPage() {
 
   const { data: users, loading } = useCollection<UserProfile>(usersQuery);
 
+  const filteredUsers = useMemo(() => {
+    if (!users) {
+      return {
+        all: [],
+        clients: [],
+        authors: [],
+        team: [],
+        partners: [],
+      };
+    }
+    return {
+      all: users,
+      clients: users.filter(u => u.role === 'client'),
+      authors: users.filter(u => u.role === 'author'),
+      team: users.filter(u => u.role === 'team-member' || u.role === 'admin'),
+      partners: users.filter(u => u.role === 'referral-partner'),
+    };
+  }, [users]);
+  
+  const tabs = [
+    { value: 'all', label: 'All Users', data: filteredUsers.all },
+    { value: 'clients', label: 'Research Clients', data: filteredUsers.clients },
+    { value: 'authors', label: 'Authors', data: filteredUsers.authors },
+    { value: 'team', label: 'Team', data: filteredUsers.team },
+    { value: 'partners', label: 'Referral Partners', data: filteredUsers.partners },
+  ];
+
   return (
     <div className="p-4 sm:p-6 lg:p-8">
       <div className="mb-8 flex justify-between items-start">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">User Management</h1>
-          <p className="text-muted-foreground">Manage all client and admin users.</p>
+          <p className="text-muted-foreground">Manage all client, author, team, and partner users.</p>
         </div>
         <CreateUserDialog>
             <Button>
@@ -50,46 +113,34 @@ export default function UserManagementPage() {
             </Button>
         </CreateUserDialog>
       </div>
+      
       <Card>
         <CardHeader>
-          <CardTitle>All Users</CardTitle>
-          <CardDescription>A list of all users in your system.</CardDescription>
+            <CardTitle>User Roles</CardTitle>
+            <CardDescription>Select a role to view and manage users.</CardDescription>
         </CardHeader>
         <CardContent>
-          {loading ? (
-            <div className="flex justify-center items-center h-48">
-              <LoaderCircle className="w-8 h-8 animate-spin text-primary" />
-            </div>
-          ) : users ? (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead>Joined On</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {users.map((user) => (
-                  <TableRow key={user.uid}>
-                    <TableCell className="font-medium">{user.name}</TableCell>
-                    <TableCell>{user.email}</TableCell>
-                    <TableCell>
-                      <Badge variant={roleVariantMap[user.role] || 'default'} className="capitalize">
-                        {user.role.replace('-', ' ')}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                        {user.createdAt ? format(user.createdAt.toDate(), 'PPP') : 'N/A'}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          ) : (
-             <p className="text-center text-muted-foreground py-12">No users found.</p>
-          )}
+            <Tabs defaultValue="all">
+                <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-5 mb-6">
+                   {tabs.map(tab => (
+                     <TabsTrigger key={tab.value} value={tab.value}>{tab.label}</TabsTrigger>
+                   ))}
+                </TabsList>
+                
+                {loading ? (
+                     <div className="flex justify-center items-center h-48">
+                        <LoaderCircle className="w-8 h-8 animate-spin text-primary" />
+                    </div>
+                ) : (
+                    <>
+                        {tabs.map(tab => (
+                            <TabsContent key={tab.value} value={tab.value}>
+                                <UserTable users={tab.data} />
+                            </TabsContent>
+                        ))}
+                    </>
+                )}
+            </Tabs>
         </CardContent>
       </Card>
     </div>
