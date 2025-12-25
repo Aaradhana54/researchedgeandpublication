@@ -13,19 +13,21 @@ service cloud.firestore {
 
     match /users/{userId} {
       // New users can only create their own profile with the 'client' role.
-      allow create: if isOwner(userId) && request.resource.data.role == 'client';
-      // Users can read their own profile. Admins can read any profile.
-      allow read: if isOwner(userId) || isAdmin();
-      // Users can update their own profile, but cannot change their role. Admins can update any profile, but also cannot change roles.
+      // Admins can create any user with any role.
+      allow create: if (isOwner(userId) && request.resource.data.role == 'client') || isAdmin();
+      // Users can read their own profile. Admins can read any profile and list all users.
+      allow read, list: if isOwner(userId) || isAdmin();
+      // Users can update their own profile, but cannot change their role. 
+      // Admins can update any profile, but also cannot change roles for security.
       allow update: if (isOwner(userId) || isAdmin()) && request.resource.data.role == resource.data.role;
-      // No one can delete users or list all users from the client.
-      allow delete, list: if isAdmin();
+      // Only admins can delete users.
+      allow delete: if isAdmin();
     }
     
     match /projects/{projectId} {
-      // Authenticated users can create projects.
-      allow create: if request.auth != null;
-      // Owners or admins can read, update, and delete.
+      // Authenticated users can create projects for themselves.
+      allow create: if request.auth != null && isOwner(request.resource.data.userId);
+      // Owners or admins can manage projects.
       allow read, update, delete: if isOwner(resource.data.userId) || isAdmin();
       // Authenticated users can list projects (will be filtered by user ID in the app query). Admins can list all.
       allow list: if request.auth != null;
