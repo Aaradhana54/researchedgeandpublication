@@ -9,7 +9,7 @@ import {
   updateProfile,
 } from 'firebase/auth';
 import { doc, setDoc, serverTimestamp, getDoc } from 'firebase/firestore';
-import { auth, firestore } from './index';
+import { auth, firestore } from './config';
 
 
 export async function signUpClient(name: string, email: string, password:string) {

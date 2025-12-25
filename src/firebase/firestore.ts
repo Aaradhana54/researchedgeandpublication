@@ -11,7 +11,7 @@ import {
   serverTimestamp,
   Timestamp,
 } from 'firebase/firestore';
-import { firestore } from './index';
+import { firestore } from './config';
 import type { Project } from '@/lib/types';
 
 

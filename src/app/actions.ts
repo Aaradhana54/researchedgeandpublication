@@ -3,7 +3,7 @@
 import { z } from 'zod';
 import { approveTestimonial } from '@/ai/flows/approve-testimonials-flow';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { firestore } from '@/firebase';
+import { firestore } from '@/firebase/config';
 
 const contactFormSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters.'),

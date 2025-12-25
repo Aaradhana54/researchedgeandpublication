@@ -1,7 +1,7 @@
 'use client';
 
 import { type ReactNode } from 'react';
-import { firebaseApp, auth, firestore, storage } from './index';
+import { firebaseApp, auth, firestore, storage } from './config';
 import { FirebaseProvider } from './provider';
 
 interface FirebaseClientProviderProps {

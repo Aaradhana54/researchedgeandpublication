@@ -1,28 +1,6 @@
-import { getApps, initializeApp, getApp, type FirebaseApp } from 'firebase/app';
-import { getAuth, type Auth } from 'firebase/auth';
-import { getFirestore, type Firestore } from 'firebase/firestore';
-import { getStorage, type FirebaseStorage } from 'firebase/storage';
-import { firebaseConfig } from './config';
 
-// --- SERVICE INITIALIZATION ---
-
-let firebaseApp: FirebaseApp;
-
-// Check if Firebase has already been initialized
-if (getApps().length > 0) {
-  firebaseApp = getApp();
-} else {
-  firebaseApp = initializeApp(firebaseConfig);
-}
-
-const auth: Auth = getAuth(firebaseApp);
-const firestore: Firestore = getFirestore(firebaseApp);
-const storage: FirebaseStorage = getStorage(firebaseApp);
-
-export { firebaseApp, auth, firestore, storage };
-
-
-// --- RE-EXPORTS for PROVIDERS and HOOKS ---
+// --- RE-EXPORTS for SERVICES, PROVIDERS and HOOKS ---
+export { firebaseApp, auth, firestore, storage } from './config';
 
 export { FirebaseProvider } from './provider';
 export { FirebaseClientProvider } from './client-provider';
