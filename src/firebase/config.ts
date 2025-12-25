@@ -16,19 +16,29 @@ const firebaseConfig = {
   measurementId: "G-XXXXXXXXXX"
 };
 
-// --- SERVICE INITIALIZATION ---
+// --- LAZY INITIALIZATION ---
 
-// Use a function to ensure initialization happens once, on the client.
-function initializeFirebaseApp(): FirebaseApp {
-  if (getApps().length > 0) {
-    return getApp();
+let firebaseApp: FirebaseApp;
+let auth: Auth;
+let firestore: Firestore;
+let storage: FirebaseStorage;
+
+function initializeFirebase() {
+  if (!getApps().length) {
+    firebaseApp = initializeApp(firebaseConfig);
+    auth = getAuth(firebaseApp);
+    firestore = getFirestore(firebaseApp);
+    storage = getStorage(firebaseApp);
+  } else {
+    firebaseApp = getApp();
+    auth = getAuth(firebaseApp);
+    firestore = getFirestore(firebaseApp);
+    storage = getStorage(firebaseApp);
   }
-  return initializeApp(firebaseConfig);
 }
 
-const firebaseApp = initializeFirebaseApp();
-const auth = getAuth(firebaseApp);
-const firestore = getFirestore(firebaseApp);
-const storage = getStorage(firebaseApp);
+// Call initialize on first import
+initializeFirebase();
 
+// Export the initialized services
 export { firebaseApp, auth, firestore, storage };

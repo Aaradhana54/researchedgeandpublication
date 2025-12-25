@@ -12,20 +12,15 @@ interface FirebaseClientProviderProps {
 export function FirebaseClientProvider({
   children,
 }: FirebaseClientProviderProps) {
-  // By initializing services here inside a 'use client' component,
-  // we ensure they are treated as client-side singletons.
-  const appInstance = firebaseApp;
-  const authInstance = auth;
-  const firestoreInstance = firestore;
-  const storageInstance = storage;
-
+  // The services are now initialized lazily on the client in config.ts.
+  // We can safely pass them to the provider.
   return (
     <FirebaseProvider
       value={{
-        app: appInstance,
-        auth: authInstance,
-        firestore: firestoreInstance,
-        storage: storageInstance,
+        app: firebaseApp,
+        auth: auth,
+        firestore: firestore,
+        storage: storage,
       }}
     >
       {process.env.NODE_ENV === 'development' && <FirebaseErrorListener />}
