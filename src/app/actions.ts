@@ -3,6 +3,7 @@
 import { z } from 'zod';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { firestore } from '@/firebase/server';
+import { auth } from 'firebase/server'; // Assumes you have a way to get current user on server
 
 const contactFormSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters.'),
@@ -54,5 +55,79 @@ export async function submitContactForm(
   } catch (e: any) {
     console.error('Contact form submission error:', e);
     return { message: 'Error: Could not submit the form.' };
+  }
+}
+
+// --- Project Creation ---
+const projectFormSchema = z.object({
+  title: z.string().min(3, 'Title must be at least 3 characters.'),
+  serviceType: z.string().min(1, 'Please select a service type.'),
+  topic: z.string().optional(),
+  courseLevel: z.enum(['ug', 'pg', 'phd']).optional(),
+  deadline: z.coerce.date().optional(),
+  referencingStyle: z.string().optional(),
+  pageCount: z.coerce.number().int().positive().optional(),
+  wordCount: z.coerce.number().int().positive().optional(),
+  language: z.string().optional(),
+  wantToPublish: z.preprocess((val) => val === 'on', z.boolean()).optional(),
+  publishWhere: z.string().optional(),
+  userId: z.string(), // This will be passed programmatically
+});
+
+
+export type ProjectFormState = {
+    message: string;
+    errors?: Zod.ZodError<any>['formErrors']['fieldErrors'];
+    success: boolean;
+};
+
+
+export async function createProject(
+  prevState: ProjectFormState,
+  formData: FormData
+): Promise<ProjectFormState> {
+
+  const validatedFields = projectFormSchema.safeParse({
+    title: formData.get('title'),
+    serviceType: formData.get('serviceType'),
+    topic: formData.get('topic'),
+    courseLevel: formData.get('courseLevel'),
+    deadline: formData.get('deadline'),
+    referencingStyle: formData.get('referencingStyle'),
+    pageCount: formData.get('pageCount'),
+    wordCount: formData.get('wordCount'),
+    language: formData.get('language'),
+    wantToPublish: formData.get('wantToPublish'),
+    publishWhere: formData.get('publishWhere'),
+    userId: formData.get('userId'),
+  });
+  
+  if (!validatedFields.success) {
+      console.log(validatedFields.error.flatten().fieldErrors);
+    return {
+      message: 'Error: Please check your input.',
+      errors: validatedFields.error.flatten().fieldErrors,
+      success: false,
+    };
+  }
+
+  // Double-check user authentication on the server
+  if (!validatedFields.data.userId) {
+      return { message: 'Error: You must be logged in to create a project.', success: false };
+  }
+
+  const projectsRef = collection(firestore, 'projects');
+  const projectData = {
+    ...validatedFields.data,
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  };
+
+  try {
+    const docRef = await addDoc(projectsRef, projectData);
+    return { message: `Success: Project "${projectData.title}" created with ID: ${docRef.id}`, success: true };
+  } catch (e: any) {
+    console.error('Project creation error:', e);
+    return { message: 'Error: Could not save the project to the database.', success: false };
   }
 }
