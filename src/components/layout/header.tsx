@@ -121,9 +121,6 @@ export function Header() {
                 <Button variant="ghost" asChild>
                     <Link href="/login">Client Login</Link>
                 </Button>
-                <Button asChild>
-                    <Link href="/#contact">Get a Quote</Link>
-                </Button>
             </div>
           )}
 
@@ -173,9 +170,6 @@ export function Header() {
                         <>
                          <Button asChild onClick={() => setIsMobileMenuOpen(false)}>
                             <Link href="/login">Client Login</Link>
-                          </Button>
-                          <Button variant="outline" asChild onClick={() => setIsMobileMenuOpen(false)}>
-                            <Link href="/#contact">Get a Quote</Link>
                           </Button>
                         </>
                       )}
