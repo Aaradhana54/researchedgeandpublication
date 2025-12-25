@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -747,7 +747,10 @@ export function ProjectList({ userId }: { userId: string }) {
   const firestore = useFirestore();
   const { user } = useUser();
   
-  const projectsQuery = firestore ? query(collection(firestore, 'projects'), where('userId', '==', userId)) : null;
+  const projectsQuery = useMemo(() => {
+    if (!firestore || !userId) return null;
+    return query(collection(firestore, 'projects'), where('userId', '==', userId));
+  }, [firestore, userId]);
 
   const { data: projects, loading, error } = useCollection<Project>(projectsQuery);
 
@@ -801,6 +804,8 @@ export function ProjectList({ userId }: { userId: string }) {
     </div>
   );
 }
+
+    
 
     
 
