@@ -4,7 +4,7 @@ export type Testimonial = {
   name: string;
   designation: string;
   message: string;
-  avatarId: string;
+  avatarId?: string;
 };
 
 export type Service = {

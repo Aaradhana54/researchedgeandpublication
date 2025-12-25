@@ -17,26 +17,13 @@ import { collection, query, where } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
 import { LoaderCircle } from 'lucide-react';
 
-const staticTestimonials: Testimonial[] = [
-  {
-    name: 'Dr. Meenal Joshi',
-    designation: 'Professor, XYZ University',
-    message: 'The team at Revio Research provided exceptional support for my manuscript. Their attention to detail and subject matter expertise were outstanding. Highly recommended!',
-    avatarId: 'testimonial-1',
-  },
-  {
-    name: 'Prof. R. Khanna',
-    designation: 'Academic Head',
-    message: 'Working with Revio has been a seamless experience. They are professional, timely, and their work is of the highest quality. Our institution will continue to partner with them.',
-    avatarId: 'testimonial-2',
-  },
-  {
-    name: 'Principal, Sunrise International School',
-    designation: 'Education Sector Leader',
-    message: 'Revio Research helped us develop and publish custom textbooks for our students. The quality of content and design exceeded our expectations. A truly reliable partner.',
-    avatarId: 'testimonial-3',
-  },
-];
+
+const staticTestimonials: Testimonial[] = PlaceHolderImages
+    .filter(img => img.id.startsWith('testimonial-') && img.data)
+    .map(img => ({
+        ...img.data!,
+        avatarId: img.id
+    }));
 
 
 export function Testimonials() {
@@ -83,7 +70,7 @@ export function Testimonials() {
                     <div className="p-1 h-full">
                       <Card className="h-full flex flex-col justify-between shadow-soft hover:shadow-lift transition-shadow duration-300">
                         <CardContent className="p-6 flex flex-col items-center text-center gap-4">
-                          {image && (
+                          {image ? (
                              <Image
                                 src={image.imageUrl}
                                 alt={`Avatar of ${testimonial.name}`}
@@ -92,14 +79,8 @@ export function Testimonials() {
                                 data-ai-hint={image.imageHint}
                                 className="rounded-full border-4 border-primary/10"
                               />
-                          )}
-                           {!image && testimonial.avatarId && (
+                          ) : (
                              <div className="w-20 h-20 rounded-full border-4 border-primary/10 bg-muted flex items-center justify-center">
-                               <span className="text-2xl font-bold text-primary">{testimonial.name.charAt(0)}</span>
-                             </div>
-                           )}
-                           {!testimonial.avatarId && (
-                              <div className="w-20 h-20 rounded-full border-4 border-primary/10 bg-muted flex items-center justify-center">
                                <span className="text-2xl font-bold text-primary">{testimonial.name.charAt(0)}</span>
                              </div>
                            )}
