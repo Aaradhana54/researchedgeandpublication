@@ -757,7 +757,7 @@ export function ProjectList({ userId }: { userId: string }) {
   const projectsQuery = useMemo(() => {
     if (!firestore || !userId) return null;
     return query(collection(firestore, 'projects'), where('userId', '==', userId));
-  }, [userId]);
+  }, [firestore, userId]);
 
   const { data: projects, loading, error } = useCollection<Project>(projectsQuery);
 

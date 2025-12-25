@@ -21,10 +21,8 @@ export function useCollection<T extends DocumentData>(
     error: null,
   });
 
-  const queryMemo = useMemo(() => query, [query]);
-
   useEffect(() => {
-    if (!queryMemo) {
+    if (!query) {
       setState({ data: null, loading: false, error: null });
       return () => {}; // Return an empty cleanup function
     }
@@ -32,7 +30,7 @@ export function useCollection<T extends DocumentData>(
     setState({ data: null, loading: true, error: null });
 
     const unsubscribe = onSnapshot(
-      queryMemo,
+      query,
       (querySnapshot) => {
         const data = querySnapshot.docs.map(
           (doc) => ({ ...(doc.data() as T), id: doc.id })
@@ -43,7 +41,7 @@ export function useCollection<T extends DocumentData>(
         if (error.code === 'permission-denied') {
           const permissionError = new FirestorePermissionError(
             {
-              path: (queryMemo as any)._query.path.segments.join('/'),
+              path: (query as any)._query.path.segments.join('/'),
               operation: 'list',
             },
             error
@@ -56,7 +54,7 @@ export function useCollection<T extends DocumentData>(
     );
 
     return () => unsubscribe();
-  }, [queryMemo]);
+  }, [query]);
 
   return state;
 }

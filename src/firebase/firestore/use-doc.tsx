@@ -21,10 +21,8 @@ export function useDoc<T extends DocumentData>(
     error: null,
   });
 
-  const refMemo = useMemo(() => ref, [ref?.path, ref?.converter]);
-
   useEffect(() => {
-    if (!refMemo) {
+    if (!ref) {
       setState({ data: null, loading: false, error: null });
       return;
     }
@@ -32,7 +30,7 @@ export function useDoc<T extends DocumentData>(
     setState((prevState) => ({ ...prevState, loading: true }));
 
     const unsubscribe = onSnapshot(
-      refMemo,
+      ref,
       (doc) => {
         if (doc.exists()) {
           setState({
@@ -48,7 +46,7 @@ export function useDoc<T extends DocumentData>(
         if (error.code === 'permission-denied') {
           const permissionError = new FirestorePermissionError(
             {
-              path: refMemo.path,
+              path: ref.path,
               operation: 'get',
             },
             error
@@ -61,7 +59,7 @@ export function useDoc<T extends DocumentData>(
     );
 
     return () => unsubscribe();
-  }, [refMemo]);
+  }, [ref]);
 
   return state;
 }
