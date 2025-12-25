@@ -334,47 +334,49 @@ export function CreateProjectDialog({ userId }: { userId: string}) {
                         <FormField
                           control={form.control}
                           name="deadline"
-                          render={({ field }) => (
-                            <FormItem className="flex flex-col">
-                              <FormLabel>Deadline</FormLabel>
-                              <Popover>
-                                <PopoverTrigger asChild>
-                                  <FormControl>
-                                    <div className="relative">
-                                      <Input
-                                        readOnly
-                                        placeholder="Pick a date"
-                                        value={field.value ? format(field.value, 'PPP') : ''}
-                                      />
-                                      <Button
-                                        type="button"
-                                        variant="ghost"
-                                        size="icon"
-                                        className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8"
-                                      >
-                                        <CalendarIcon className="h-4 w-4 opacity-50" />
-                                      </Button>
-                                    </div>
-                                  </FormControl>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-auto p-0" align="start">
-                                  <Calendar
-                                    mode="single"
-                                    selected={field.value}
-                                    onSelect={field.onChange}
-                                    initialFocus
-                                  />
-                                </PopoverContent>
-                              </Popover>
-                              <FormMessage />
-                            </FormItem>
-                          )}
+                          render={({ field }) => {
+                            const [openCal, setOpenCal] = useState(false);
+
+                            return (
+                              <FormItem className="flex flex-col">
+                                <FormLabel>Deadline</FormLabel>
+                                <Popover open={openCal} onOpenChange={setOpenCal} modal>
+                                  <PopoverTrigger asChild>
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      className={cn(
+                                        "justify-between font-normal",
+                                        !field.value && "text-muted-foreground"
+                                      )}
+                                    >
+                                      {field.value ? format(field.value, "PPP") : "Pick a date"}
+                                      <CalendarIcon className="h-4 w-4 opacity-50" />
+                                    </Button>
+                                  </PopoverTrigger>
+                                  <PopoverContent className="w-auto p-0" align="start">
+                                    <Calendar
+                                      mode="single"
+                                      selected={field.value}
+                                      onSelect={(date) => {
+                                        if (!date) return;
+                                        field.onChange(date);
+                                        setOpenCal(false); // close after pick
+                                      }}
+                                      initialFocus
+                                    />
+                                  </PopoverContent>
+                                </Popover>
+                                <FormMessage />
+                              </FormItem>
+                            );
+                          }}
                         />
 
                           <FormField control={form.control} name="pageCount" render={({ field }) => (
                               <FormItem>
                                   <FormLabel>Page Count (Approx.)</FormLabel>
-                                  <FormControl><Input type="number" placeholder="e.g., 250" {...field} value={field.value ?? ''} /></FormControl>
+                                  <FormControl><Input type="number" placeholder="e.g., 250" {...field} /></FormControl>
                                   <FormMessage />
                               </FormItem>
                           )} />
@@ -434,7 +436,7 @@ export function CreateProjectDialog({ userId }: { userId: string}) {
                           <FormField control={form.control} name="wordCount" render={({ field }) => (
                               <FormItem>
                                   <FormLabel>Word Count (Approx.)</FormLabel>
-                                  <FormControl><Input type="number" placeholder="e.g., 5000" {...field} value={field.value ?? ''} /></FormControl>
+                                  <FormControl><Input type="number" placeholder="e.g., 5000" {...field} /></FormControl>
                                   <FormMessage />
                               </FormItem>
                           )} />
@@ -475,41 +477,43 @@ export function CreateProjectDialog({ userId }: { userId: string}) {
                         <FormField
                           control={form.control}
                           name="deadline"
-                          render={({ field }) => (
-                            <FormItem className="flex flex-col">
-                              <FormLabel>Deadline</FormLabel>
-                              <Popover>
-                                <PopoverTrigger asChild>
-                                  <FormControl>
-                                    <div className="relative">
-                                      <Input
-                                        readOnly
-                                        placeholder="Pick a date"
-                                        value={field.value ? format(field.value, 'PPP') : ''}
-                                      />
-                                      <Button
-                                        type="button"
-                                        variant="ghost"
-                                        size="icon"
-                                        className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8"
-                                      >
-                                        <CalendarIcon className="h-4 w-4 opacity-50" />
-                                      </Button>
-                                    </div>
-                                  </FormControl>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-auto p-0" align="start">
-                                  <Calendar
-                                    mode="single"
-                                    selected={field.value}
-                                    onSelect={field.onChange}
-                                    initialFocus
-                                  />
-                                </PopoverContent>
-                              </Popover>
-                              <FormMessage />
-                            </FormItem>
-                          )}
+                          render={({ field }) => {
+                            const [openCal, setOpenCal] = useState(false);
+
+                            return (
+                              <FormItem className="flex flex-col">
+                                <FormLabel>Deadline</FormLabel>
+                                <Popover open={openCal} onOpenChange={setOpenCal} modal>
+                                  <PopoverTrigger asChild>
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      className={cn(
+                                        "justify-between font-normal",
+                                        !field.value && "text-muted-foreground"
+                                      )}
+                                    >
+                                      {field.value ? format(field.value, "PPP") : "Pick a date"}
+                                      <CalendarIcon className="h-4 w-4 opacity-50" />
+                                    </Button>
+                                  </PopoverTrigger>
+                                  <PopoverContent className="w-auto p-0" align="start">
+                                    <Calendar
+                                      mode="single"
+                                      selected={field.value}
+                                      onSelect={(date) => {
+                                        if (!date) return;
+                                        field.onChange(date);
+                                        setOpenCal(false); // close after pick
+                                      }}
+                                      initialFocus
+                                    />
+                                  </PopoverContent>
+                                </Popover>
+                                <FormMessage />
+                              </FormItem>
+                            );
+                          }}
                         />
                       </div>
                       
@@ -590,7 +594,7 @@ export function CreateProjectDialog({ userId }: { userId: string}) {
                         <FormField control={form.control} name="pageCount" render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Page Count (Approx.)</FormLabel>
-                                <FormControl><Input type="number" placeholder="e.g., 150" {...field} value={field.value ?? ''} /></FormControl>
+                                <FormControl><Input type="number" placeholder="e.g., 150" {...field} /></FormControl>
                                 <FormMessage />
                             </FormItem>
                         )} />
@@ -605,44 +609,46 @@ export function CreateProjectDialog({ userId }: { userId: string}) {
                     </div>
 
                      <FormField
-                      control={form.control}
-                      name="deadline"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-col">
-                          <FormLabel>Expected Deadline</FormLabel>
-                          <Popover>
-                            <PopoverTrigger asChild>
-                              <FormControl>
-                                <div className="relative">
-                                  <Input
-                                    readOnly
-                                    placeholder="Pick a date"
-                                    value={field.value ? format(field.value, 'PPP') : ''}
-                                  />
-                                  <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="icon"
-                                    className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8"
-                                  >
-                                    <CalendarIcon className="h-4 w-4 opacity-50" />
-                                  </Button>
-                                </div>
-                              </FormControl>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0" align="start">
-                              <Calendar
-                                mode="single"
-                                selected={field.value}
-                                onSelect={field.onChange}
-                                initialFocus
-                              />
-                            </PopoverContent>
-                          </Popover>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                          control={form.control}
+                          name="deadline"
+                          render={({ field }) => {
+                            const [openCal, setOpenCal] = useState(false);
+
+                            return (
+                              <FormItem className="flex flex-col">
+                                <FormLabel>Expected Deadline</FormLabel>
+                                <Popover open={openCal} onOpenChange={setOpenCal} modal>
+                                  <PopoverTrigger asChild>
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      className={cn(
+                                        "justify-between font-normal",
+                                        !field.value && "text-muted-foreground"
+                                      )}
+                                    >
+                                      {field.value ? format(field.value, "PPP") : "Pick a date"}
+                                      <CalendarIcon className="h-4 w-4 opacity-50" />
+                                    </Button>
+                                  </PopoverTrigger>
+                                  <PopoverContent className="w-auto p-0" align="start">
+                                    <Calendar
+                                      mode="single"
+                                      selected={field.value}
+                                      onSelect={(date) => {
+                                        if (!date) return;
+                                        field.onChange(date);
+                                        setOpenCal(false); // close after pick
+                                      }}
+                                      initialFocus
+                                    />
+                                  </PopoverContent>
+                                </Popover>
+                                <FormMessage />
+                              </FormItem>
+                            );
+                          }}
+                        />
 
 
                      <FormField
@@ -756,7 +762,7 @@ export function ProjectList({ userId }: { userId: string }) {
       <Alert variant="destructive">
         <AlertTitle>Error Loading Projects</AlertTitle>
         <AlertDescription>
-          {error.message === 'permission-denied'
+          {error.message.includes('permission-denied') || error.message.includes('insufficient permissions')
             ? 'You do not have permission to view these projects. Please check your security rules.'
             : 'Could not load your projects. Please try again later.'}
         </AlertDescription>
