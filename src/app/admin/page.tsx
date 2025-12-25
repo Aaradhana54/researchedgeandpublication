@@ -1,28 +1,44 @@
-import { TestimonialApprovalForm } from './testimonial-approval-form';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Shield } from 'lucide-react';
+'use client';
 
-export default function AdminPage() {
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { useUser } from "@/firebase";
+
+export default function AdminDashboardPage() {
+  const { userProfile } = useUser();
+
   return (
-    <div className="min-h-screen bg-secondary flex items-center justify-center p-4">
-      <main className="w-full max-w-2xl">
-        <Card className="shadow-lift">
-          <CardHeader className="text-center">
-            <div className="mx-auto bg-primary/10 p-3 rounded-full w-fit mb-4">
-                <Shield className="w-8 h-8 text-primary" />
+    <div className="space-y-8">
+       <div>
+        <h1 className="text-3xl md:text-4xl font-bold text-primary tracking-tight">
+          Welcome, {userProfile?.name || 'Admin'}
+        </h1>
+        <p className="text-lg text-muted-foreground mt-2">
+          Here's an overview of what's happening at Revio Research.
+        </p>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Projects Overview</CardTitle>
+          <CardDescription>A summary of all client projects.</CardDescription>
+        </CardHeader>
+        <CardContent>
+            <div className="h-40 flex items-center justify-center text-muted-foreground border-2 border-dashed rounded-lg">
+                <p>Project summary component will be here.</p>
             </div>
-            <CardTitle className="text-3xl font-bold tracking-tight text-primary sm:text-4xl font-headline">
-              Testimonial Approval Tool
-            </CardTitle>
-            <CardDescription className="text-lg text-muted-foreground mt-2">
-              Use this tool to review and approve new testimonials with AI assistance.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <TestimonialApprovalForm />
-          </CardContent>
-        </Card>
-      </main>
+        </CardContent>
+      </Card>
+       <Card>
+        <CardHeader>
+          <CardTitle>User Management</CardTitle>
+          <CardDescription>View and manage client and staff accounts.</CardDescription>
+        </CardHeader>
+        <CardContent>
+            <div className="h-40 flex items-center justify-center text-muted-foreground border-2 border-dashed rounded-lg">
+                <p>User table component will be here.</p>
+            </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

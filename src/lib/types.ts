@@ -57,4 +57,12 @@ export interface Project {
   updatedAt: Timestamp;
 }
 
-// Add other types as needed from your spec...
+
+export interface InviteCode {
+    id?: string;
+    code: string;
+    claimed: boolean;
+    claimedBy: string | null;
+    claimedAt: Timestamp | null;
+    createdAt: Timestamp;
+}

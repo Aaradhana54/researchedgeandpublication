@@ -1,4 +1,5 @@
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
 
@@ -14,7 +15,7 @@ service cloud.firestore {
       return request.auth.uid;
     }
 
-    // Function to get the user's profile document
+    // Function to get the user's profile document from Firestore
     function getUserDoc(userId) {
       return get(/databases/$(database)/documents/users/$(userId));
     }
@@ -26,6 +27,7 @@ service cloud.firestore {
 
     // Function to check the user's role from their profile
     function roleIs(role) {
+      // This is safe because it only runs if the user document exists
       return hasUserDoc() && getUserDoc(uid()).data.role == role;
     }
 
@@ -33,54 +35,68 @@ service cloud.firestore {
     function isStaff() { return roleIs("staff"); }
     function isClient() { return roleIs("client"); }
 
-
     // ----------------------------------------------------------------------
     // Collection Rules
     // ----------------------------------------------------------------------
 
     match /users/{userId} {
-      // A user can create their own profile, but cannot assign a role other than 'client'.
-      allow create: if isSignedIn() && userId == uid()
-        && request.resource.data.role == "client"
-        && request.resource.data.email == request.auth.token.email;
+      // READ:
+      // - Admins can read any user profile.
+      // - Any signed-in user can read their own profile.
+      allow get: if isAdmin() || (isSignedIn() && userId == uid());
+      allow list: if isAdmin(); // Only admins can list all users.
 
-      // A user can read their own profile. Admins can read any profile.
-      allow get: if (isSignedIn() && userId == uid()) || isAdmin();
-      allow list: if isAdmin();
+      // CREATE:
+      // - An unauthenticated user can create their OWN user document IF they are signing up as a 'client'.
+      // - Admin creation is handled by the 'invites' rule logic and a server-side action, not this rule directly.
+      allow create: if isSignedIn() && userId == uid() && request.resource.data.role == 'client';
 
-      // A user can update their own profile, but cannot change their role. Admins can.
-      allow update: if (isSignedIn() && userId == uid() && request.resource.data.role == resource.data.role) || isAdmin();
+      // UPDATE:
+      // - Admins can update any user profile (including changing roles).
+      // - A user can update their own profile, but they CANNOT change their own role.
+      allow update: if isAdmin() || (isSignedIn() && userId == uid() && request.resource.data.role == resource.data.role);
       
+      // DELETE:
+      // - Only admins can delete user profiles.
       allow delete: if isAdmin();
     }
 
     match /projects/{projectId} {
-      // A client can create a project for themselves.
-      allow create: if isClient() && request.resource.data.userId == uid();
+      // CREATE: A client can create a project for themselves. Admins can create any project.
+      allow create: if (isClient() && request.resource.data.userId == uid()) || isAdmin();
 
-      // For LIST operations (queries), Firestore checks the `read` permission on each potential document.
-      // This rule allows a document to be read if the requester is the owner, staff, or admin.
-      // This implicitly secures the `list` operation when combined with a `where('userId', '==', uid())` clause.
+      // READ (get, list):
+      // - For queries (list), this 'read' rule is checked on each document.
+      // - A user can read a project if they are the owner.
+      // - Staff and Admins can read any project.
       allow read: if (isSignedIn() && resource.data.userId == uid()) || isStaff() || isAdmin();
       
-      // The `list` operation itself is granted if the query is correctly filtered.
-      allow list: if (isClient() && request.query.where.get('userId', '') == uid()) || isStaff() || isAdmin();
-
-      // A user can update their own project. Staff/Admins can update any.
+      // UPDATE: Owner, Staff, or Admin can update.
       allow update: if (isSignedIn() && resource.data.userId == uid()) || isStaff() || isAdmin();
 
-      // Only admins can delete projects.
+      // DELETE: Only admins can delete projects.
       allow delete: if isAdmin();
     }
     
     match /contact_leads/{contactLeadId} {
-      allow read, list, update, delete: if isAdmin();
+      // Anyone can submit the contact form.
       allow create: if true;
+      // Only admins can view or manage leads.
+      allow read, list, update, delete: if isAdmin();
     }
 
     match /testimonials/{testimonialId} {
-      allow get, list: if true;
+      // Anyone can view approved testimonials.
+      allow get, list: if resource.data.approved == true;
+      // Only admins can create, update, or delete testimonials.
       allow create, update, delete: if isAdmin();
+    }
+
+    match /invites/{inviteId} {
+        // Only admins can create, read, or manage invite codes.
+        // The server action that validates a code will run with admin privileges
+        // and does not depend on client-side read permissions.
+        allow read, write, delete: if isAdmin();
     }
   }
 }
