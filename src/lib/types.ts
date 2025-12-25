@@ -24,12 +24,12 @@ export interface UserProfile {
 }
 
 export type ProjectServiceType =
-  | 'thesis'
-  | 'dissertation'
-  | 'data-analysis'
-  | 'paper'
-  | 'book'
-  | 'institutional';
+  | 'thesis-dissertation'
+  | 'research-paper'
+  | 'book-writing'
+  | 'review-paper'
+  | 'book-publishing'
+  | 'institutional-branding';
 
 export interface Project {
   id?: string;

@@ -27,7 +27,14 @@
         "title": { "type": "string" },
         "serviceType": {
           "type": "string",
-          "enum": ["thesis", "dissertation", "data-analysis", "paper", "book", "institutional"]
+          "enum": [
+            "thesis-dissertation", 
+            "research-paper", 
+            "book-writing", 
+            "review-paper", 
+            "book-publishing", 
+            "institutional-branding"
+          ]
         },
         "currentStage": { "type": "string" },
         "progressPercent": { "type": "number" },

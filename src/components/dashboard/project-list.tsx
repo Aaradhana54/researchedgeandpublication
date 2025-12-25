@@ -52,12 +52,12 @@ import { cn } from '@/lib/utils';
 const projectSchema = z.object({
   title: z.string().min(5, 'Title must be at least 5 characters.'),
   serviceType: z.enum([
-    'thesis',
-    'dissertation',
-    'data-analysis',
-    'paper',
-    'book',
-    'institutional',
+    'thesis-dissertation',
+    'research-paper',
+    'book-writing',
+    'review-paper',
+    'book-publishing',
+    'institutional-branding',
   ]),
 });
 
@@ -67,30 +67,30 @@ type ServiceCategory = 'writing' | 'publication';
 
 const serviceCategories: Record<
   ServiceCategory,
-  { label: string; services: Record<ProjectServiceType, string> }
+  { label: string; services: Record<string, string> }
 > = {
   writing: {
     label: 'Writing & Research',
     services: {
-      thesis: 'Thesis Writing',
-      dissertation: 'Dissertation Writing',
-      paper: 'Research Paper',
-      'data-analysis': 'Data Analysis',
-    } as Record<ProjectServiceType, string>,
+      'thesis-dissertation': 'Thesis/Dissertation Writing',
+      'research-paper': 'Research Paper Writing',
+      'book-writing': 'Book Writing',
+      'review-paper': 'Review Paper Writing',
+    },
   },
   publication: {
     label: 'Book & Publishing',
     services: {
-      book: 'Book Publishing',
-      institutional: 'Institutional Branding',
-    } as Record<ProjectServiceType, string>,
+      'book-publishing': 'Book Publishing',
+      'institutional-branding': 'Institutional Branding',
+    },
   },
 };
 
 const serviceTypeLabels: Record<ProjectServiceType, string> = {
   ...serviceCategories.writing.services,
   ...serviceCategories.publication.services,
-};
+} as Record<ProjectServiceType, string>;
 
 
 export function CreateProjectDialog({ userId }: { userId: string}) {
@@ -249,11 +249,14 @@ export function CreateProjectDialog({ userId }: { userId: string}) {
 }
 
 function ProjectCard({ project }: { project: Project }) {
+  // Find the label for the serviceType, checking both categories.
+  const label = serviceTypeLabels[project.serviceType] || project.serviceType;
+  
   return (
     <Card className="shadow-soft hover:shadow-lift transition-all duration-300">
       <CardHeader>
         <CardTitle className="text-primary text-xl">{project.title}</CardTitle>
-        <CardDescription>{serviceTypeLabels[project.serviceType]}</CardDescription>
+        <CardDescription>{label}</CardDescription>
       </CardHeader>
       <CardContent>
         {/* Placeholder for more project details */}
