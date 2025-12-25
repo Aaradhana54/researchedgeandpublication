@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Menu, LogOut, ChevronDown } from 'lucide-react';
+import { Menu, LogOut, ChevronDown, User } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 import { useScrollSpy } from '@/hooks/use-scroll-spy';
@@ -118,21 +118,9 @@ export function Header() {
             </DropdownMenu>
           ) : (
              <div className="hidden md:flex items-center gap-2">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost">
-                      Portals <ChevronDown className="ml-2 h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem asChild>
-                      <Link href="/login">Client Login</Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link href="/admin/login">Admin Login</Link>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                <Button asChild>
+                  <Link href="/login">Client Login</Link>
+                </Button>
             </div>
           )}
 
@@ -179,14 +167,9 @@ export function Header() {
                           </Button>
                         </>
                       ) : (
-                        <>
                          <Button asChild onClick={() => setIsMobileMenuOpen(false)}>
                             <Link href="/login">Client Login</Link>
                           </Button>
-                          <Button variant="outline" asChild onClick={() => setIsMobileMenuOpen(false)}>
-                             <Link href="/admin/login">Admin Login</Link>
-                          </Button>
-                        </>
                       )}
                    </div>
                 </div>

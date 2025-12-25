@@ -17,12 +17,11 @@ export async function signup(email: string, password: string, name: string) {
   const user = userCredential.user;
 
   // Create user profile in Firestore
-  const userProfile: UserProfile = {
+  const userProfile: Omit<UserProfile, 'role'> = {
     uid: user.uid,
     name,
     email,
     createdAt: serverTimestamp() as any, // Let the server generate the timestamp
-    role: 'client', // Default role for new signups
   };
 
   await setDoc(doc(firestore, 'users', user.uid), userProfile);

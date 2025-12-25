@@ -19,7 +19,6 @@ export type UserProfile = {
   name: string;
   email: string;
   createdAt: Timestamp;
-  role?: 'client' | 'admin';
 };
 
 export type ProjectServiceType =
