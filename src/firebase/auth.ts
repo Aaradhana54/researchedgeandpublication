@@ -1,3 +1,4 @@
+
 'use server';
 
 import {
@@ -10,8 +11,6 @@ import {
 } from 'firebase/auth';
 import { doc, setDoc, serverTimestamp, getDoc } from 'firebase/firestore';
 import { auth, firestore } from './server';
-import { getFirebaseErrorMessage } from './errors';
-
 
 // --- Client Signup ---
 export async function signUpClient(name: string, email: string, password:string) {
@@ -37,7 +36,12 @@ export async function signUpClient(name: string, email: string, password:string)
 // --- Generic Login/Logout ---
 
 export async function login(email: string, password: string) {
-  return signInWithEmailAndPassword(auth, email, password);
+    try {
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        return { user: userCredential.user };
+    } catch (error: any) {
+        return { error };
+    }
 }
 
 export async function logout() {
@@ -45,23 +49,26 @@ export async function logout() {
 }
 
 export async function googleSignIn() {
-    const provider = new GoogleAuthProvider();
-    const userCredential = await signInWithPopup(auth, provider);
-    const user = userCredential.user;
+    try {
+        const provider = new GoogleAuthProvider();
+        const userCredential = await signInWithPopup(auth, provider);
+        const user = userCredential.user;
 
-    const userDocRef = doc(firestore, 'users', user.uid);
-    const userDoc = await getDoc(userDocRef);
+        const userDocRef = doc(firestore, 'users', user.uid);
+        const userDoc = await getDoc(userDocRef);
 
-    if (!userDoc.exists()) {
-        await setDoc(userDocRef, {
-            uid: user.uid,
-            name: user.displayName,
-            email: user.email,
-            role: 'client',
-            createdAt: serverTimestamp(),
-            updatedAt: serverTimestamp(),
-        });
+        if (!userDoc.exists()) {
+            await setDoc(userDocRef, {
+                uid: user.uid,
+                name: user.displayName,
+                email: user.email,
+                role: 'client',
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp(),
+            });
+        }
+        return { user: userCredential.user };
+    } catch (error: any) {
+        return { error };
     }
-
-    return userCredential;
 }

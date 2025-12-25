@@ -5,11 +5,10 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { login } from '@/firebase/auth'; // Only email login needed here
+import { login } from '@/firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
-import { firestore } from '@/firebase/client';
+import { auth, firestore } from '@/firebase/client';
 import { signOut } from 'firebase/auth';
-import { auth } from '@/firebase/client';
 
 
 import { Button } from '@/components/ui/button';
@@ -56,39 +55,56 @@ export default function AdminLoginPage() {
 
   const onSubmit = async (data: LoginFormValues) => {
     setIsLoading(true);
-    try {
-      const userCredential = await login(data.email, data.password);
-      const user = userCredential.user;
+    const result = await login(data.email, data.password);
 
-      // After successful Firebase Auth login, check for Firestore admin role
-      const userDocRef = doc(firestore, 'users', user.uid);
-      const userDoc = await getDoc(userDocRef);
-
-      if (userDoc.exists()) {
-        if (userDoc.data().role === 'admin') {
-            // Role is verified, now we can proceed
-            toast({
-            title: 'Login Successful',
-            description: 'Welcome back, Admin!',
-            });
-            // This will trigger the layout's logic to show the dashboard
-            router.push('/admin');
-        } else {
-            // If login is successful but user is not an admin, deny access
-            await signOut(auth); // Sign out the non-admin user
-            throw new Error('Access Denied: You do not have administrator privileges.');
+    if (result.error) {
+        let errorMessage = getFirebaseErrorMessage(result.error.code);
+        if (result.error.message.includes('Access Denied') || result.error.message.includes('User profile not found')) {
+            errorMessage = result.error.message;
         }
-      } else {
-        // This case handles if an auth user exists but has no corresponding firestore document
-        await signOut(auth);
-        throw new Error('User profile not found. Please contact support.');
-      }
+
+        toast({
+            variant: 'destructive',
+            title: 'Login Failed',
+            description: errorMessage,
+        });
+        setIsLoading(false);
+        return;
+    }
+
+    try {
+        const user = result.user;
+        if (!user) throw new Error("Authentication failed unexpectedly.");
+
+        // After successful Firebase Auth login, check for Firestore admin role
+        const userDocRef = doc(firestore, 'users', user.uid);
+        const userDoc = await getDoc(userDocRef);
+
+        if (userDoc.exists()) {
+            if (userDoc.data().role === 'admin') {
+                // Role is verified, now we can proceed
+                toast({
+                title: 'Login Successful',
+                description: 'Welcome back, Admin!',
+                });
+                // This will trigger the layout's logic to show the dashboard
+                router.push('/admin');
+            } else {
+                // If login is successful but user is not an admin, deny access
+                await signOut(auth); // Sign out the non-admin user
+                throw new Error('Access Denied: You do not have administrator privileges.');
+            }
+        } else {
+            // This case handles if an auth user exists but has no corresponding firestore document
+            await signOut(auth);
+            throw new Error('User profile not found. Please contact support.');
+        }
 
     } catch (error: any) {
       console.error("Admin Login Error:", error);
       
       let errorMessage = getFirebaseErrorMessage(error.code);
-      if (error.message.includes('Access Denied') || error.message.includes('User profile not found')) {
+       if (error.message.includes('Access Denied') || error.message.includes('User profile not found')) {
           errorMessage = error.message;
       }
 

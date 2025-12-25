@@ -55,44 +55,44 @@ export default function LoginPage() {
 
   const onSubmit = async (data: LoginFormValues) => {
     setIsLoading(true);
-    try {
-      await login(data.email, data.password);
+    const result = await login(data.email, data.password);
+    
+    if (result.error) {
+      console.error("Login Error:", result.error);
+      toast({
+        variant: 'destructive',
+        title: 'Login Failed',
+        description: getFirebaseErrorMessage(result.error.code),
+      });
+    } else {
       toast({
         title: 'Login Successful',
         description: "Welcome back! You're being redirected to your dashboard.",
       });
       router.push('/dashboard');
-    } catch (error: any) {
-      console.error("Login Error:", error);
-      toast({
-        variant: 'destructive',
-        title: 'Login Failed',
-        description: getFirebaseErrorMessage(error.code),
-      });
-    } finally {
-      setIsLoading(false);
     }
+    setIsLoading(false);
   };
 
   const handleGoogleSignIn = async () => {
     setIsGoogleLoading(true);
-    try {
-      await googleSignIn();
-      toast({
-        title: 'Login Successful',
-        description: "Welcome! You're being redirected to your dashboard.",
-      });
-      router.push('/dashboard');
-    } catch (error: any) {
-      console.error("Google Sign-In Error:", error);
-      toast({
-        variant: 'destructive',
-        title: 'Google Sign-In Failed',
-        description: getFirebaseErrorMessage(error.code),
-      });
-    } finally {
-      setIsGoogleLoading(false);
+    const result = await googleSignIn();
+
+    if (result.error) {
+        console.error("Google Sign-In Error:", result.error);
+        toast({
+            variant: 'destructive',
+            title: 'Google Sign-In Failed',
+            description: getFirebaseErrorMessage(result.error.code),
+        });
+    } else {
+        toast({
+            title: 'Login Successful',
+            description: "Welcome! You're being redirected to your dashboard.",
+        });
+        router.push('/dashboard');
     }
+    setIsGoogleLoading(false);
   };
 
   return (
