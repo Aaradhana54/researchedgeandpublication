@@ -5,7 +5,6 @@ import { Inter } from 'next/font/google';
 import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
 import { FirebaseErrorListener } from '@/components/firebase-error-listener';
-import { FirebaseClientProvider } from '@/firebase/client-provider';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
@@ -18,7 +17,7 @@ export const metadata: Metadata = {
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
+  children: React.Node;
 }>) {
   return (
     <html lang="en" className={`!scroll-smooth ${inter.variable}`}>
@@ -31,14 +30,12 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body antialiased bg-background">
-        <FirebaseClientProvider>
-            <div className="flex flex-col min-h-screen">
-                <Header />
-                <main className="flex-1">{children}</main>
-                <Footer />
-            </div>
-            <Toaster />
-        </FirebaseClientProvider>
+        <div className="flex flex-col min-h-screen">
+            <Header />
+            <main className="flex-1">{children}</main>
+            <Footer />
+        </div>
+        <Toaster />
         {process.env.NODE_ENV === 'development' && <FirebaseErrorListener />}
       </body>
     </html>
