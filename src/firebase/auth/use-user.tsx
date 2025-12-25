@@ -15,9 +15,6 @@ export function useUser() {
     let profileUnsubscribe: Unsubscribe | undefined;
 
     const authUnsubscribe = onAuthStateChanged(auth, (authUser) => {
-      // If the user's auth state changes, we are in a loading state until we verify their profile.
-      setLoading(true);
-      
       // Clean up any existing profile listener
       if (profileUnsubscribe) {
         profileUnsubscribe();
@@ -28,15 +25,14 @@ export function useUser() {
         setUser(authUser);
         const userDocRef = doc(firestore, 'users', authUser.uid);
         
+        // Listen for profile changes
         profileUnsubscribe = onSnapshot(userDocRef, (docSnap) => {
           if (docSnap.exists()) {
             setUserProfile({ ...docSnap.data(), uid: docSnap.id } as UserProfile);
           } else {
-            // Auth user exists but no profile. This could be a new user
-            // or an inconsistent state. Treat as not fully logged in.
             setUserProfile(null);
           }
-          // Finished loading profile data
+          // Finished loading auth state and profile data
           setLoading(false);
         }, (error) => {
           console.error("Error fetching user profile:", error);
