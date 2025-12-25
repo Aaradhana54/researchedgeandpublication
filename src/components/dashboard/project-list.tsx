@@ -7,7 +7,7 @@ import { z } from 'zod';
 import { useCollection } from '@/firebase';
 import { createProject } from '@/firebase/firestore';
 import { collection, query, where } from 'firebase/firestore';
-import { useFirestore } from '@/firebase';
+import { useFirestore, useUser } from '@/firebase';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -70,7 +70,7 @@ const serviceTypeLabels: Record<ProjectServiceType, string> = {
   institutional: 'Institutional Branding',
 };
 
-export function CreateProjectDialog({ userId, asHero = false }: { userId: string, asHero?: boolean }) {
+export function CreateProjectDialog({ userId }: { userId: string}) {
   const [open, setOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -106,17 +106,10 @@ export function CreateProjectDialog({ userId, asHero = false }: { userId: string
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        {asHero ? (
-           <Button size="lg">
+          <Button size="lg">
               <PlusCircle className="mr-2 h-5 w-5" />
               Create Your First Project
-            </Button>
-        ) : (
-          <Button>
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Create New Project
           </Button>
-        )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
@@ -202,6 +195,7 @@ function ProjectCard({ project }: { project: Project }) {
 
 export function ProjectList({ userId }: { userId: string }) {
   const firestore = useFirestore();
+  const { user } = useUser();
   
   const projectsQuery = firestore ? query(collection(firestore, 'projects'), where('userId', '==', userId)) : null;
 
@@ -228,14 +222,14 @@ export function ProjectList({ userId }: { userId: string }) {
 
   if (!projects || projects.length === 0) {
     return (
-      <div className="text-center py-16 px-4 border-2 border-dashed rounded-lg bg-card">
+      <div className="text-center py-16 px-4 border-2 border-dashed rounded-lg bg-card mt-8">
         <FolderKanban className="mx-auto h-16 w-16 text-muted-foreground" />
         <h3 className="mt-6 text-xl font-semibold text-foreground">No Projects Found</h3>
         <p className="mt-2 text-md text-muted-foreground">
-          It looks like you haven't started any projects yet.
+          Welcome, {user?.displayName || 'Client'}! Get started by creating your first project.
         </p>
         <div className="mt-8">
-          <CreateProjectDialog userId={userId} asHero={true} />
+          <CreateProjectDialog userId={userId} />
         </div>
       </div>
     );
