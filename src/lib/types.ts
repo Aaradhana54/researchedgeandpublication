@@ -27,9 +27,8 @@ export type ProjectServiceType =
   | 'thesis-dissertation'
   | 'research-paper'
   | 'book-writing'
-  | 'review-paper'
-  | 'book-publishing'
-  | 'institutional-branding';
+  | 'research-publication'
+  | 'book-publishing';
 
 export interface Project {
   id?: string;

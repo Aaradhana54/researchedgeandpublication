@@ -30,10 +30,9 @@
           "enum": [
             "thesis-dissertation", 
             "research-paper", 
-            "book-writing", 
-            "review-paper", 
-            "book-publishing", 
-            "institutional-branding"
+            "book-writing",
+            "research-publication",
+            "book-publishing"
           ]
         },
         "currentStage": { "type": "string" },
