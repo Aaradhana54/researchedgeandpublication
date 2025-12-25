@@ -715,27 +715,35 @@ export function CreateProjectDialog({ userId }: { userId: string}) {
 }
 
 function ProjectCard({ project }: { project: Project }) {
-  // Find the label for the serviceType, checking both categories.
   const label = serviceTypeLabels[project.serviceType] || project.serviceType;
+  
+  const badgeVariant = project.approved ? 'default' : 'secondary';
+  const badgeText = project.approved ? 'Approved' : 'Pending Approval';
+  const BadgeIcon = project.approved ? CheckCircle : Clock;
   
   return (
     <Card className="shadow-soft hover:shadow-lift transition-all duration-300">
       <CardHeader>
         <div className="flex justify-between items-start">
           <CardTitle className="text-primary text-xl">{project.title}</CardTitle>
-          <Badge variant={project.approved ? "default" : "secondary"}>
-            {project.approved ? <CheckCircle className="mr-1 h-3 w-3" /> : <Clock className="mr-1 h-3 w-3" />}
-            {project.approved ? 'Approved' : 'Pending'}
+          <Badge 
+            variant={badgeVariant}
+            className={cn(
+              project.approved ? 'bg-green-100 text-green-800 border-green-200' : 'bg-yellow-100 text-yellow-800 border-yellow-200',
+              'dark:bg-opacity-20'
+            )}
+          >
+            <BadgeIcon className="mr-1 h-3 w-3" />
+            {badgeText}
           </Badge>
         </div>
         <CardDescription>{label}</CardDescription>
       </CardHeader>
       <CardContent>
-        {/* Placeholder for more project details */}
         <div className="text-sm text-muted-foreground">
           Status: <span className="font-medium text-foreground capitalize">{project.status}</span>
         </div>
-        <div className="w-full bg-gray-200 rounded-full h-2.5 mt-4">
+        <div className="w-full bg-gray-200 rounded-full h-2.5 mt-4 dark:bg-muted">
           <div className="bg-accent h-2.5 rounded-full" style={{ width: `${project.progressPercent || 0}%` }}></div>
         </div>
       </CardContent>
@@ -804,3 +812,5 @@ export function ProjectList({ userId }: { userId: string }) {
     </div>
   );
 }
+
+    
