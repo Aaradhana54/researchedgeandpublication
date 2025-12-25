@@ -27,13 +27,14 @@ export function useCollection<T extends DocumentData>(
 
   useEffect(() => {
     // If the query is not yet available (e.g., waiting for firestore instance),
-    // set loading to false and do nothing.
+    // set loading to false and do nothing. This is the critical check.
     if (!queryMemo) {
       setState({ data: null, loading: false, error: null });
       return;
     }
 
-    setState((prevState) => ({ ...prevState, loading: true, error: null }));
+    // Set loading to true only when we have a valid query and are about to fetch.
+    setState({ data: null, loading: true, error: null });
 
     const unsubscribe = onSnapshot(
       queryMemo,
@@ -59,8 +60,9 @@ export function useCollection<T extends DocumentData>(
       }
     );
 
+    // Cleanup the subscription on unmount.
     return () => unsubscribe();
-  }, [queryMemo]);
+  }, [queryMemo]); // The effect now correctly depends only on the memoized query.
 
   return state;
 }
