@@ -14,15 +14,6 @@ export type Service = {
 
 // --- Firestore Data Types ---
 
-export interface UserProfile {
-  uid: string;
-  name: string;
-  email: string;
-  role: 'client';
-  createdAt: Timestamp;
-  updatedAt: Timestamp;
-}
-
 export type ProjectServiceType =
   | 'thesis-dissertation'
   | 'research-paper'
@@ -35,7 +26,6 @@ export type CourseLevel = 'ug' | 'pg' | 'phd';
 
 export interface Project {
   id?: string;
-  userId: string; // Owner UID
   title: string;
   serviceType: ProjectServiceType;
   topic?: string;
@@ -48,20 +38,6 @@ export interface Project {
   language?: string;
   wantToPublish?: boolean;
   publishWhere?: string;
-  currentStage: string;
-  progressPercent: number; // 0-100
-  status: 'active' | 'completed' | 'on-hold';
-  approved: boolean; // Simple approval by company, not role based
   createdAt: Timestamp;
   updatedAt: Timestamp;
-}
-
-
-export interface InviteCode {
-    id?: string;
-    code: string;
-    claimed: boolean;
-    claimedBy: string | null;
-    claimedAt: Timestamp | null;
-    createdAt: Timestamp;
 }

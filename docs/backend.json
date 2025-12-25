@@ -1,29 +1,10 @@
 {
   "entities": {
-    "UserProfile": {
-      "title": "User Profile",
-      "description": "Stores public and private information about a user.",
-      "type": "object",
-      "properties": {
-        "uid": { "type": "string", "description": "The user's unique ID." },
-        "name": { "type": "string", "description": "The user's full name." },
-        "email": { "type": "string", "format": "email" },
-        "role": {
-          "type": "string",
-          "enum": ["client"],
-          "description": "The user's role in the system."
-        },
-        "createdAt": { "type": "string", "format": "date-time" },
-        "updatedAt": { "type": "string", "format": "date-time" }
-      },
-      "required": ["uid", "name", "email", "role", "createdAt"]
-    },
     "Project": {
       "title": "Project",
       "description": "Represents a single research or publishing project.",
       "type": "object",
       "properties": {
-        "userId": { "type": "string", "description": "The UID of the client who owns the project." },
         "title": { "type": "string" },
         "serviceType": {
           "type": "string",
@@ -46,24 +27,16 @@
         "language": { "type": "string", "description": "The language of the project." },
         "wantToPublish": { "type": "boolean", "description": "Indicates if the client wants to publish the work." },
         "publishWhere": { "type": "string", "description": "Specifies where the client wants to publish." },
-        "currentStage": { "type": "string" },
-        "progressPercent": { "type": "number" },
-        "status": { "type": "string", "enum": ["active", "completed", "on-hold"] },
-        "approved": { "type": "boolean", "description": "Whether the project has been approved." },
         "createdAt": { "type": "string", "format": "date-time" },
         "updatedAt": { "type": "string", "format": "date-time" }
       },
-      "required": ["userId", "title", "serviceType", "status", "createdAt", "approved"]
+      "required": ["title", "serviceType", "createdAt"]
     }
   },
   "auth": {
-    "providers": ["email", "google.com"]
+    "providers": []
   },
   "firestore": {
-    "/users/{userId}": {
-      "schema": { "$ref": "#/entities/UserProfile" },
-      "description": "Stores user profile information."
-    },
     "/projects/{projectId}": {
       "schema": { "$ref": "#/entities/Project" },
       "description": "Top-level collection for all research projects."

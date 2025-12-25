@@ -3,64 +3,11 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ----------------------------------------------------------------------
-    // Helper Functions
-    // ----------------------------------------------------------------------
-
-    function isSignedIn() {
-      return request.auth != null;
-    }
-
-    function uid() {
-      return request.auth.uid;
-    }
-
-    // Function to get the user's profile document from Firestore
-    function getUserDoc(userId) {
-      return get(/databases/$(database)/documents/users/$(userId));
-    }
-
-    // Function to check if the user has a profile document
-    function hasUserDoc() {
-      return isSignedIn() && exists(/databases/$(database)/documents/users/$(uid()));
-    }
-    
-    function isClient() {
-        return hasUserDoc() && getUserDoc(uid()).data.role == 'client';
-    }
-
-    // ----------------------------------------------------------------------
-    // Collection Rules
-    // ----------------------------------------------------------------------
-
-    match /users/{userId} {
-      // READ: Any signed-in user can read their own profile.
-      allow get: if isSignedIn() && userId == uid();
-      allow list: if false; // Users should not be able to list other users.
-
-      // CREATE: Any authenticated user can create their OWN user document.
-      // The role must be 'client'.
-      allow create: if isSignedIn() && userId == uid() && request.resource.data.role == 'client';
-
-      // UPDATE: A user can update their own profile, but they CANNOT change their own role.
-      allow update: if isSignedIn() && userId == uid() && request.resource.data.role == resource.data.role;
-      
-      // DELETE: No one should be able to delete user profiles from the client.
-      allow delete: if false;
-    }
-
     match /projects/{projectId} {
-      // CREATE: A client can create a project for themselves.
-      allow create: if isClient() && request.resource.data.userId == uid();
-
-      // READ (get, list): A user can read a project if they are the owner.
-      allow read: if isSignedIn() && resource.data.userId == uid();
-      
-      // UPDATE: Owner can update their project.
-      allow update: if isSignedIn() && resource.data.userId == uid();
-
-      // DELETE: No one should be able to delete projects from the client.
-      allow delete: if false;
+      // Anyone can create a project, but no one can read, update, or delete from the client.
+      // This is because there is no user authentication.
+      allow create: if true;
+      allow read, update, delete: if false;
     }
     
     match /contact_leads/{contactLeadId} {

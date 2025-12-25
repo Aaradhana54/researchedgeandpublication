@@ -9,7 +9,6 @@ import { useScrollSpy } from '@/hooks/use-scroll-spy';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Logo } from '@/components/ui/logo';
-import { useUser } from '@/firebase';
 
 const navItems = [
   { label: 'Home', href: 'home' },
@@ -21,7 +20,6 @@ const navItems = [
 ];
 
 export function Header() {
-  const { user, loading } = useUser();
   const [scrolled, setScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const sectionIds = navItems.map((item) => item.href);
@@ -64,16 +62,9 @@ export function Header() {
         </nav>
 
         <div className="flex items-center gap-2">
-          {!loading &&
-            (user ? (
-                <Button asChild>
-                  <Link href="/dashboard">Dashboard</Link>
-                </Button>
-            ) : (
-              <Button asChild>
-                <Link href="/login">Client Login</Link>
-              </Button>
-            ))}
+           <Button asChild>
+              <Link href="/#contact">Get a Quote</Link>
+            </Button>
 
           <div className="md:hidden">
             <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
@@ -106,16 +97,9 @@ export function Header() {
                     ))}
                   </nav>
                    <div className="mt-auto flex flex-col gap-2 border-t pt-4">
-                     {!loading &&
-                        (user ? (
-                            <Button asChild>
-                              <Link href="/dashboard">Dashboard</Link>
-                            </Button>
-                        ) : (
-                          <Button asChild>
-                            <Link href="/login">Client Login</Link>
-                          </Button>
-                        ))}
+                      <Button asChild>
+                        <Link href="/#contact">Get a Quote</Link>
+                      </Button>
                    </div>
                 </div>
               </SheetContent>
