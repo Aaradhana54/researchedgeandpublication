@@ -1,0 +1,88 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "Stores public and private information about a user.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "The user's unique ID." },
+        "name": { "type": "string", "description": "The user's full name." },
+        "email": { "type": "string", "format": "email" },
+        "role": {
+          "type": "string",
+          "enum": ["client", "admin", "staff"],
+          "description": "The user's role in the system."
+        },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "name", "email", "role", "createdAt"]
+    },
+    "Project": {
+      "title": "Project",
+      "description": "Represents a single research or publishing project.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "The UID of the client who owns the project." },
+        "title": { "type": "string" },
+        "serviceType": {
+          "type": "string",
+          "enum": ["thesis", "dissertation", "data-analysis", "paper", "book", "institutional"]
+        },
+        "currentStage": { "type": "string" },
+        "progressPercent": { "type": "number" },
+        "status": { "type": "string", "enum": ["active", "completed", "on-hold"] },
+        "assignedTeam": { "type": "array", "items": { "type": "string" } },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "title", "serviceType", "status", "createdAt"]
+    },
+    "ContactLead": {
+      "title": "Contact Lead",
+      "description": "A lead from the public contact form.",
+      "type": "object",
+      "properties": {
+          "name": { "type": "string" },
+          "email": { "type": "string", "format": "email" },
+          "phone": { "type": "string" },
+          "message": { "type": "string" },
+          "serviceType": { "type": "string" }
+      },
+      "required": ["name", "email", "message"]
+    },
+    "Testimonial": {
+        "title": "Testimonial",
+        "description": "A customer testimonial.",
+        "type": "object",
+        "properties": {
+            "name": { "type": "string" },
+            "designation": { "type": "string" },
+            "message": { "type": "string" },
+            "approved": { "type": "boolean" }
+        },
+        "required": ["name", "message", "approved"]
+    }
+  },
+  "auth": {
+    "providers": ["email", "google.com"]
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "Stores user profile information."
+    },
+    "/projects/{projectId}": {
+      "schema": { "$ref": "#/entities/Project" },
+      "description": "Top-level collection for all research projects."
+    },
+    "/contact_leads/{contactLeadId}": {
+      "schema": { "$ref": "#/entities/ContactLead" },
+      "description": "Collection for public contact form submissions."
+    },
+     "/testimonials/{testimonialId}": {
+      "schema": { "$ref": "#/entities/Testimonial" },
+      "description": "Collection for customer testimonials."
+    }
+  }
+}

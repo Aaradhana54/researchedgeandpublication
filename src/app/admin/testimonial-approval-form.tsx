@@ -11,6 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { CheckCircle2, XCircle, LoaderCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
 
 const initialState: TestimonialApprovalState = {
   message: '',
@@ -26,14 +27,29 @@ function SubmitButton() {
 }
 
 export function TestimonialApprovalForm() {
+  const {toast} = useToast();
   const [state, formAction] = useActionState(submitTestimonialForApproval, initialState);
   const formRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
-    if (state.message && state.result) {
-      formRef.current?.reset();
+    if (state.message.startsWith('Testimonial processed')) {
+        toast({
+            title: 'Analysis Complete',
+            description: state.result?.approved 
+              ? 'The testimonial has been approved and saved.' 
+              : 'The testimonial has been rejected.',
+        });
+        if (state.result?.approved) {
+          formRef.current?.reset();
+        }
+    } else if (state.message.startsWith('An error')) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: state.message,
+      });
     }
-  }, [state]);
+  }, [state, toast]);
 
   return (
     <div>

@@ -2,6 +2,8 @@
 
 import { z } from 'zod';
 import { approveTestimonial } from '@/ai/flows/approve-testimonials-flow';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { initializeFirebase } from '@/firebase';
 
 const contactFormSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters.'),
@@ -42,10 +44,15 @@ export async function submitContactForm(
   }
 
   try {
-    // Here you would typically save to Firestore
-    console.log('Contact form submitted:', validatedFields.data);
+    const { firestore } = await initializeFirebase();
+    const leadsRef = collection(firestore, 'contact_leads');
+    await addDoc(leadsRef, {
+      ...validatedFields.data,
+      createdAt: serverTimestamp(),
+    });
     return { message: 'Success: Your message has been sent!' };
   } catch (e) {
+    console.error('Contact form submission error:', e);
     return { message: 'Error: Could not submit the form.' };
   }
 }
@@ -90,6 +97,18 @@ export async function submitTestimonialForApproval(
 
   try {
     const result = await approveTestimonial(validatedFields.data);
+    
+    // If approved by AI, save to Firestore
+    if (result.approved) {
+        const { firestore } = await initializeFirebase();
+        const testimonialsRef = collection(firestore, 'testimonials');
+        await addDoc(testimonialsRef, {
+            ...validatedFields.data,
+            approved: true,
+            createdAt: serverTimestamp(),
+        });
+    }
+
     return {
       message: 'Testimonial processed by AI.',
       result: result,

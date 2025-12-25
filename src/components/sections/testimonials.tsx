@@ -1,3 +1,4 @@
+'use client';
 import Image from 'next/image';
 import {
   Carousel,
@@ -10,8 +11,12 @@ import { Card, CardContent } from '@/components/ui/card';
 import { AnimatedWrapper } from '@/components/animated-wrapper';
 import { type Testimonial } from '@/lib/types';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { useCollection } from '@/firebase';
+import { collection, query, where } from 'firebase/firestore';
+import { useFirestore } from '@/firebase';
+import { LoaderCircle } from 'lucide-react';
 
-const testimonialsData: Testimonial[] = [
+const staticTestimonials: Testimonial[] = [
   {
     name: 'Dr. Meenal Joshi',
     designation: 'Professor, XYZ University',
@@ -32,7 +37,15 @@ const testimonialsData: Testimonial[] = [
   },
 ];
 
+
 export function Testimonials() {
+  const firestore = useFirestore();
+  const testimonialsQuery = firestore ? query(collection(firestore, 'testimonials'), where('approved', '==', true)) : null;
+  const { data: dynamicTestimonials, loading } = useCollection<Testimonial>(testimonialsQuery);
+
+  const allTestimonials = [...staticTestimonials, ...(dynamicTestimonials || [])];
+
+
   return (
     <section id="testimonials" className="w-full py-16 md:py-24 lg:py-32">
       <div className="container mx-auto">
@@ -47,6 +60,9 @@ export function Testimonials() {
           </div>
         </AnimatedWrapper>
         <AnimatedWrapper delay={200}>
+        {loading ? (
+             <div className="flex justify-center"><LoaderCircle className="w-8 h-8 animate-spin text-primary" /></div>
+        ) : (
           <Carousel
             opts={{
               align: 'start',
@@ -55,7 +71,7 @@ export function Testimonials() {
             className="w-full max-w-4xl mx-auto"
           >
             <CarouselContent>
-              {testimonialsData.map((testimonial, index) => {
+              {allTestimonials.map((testimonial, index) => {
                 const image = PlaceHolderImages.find(p => p.id === testimonial.avatarId);
                 return (
                   <CarouselItem key={index} className="md:basis-1/2">
@@ -72,6 +88,11 @@ export function Testimonials() {
                                 className="rounded-full border-4 border-primary/10"
                               />
                           )}
+                           {!image && testimonial.avatarId && (
+                             <div className="w-20 h-20 rounded-full border-4 border-primary/10 bg-muted flex items-center justify-center">
+                               <span className="text-2xl font-bold text-primary">{testimonial.name.charAt(0)}</span>
+                             </div>
+                           )}
                           <blockquote className="mt-2 text-muted-foreground italic">
                             “{testimonial.message}”
                           </blockquote>
@@ -89,6 +110,7 @@ export function Testimonials() {
             <CarouselPrevious className="hidden sm:flex" />
             <CarouselNext className="hidden sm:flex" />
           </Carousel>
+        )}
         </AnimatedWrapper>
       </div>
     </section>

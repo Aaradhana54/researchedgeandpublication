@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useEffect, useRef } from 'react';
+import { useActionState, useEffect, useRef, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { submitContactForm, type ContactFormState } from '@/app/actions';
 
@@ -11,6 +11,9 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
+import { useFormStatus } from 'react-dom';
+import { LoaderCircle } from 'lucide-react';
+
 
 const initialState: ContactFormState = {
   message: '',
@@ -25,8 +28,18 @@ const services = [
   'Other',
 ];
 
+function SubmitButton() {
+  const { pending } = useFormStatus();
+  return (
+    <Button type="submit" className="w-full" size="lg" disabled={pending}>
+       {pending ? <LoaderCircle className="animate-spin" /> : 'Send Message'}
+    </Button>
+  );
+}
+
 export function Contact() {
   const [state, formAction] = useActionState(submitContactForm, initialState);
+  const [serviceValue, setServiceValue] = useState<string | undefined>(undefined);
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -37,10 +50,11 @@ export function Contact() {
         description: 'Thank you for contacting us. We will get back to you shortly.',
       });
       formRef.current?.reset();
+      setServiceValue(undefined);
     } else if (state.message.startsWith('Error')) {
       toast({
         title: 'Submission Error',
-        description: 'Please correct the errors and try again.',
+        description: state.errors ? 'Please correct the errors and try again.' : 'An unexpected error occurred.',
         variant: 'destructive',
       });
     }
@@ -78,7 +92,7 @@ export function Contact() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="serviceType">Service of Interest</Label>
-                  <Select name="serviceType" required>
+                  <Select name="serviceType" required value={serviceValue} onValueChange={setServiceValue}>
                     <SelectTrigger id="serviceType">
                       <SelectValue placeholder="Select a service" />
                     </SelectTrigger>
@@ -95,7 +109,7 @@ export function Contact() {
                   <Textarea id="message" name="message" placeholder="Tell us about your project..." rows={5} required />
                   {state.errors?.message && <p className="text-sm text-destructive">{state.errors.message}</p>}
                 </div>
-                <Button type="submit" className="w-full" size="lg">Send Message</Button>
+                <SubmitButton />
               </form>
             </CardContent>
           </Card>

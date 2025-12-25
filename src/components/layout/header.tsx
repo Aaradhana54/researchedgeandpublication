@@ -2,13 +2,15 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Menu, X } from 'lucide-react';
+import { LogOut, Menu } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 import { useScrollSpy } from '@/hooks/use-scroll-spy';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Logo } from '@/components/ui/logo';
+import { useUser } from '@/firebase';
+import { logout } from '@/firebase/auth';
 
 const navItems = [
   { label: 'Home', href: 'home' },
@@ -20,6 +22,7 @@ const navItems = [
 ];
 
 export function Header() {
+  const { user, loading } = useUser();
   const [scrolled, setScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const sectionIds = navItems.map((item) => item.href);
@@ -33,6 +36,11 @@ export function Header() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const handleLogout = async () => {
+    await logout();
+    // Redirect or show a message after logout if needed
+  };
+
   return (
     <header
       className={cn(
@@ -43,11 +51,11 @@ export function Header() {
       <div className="container mx-auto flex h-20 items-center justify-between px-4">
         <Logo />
 
-        <nav className="hidden md:flex items-center gap-2">
+        <nav className="hidden md:flex items-center gap-1">
           {navItems.map((item) => (
             <Link
               key={item.href}
-              href={`#${item.href}`}
+              href={`/#${item.href}`}
               className={cn(
                 'relative px-3 py-2 text-sm font-medium text-foreground/70 transition-colors hover:text-primary',
                 'focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm'
@@ -61,37 +69,56 @@ export function Header() {
           ))}
         </nav>
 
-        <div className="md:hidden">
-          <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <Menu className="h-6 w-6" />
-                <span className="sr-only">Open menu</span>
+        <div className="flex items-center gap-2">
+          {!loading &&
+            (user ? (
+              <>
+                <Button asChild>
+                  <Link href="/dashboard">Dashboard</Link>
+                </Button>
+                <Button variant="ghost" size="icon" onClick={handleLogout}>
+                  <LogOut className="h-5 w-5" />
+                  <span className="sr-only">Logout</span>
+                </Button>
+              </>
+            ) : (
+              <Button asChild variant="outline">
+                <Link href="/login">Login</Link>
               </Button>
-            </SheetTrigger>
-            <SheetContent side="right" className="w-[280px]">
-              <div className="flex flex-col h-full">
-                <div className="flex items-center justify-between border-b pb-4">
-                  <Logo />
+            ))}
+
+          <div className="md:hidden">
+            <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <Menu className="h-6 w-6" />
+                  <span className="sr-only">Open menu</span>
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-[280px]">
+                <div className="flex flex-col h-full">
+                  <div className="flex items-center justify-between border-b pb-4">
+                    <Logo />
+                  </div>
+                  <nav className="flex flex-col gap-4 mt-8">
+                    {navItems.map((item) => (
+                      <Link
+                        key={item.href}
+                        href={`/#${item.href}`}
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className={cn(
+                          'text-lg font-medium text-foreground/80 transition-colors hover:text-primary',
+                          activeId === item.href && 'text-primary'
+                        )}
+                      >
+                        {item.label}
+                      </Link>
+                    ))}
+                  </nav>
                 </div>
-                <nav className="flex flex-col gap-4 mt-8">
-                  {navItems.map((item) => (
-                    <Link
-                      key={item.href}
-                      href={`#${item.href}`}
-                      onClick={() => setIsMobileMenuOpen(false)}
-                      className={cn(
-                        'text-lg font-medium text-foreground/80 transition-colors hover:text-primary',
-                        activeId === item.href && 'text-primary'
-                      )}
-                    >
-                      {item.label}
-                    </Link>
-                  ))}
-                </nav>
-              </div>
-            </SheetContent>
-          </Sheet>
+              </SheetContent>
+            </Sheet>
+          </div>
         </div>
       </div>
     </header>
