@@ -107,7 +107,7 @@ const serviceTypeLabels: Record<ProjectServiceType, string> = {
   'book-writing': 'Book Writing',
   'review-paper': 'Review Paper Writing',
   'research-publication': 'Research Publication',
-  'book-publishing': 'Book Publication',
+  'book-publishing': 'Book Publishing',
 };
 
 
@@ -229,14 +229,14 @@ export function CreateProjectDialog({ userId }: { userId: string}) {
         {step === 1 && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
              <Card
-              className="flex flex-col items-center justify-center p-6 text-center cursor-pointer hover:bg-accent hover:text-accent-foreground transition-colors group"
+              className="flex flex-col items-center justify-center p-6 text-center cursor-pointer hover:bg-accent hover:text-accent-foreground transition-colors group h-32"
               onClick={() => handleCategorySelect('writing')}
             >
                 <PenSquare className="w-10 h-10 mb-2 text-primary group-hover:text-accent-foreground" />
                 <h3 className="font-semibold">{serviceCategories.writing.label}</h3>
             </Card>
             <Card
-              className="flex flex-col items-center justify-center p-6 text-center cursor-pointer hover:bg-accent hover:text-accent-foreground transition-colors group"
+              className="flex flex-col items-center justify-center p-6 text-center cursor-pointer hover:bg-accent hover:text-accent-foreground transition-colors group h-32"
               onClick={() => handleCategorySelect('publication')}
             >
                 <BookUp className="w-10 h-10 mb-2 text-primary group-hover:text-accent-foreground" />
@@ -321,12 +321,10 @@ export function CreateProjectDialog({ userId }: { userId: string}) {
                                   <FormLabel>Deadline</FormLabel>
                                     <Popover>
                                         <PopoverTrigger asChild>
-                                            <FormControl>
-                                                <Button variant={"outline"} className={cn("pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>
-                                                    {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
-                                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                                </Button>
-                                            </FormControl>
+                                            <Button variant={"outline"} className={cn("pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>
+                                                {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                            </Button>
                                         </PopoverTrigger>
                                         <PopoverContent className="w-auto p-0" align="start">
                                             <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
@@ -442,12 +440,10 @@ export function CreateProjectDialog({ userId }: { userId: string}) {
                                   <FormLabel>Deadline</FormLabel>
                                    <Popover>
                                         <PopoverTrigger asChild>
-                                            <FormControl>
-                                                <Button variant={"outline"} className={cn("pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>
-                                                    {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
-                                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                                </Button>
-                                            </FormControl>
+                                            <Button variant={"outline"} className={cn("pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>
+                                                {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                            </Button>
                                         </PopoverTrigger>
                                         <PopoverContent className="w-auto p-0" align="start">
                                             <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
@@ -554,12 +550,10 @@ export function CreateProjectDialog({ userId }: { userId: string}) {
                             <FormLabel>Expected Deadline</FormLabel>
                             <Popover>
                                 <PopoverTrigger asChild>
-                                    <FormControl>
-                                        <Button variant={"outline"} className={cn("pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>
-                                            {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
-                                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                        </Button>
-                                    </FormControl>
+                                    <Button variant={"outline"} className={cn("pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>
+                                        {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                    </Button>
                                 </PopoverTrigger>
                                 <PopoverContent className="w-auto p-0" align="start">
                                     <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
@@ -715,5 +709,3 @@ export function ProjectList({ userId }: { userId: string }) {
     </div>
   );
 }
-
-    
