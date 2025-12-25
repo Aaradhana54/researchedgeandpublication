@@ -14,26 +14,29 @@ service cloud.firestore {
     match /users/{userId} {
       // New users can only create their own profile with the 'client' role.
       allow create: if isOwner(userId) && request.resource.data.role == 'client';
-      // Users can read and update their own profile. An admin cannot change a user's role.
+      // Users can read their own profile. Admins can read any profile.
       allow read: if isOwner(userId) || isAdmin();
-      allow update: if isOwner(userId) && request.resource.data.role == resource.data.role;
-      // Admins can update any user's profile (except for their role)
-      allow update: if isAdmin() && request.resource.data.role == resource.data.role;
-      allow delete, list: if false;
+      // Users can update their own profile, but cannot change their role. Admins can update any profile, but also cannot change roles.
+      allow update: if (isOwner(userId) || isAdmin()) && request.resource.data.role == resource.data.role;
+      // No one can delete users or list all users from the client.
+      allow delete, list: if isAdmin();
     }
     
     match /projects/{projectId} {
+      // Authenticated users can create projects.
       allow create: if request.auth != null;
+      // Owners or admins can read, update, and delete.
       allow read, update, delete: if isOwner(resource.data.userId) || isAdmin();
+      // Authenticated users can list projects (will be filtered by user ID in the app query). Admins can list all.
       allow list: if request.auth != null;
     }
     
     match /contact_leads/{contactLeadId} {
       // Anyone can submit the contact form.
       allow create: if true;
-      // No one can read/update/delete from the client. This data is for backend use.
-      allow read, update, delete: if false;
-      allow list: if isAdmin();
+      // Only admins can read/list. No one can update/delete from the client.
+      allow read, list: if isAdmin();
+      allow update, delete: if false;
     }
 
     match /testimonials/{testimonialId} {
@@ -41,6 +44,28 @@ service cloud.firestore {
       allow get, list: if true;
       // No one can create/update/delete from the client.
       allow create, update, delete: if false;
+    }
+    
+    // --- Admin-only Collections ---
+
+    match /tasks/{taskId} {
+      allow read, write, create, list, update, delete: if isAdmin();
+    }
+
+    match /book_sales/{saleId} {
+      allow read, write, create, list, update, delete: if isAdmin();
+    }
+
+    match /payouts/{payoutId} {
+      allow read, write, create, list, update, delete: if isAdmin();
+    }
+
+    match /invoices/{invoiceId} {
+      allow read, write, create, list, update, delete: if isAdmin();
+    }
+
+    match /notifications/{notificationId} {
+       allow read, write, create, list, update, delete: if isAdmin();
     }
   }
 }

@@ -34,6 +34,7 @@ export type CourseLevel = 'ug' | 'pg' | 'phd';
 
 export interface Project {
   id?: string;
+  userId: string;
   title: string;
   serviceType: ProjectServiceType;
   topic?: string;
@@ -46,6 +47,58 @@ export interface Project {
   language?: string;
   wantToPublish?: boolean;
   publishWhere?: string;
+  status?: string;
   createdAt: Timestamp;
   updatedAt: Timestamp;
+}
+
+export interface Task {
+  id?: string;
+  projectId: string;
+  assignedTo: string; // User ID of writer/editor
+  description: string;
+  dueDate?: Timestamp;
+  status: 'pending' | 'in-progress' | 'completed';
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
+export interface BookSale {
+    id?: string;
+    bookId: string;
+    platform: string;
+    saleDate: Timestamp;
+    quantity: number;
+    revenue: number;
+    createdAt: Timestamp;
+}
+
+export interface Payout {
+    id?: string;
+    userId: string; // User ID of author/partner
+    amount: number;
+    status: 'pending' | 'paid';
+    requestDate: Timestamp;
+    paidDate?: Timestamp;
+    createdAt: Timestamp;
+}
+
+export interface Invoice {
+    id?: string;
+    projectId: string;
+    userId: string;
+    amount: number;
+    status: 'draft' | 'sent' | 'paid' | 'overdue';
+    issueDate: Timestamp;
+    dueDate: Timestamp;
+    pdfUrl?: string;
+    createdAt: Timestamp;
+}
+
+export interface Notification {
+    id?: string;
+    userId: string;
+    message: string;
+    isRead: boolean;
+    createdAt: Timestamp;
 }

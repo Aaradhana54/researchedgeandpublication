@@ -9,6 +9,8 @@ import {
   DollarSign,
   ChevronDown,
   Bell,
+  CreditCard,
+  ClipboardCheck,
 } from 'lucide-react';
 import React from 'react';
 import { useEffect } from 'react';
@@ -48,6 +50,8 @@ const adminNavItems = [
   { href: '/admin/projects', label: 'Projects', icon: <FolderKanban /> },
   { href: '/admin/accounts', label: 'Accounts', icon: <Wallet /> },
   { href: '/admin/sales', label: 'Sales', icon: <DollarSign /> },
+  { href: '/admin/payouts', label: 'Payouts', icon: <ClipboardCheck /> },
+  { href: '/admin/invoices', label: 'Invoices', icon: <CreditCard /> },
   { href: '/admin/notifications', label: 'Notifications', icon: <Bell /> },
 ];
 

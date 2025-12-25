@@ -42,9 +42,81 @@
         "wantToPublish": { "type": "boolean", "description": "Indicates if the client wants to publish the work." },
         "publishWhere": { "type": "string", "description": "Specifies where the client wants to publish." },
         "createdAt": { "type": "string", "format": "date-time" },
-        "updatedAt": { "type": "string", "format": "date-time" }
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "description": "The current status of the project."}
       },
       "required": ["userId", "title", "serviceType", "createdAt"]
+    },
+    "Task": {
+      "title": "Task",
+      "description": "A task assigned to a writer or editor for a project.",
+      "type": "object",
+      "properties": {
+        "projectId": { "type": "string", "description": "The ID of the associated project." },
+        "assignedTo": { "type": "string", "description": "The UID of the assigned writer/editor." },
+        "description": { "type": "string" },
+        "dueDate": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "enum": ["pending", "in-progress", "completed"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["projectId", "assignedTo", "description", "status"]
+    },
+    "BookSale": {
+      "title": "Book Sale",
+      "description": "Represents a record of a book sale.",
+      "type": "object",
+      "properties": {
+        "bookId": { "type": "string" },
+        "platform": { "type": "string", "description": "The platform where the book was sold (e.g., Amazon, B&N)." },
+        "saleDate": { "type": "string", "format": "date-time" },
+        "quantity": { "type": "number" },
+        "revenue": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["bookId", "platform", "saleDate", "quantity", "revenue"]
+    },
+    "Payout": {
+      "title": "Payout",
+      "description": "Represents a payout to an author or partner.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "The UID of the user receiving the payout." },
+        "amount": { "type": "number" },
+        "status": { "type": "string", "enum": ["pending", "paid"] },
+        "requestDate": { "type": "string", "format": "date-time" },
+        "paidDate": { "type": "string", "format": "date-time" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "amount", "status", "requestDate"]
+    },
+    "Invoice": {
+      "title": "Invoice",
+      "description": "Represents an invoice generated for a client.",
+      "type": "object",
+      "properties": {
+        "projectId": { "type": "string" },
+        "userId": { "type": "string" },
+        "amount": { "type": "number" },
+        "status": { "type": "string", "enum": ["draft", "sent", "paid", "overdue"] },
+        "issueDate": { "type": "string", "format": "date-time" },
+        "dueDate": { "type": "string", "format": "date-time" },
+        "pdfUrl": { "type": "string", "description": "URL to the generated PDF invoice." },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["projectId", "userId", "amount", "status", "issueDate", "dueDate"]
+    },
+    "Notification": {
+      "title": "Notification",
+      "description": "A notification sent to a user.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "message": { "type": "string" },
+        "isRead": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "message", "isRead", "createdAt"]
     }
   },
   "auth": {
@@ -58,6 +130,26 @@
     "/projects/{projectId}": {
       "schema": { "$ref": "#/entities/Project" },
       "description": "Top-level collection for all research projects, owned by users."
+    },
+    "/tasks/{taskId}": {
+      "schema": { "$ref": "#/entities/Task" },
+      "description": "Collection for all project-related tasks assigned to team members."
+    },
+    "/book_sales/{saleId}": {
+      "schema": { "$ref": "#/entities/BookSale" },
+      "description": "Collection for tracking all book sales data."
+    },
+    "/payouts/{payoutId}": {
+      "schema": { "$ref": "#/entities/Payout" },
+      "description": "Collection for managing payouts to authors and partners."
+    },
+    "/invoices/{invoiceId}": {
+      "schema": { "$ref": "#/entities/Invoice" },
+      "description": "Collection for all generated client invoices."
+    },
+    "/notifications/{notificationId}": {
+      "schema": { "$ref": "#/entities/Notification" },
+      "description": "Collection for storing user notifications."
     }
   }
 }
