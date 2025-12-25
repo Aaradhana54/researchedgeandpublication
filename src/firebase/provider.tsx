@@ -4,23 +4,24 @@ import {
   createContext,
   useContext,
   type ReactNode,
-  useState,
-  useEffect,
 } from 'react';
 import type { FirebaseApp } from 'firebase/app';
 import type { Auth } from 'firebase/auth';
 import type { Firestore } from 'firebase/firestore';
+import type { FirebaseStorage } from 'firebase/storage';
 
 interface FirebaseContextValue {
   app: FirebaseApp | null;
   auth: Auth | null;
   firestore: Firestore | null;
+  storage: FirebaseStorage | null;
 }
 
 const FirebaseContext = createContext<FirebaseContextValue>({
   app: null,
   auth: null,
   firestore: null,
+  storage: null,
 });
 
 interface FirebaseProviderProps {
@@ -63,4 +64,12 @@ export function useFirestore() {
     throw new Error('useFirestore must be used within a FirebaseProvider');
   }
   return firestore;
+}
+
+export function useStorage() {
+  const { storage } = useFirebase();
+  if (!storage) {
+    throw new Error('useStorage must be used within a FirebaseProvider');
+  }
+  return storage;
 }

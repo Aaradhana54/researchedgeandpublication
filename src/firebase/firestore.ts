@@ -42,6 +42,7 @@ export async function createProject(
     language: restOfData.language,
     wantToPublish: restOfData.wantToPublish,
     publishWhere: restOfData.publishWhere,
+    synopsisFileUrl: restOfData.synopsisFileUrl,
     deadline: deadline ? Timestamp.fromDate(deadline) : undefined,
     currentStage: 'Initiation',
     progressPercent: 0,

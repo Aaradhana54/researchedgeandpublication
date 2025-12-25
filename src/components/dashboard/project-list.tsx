@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useCollection } from '@/firebase';
 import { createProject } from '@/firebase/firestore';
+import { uploadFileAndGetURL } from '@/firebase/storage';
 import { collection, query, where } from 'firebase/firestore';
 import { useFirestore, useUser } from '@/firebase';
 
@@ -42,12 +43,14 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { LoaderCircle, PlusCircle, FolderKanban, PenSquare, BookUp, ArrowLeft, CalendarIcon } from 'lucide-react';
+import { LoaderCircle, PlusCircle, FolderKanban, PenSquare, BookUp, ArrowLeft, CalendarIcon, Upload } from 'lucide-react';
 import { type Project, type ProjectServiceType, type CourseLevel } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 
+
+const fileSchema = z.instanceof(File).optional().refine(file => !file || file.size <= 5 * 1024 * 1024, 'File size must be 5MB or less.');
 
 const projectSchema = z.object({
   title: z.string().min(5, 'Title must be at least 5 characters.'),
@@ -68,6 +71,7 @@ const projectSchema = z.object({
   language: z.string().optional(),
   wantToPublish: z.boolean().optional(),
   publishWhere: z.string().optional(),
+  synopsisFile: fileSchema,
 });
 
 type ProjectFormValues = z.infer<typeof projectSchema>;
@@ -154,7 +158,16 @@ export function CreateProjectDialog({ userId }: { userId: string}) {
   const onSubmit = async (data: ProjectFormValues) => {
     setIsLoading(true);
     try {
-      await createProject(userId, data);
+      let synopsisFileUrl: string | undefined = undefined;
+      const { synopsisFile, ...projectData } = data;
+
+      if (synopsisFile) {
+        toast({ title: 'Uploading file...', description: 'Please wait.' });
+        synopsisFileUrl = await uploadFileAndGetURL(userId, synopsisFile);
+      }
+
+      await createProject(userId, { ...projectData, synopsisFileUrl });
+      
       toast({
         title: 'Project Created!',
         description: 'Your new project has been successfully created.',
@@ -348,12 +361,26 @@ export function CreateProjectDialog({ userId }: { userId: string}) {
                               </FormItem>
                           )} />
                       </div>
-                      <Alert>
-                        <AlertTitle>Synopsis Upload</AlertTitle>
-                        <AlertDescription>
-                          File upload functionality will be available soon. For now, please proceed and you can share files with the team later.
-                        </AlertDescription>
-                      </Alert>
+                      
+                      <FormField
+                        control={form.control}
+                        name="synopsisFile"
+                        render={({ field: { onChange, value, ...rest } }) => (
+                          <FormItem>
+                            <FormLabel>Synopsis File (Optional)</FormLabel>
+                            <FormControl>
+                               <Input 
+                                type="file" 
+                                accept=".pdf,.doc,.docx"
+                                onChange={(e) => onChange(e.target.files?.[0])}
+                                {...rest} 
+                               />
+                            </FormControl>
+                             <FormDescription>Upload your synopsis or proposal document (PDF/Word, max 5MB).</FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                   </>
                 )}
                 
@@ -429,13 +456,26 @@ export function CreateProjectDialog({ userId }: { userId: string}) {
                               </FormItem>
                           )} />
                       </div>
-
-                      <Alert>
-                          <AlertTitle>File Upload</AlertTitle>
-                          <AlertDescription>
-                          File upload functionality will be available soon. For now, please proceed and you can share files with the team later.
-                          </AlertDescription>
-                      </Alert>
+                      
+                      <FormField
+                        control={form.control}
+                        name="synopsisFile"
+                        render={({ field: { onChange, value, ...rest } }) => (
+                          <FormItem>
+                            <FormLabel>Relevant File (Optional)</FormLabel>
+                             <FormControl>
+                               <Input 
+                                type="file" 
+                                accept=".pdf,.doc,.docx"
+                                onChange={(e) => onChange(e.target.files?.[0])}
+                                {...rest} 
+                               />
+                            </FormControl>
+                             <FormDescription>Upload your draft or requirements (PDF/Word, max 5MB).</FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
 
                       <div className="space-y-4">
                           <FormField
@@ -551,12 +591,25 @@ export function CreateProjectDialog({ userId }: { userId: string}) {
                         )}
                     />
 
-                    <Alert>
-                        <AlertTitle>Upload Your Manuscript or Voice Notes</AlertTitle>
-                        <AlertDescription>
-                          File upload functionality (PDF, Voice, Word) will be available soon. For now, please proceed and you can share files later.
-                        </AlertDescription>
-                    </Alert>
+                    <FormField
+                        control={form.control}
+                        name="synopsisFile"
+                        render={({ field: { onChange, value, ...rest } }) => (
+                          <FormItem>
+                            <FormLabel>Manuscript / Voice Notes (Optional)</FormLabel>
+                             <FormControl>
+                               <Input 
+                                type="file" 
+                                accept=".pdf,.doc,.docx,.mp3,.wav,.m4a"
+                                onChange={(e) => onChange(e.target.files?.[0])}
+                                {...rest} 
+                               />
+                            </FormControl>
+                             <FormDescription>Upload your manuscript or voice recording (PDF, Word, Audio, max 5MB).</FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                   </>
                 )}
 
@@ -655,5 +708,3 @@ export function ProjectList({ userId }: { userId: string }) {
     </div>
   );
 }
-
-    

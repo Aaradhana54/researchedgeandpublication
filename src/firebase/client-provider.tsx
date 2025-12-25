@@ -7,6 +7,7 @@ import type { FirebaseApp } from 'firebase/app';
 import type { Auth } from 'firebase/auth';
 import type { Firestore } from 'firebase/firestore';
 import { LoaderCircle } from 'lucide-react';
+import type { FirebaseStorage } from 'firebase/storage';
 
 interface FirebaseClientProviderProps {
   children: ReactNode;
@@ -19,6 +20,7 @@ export function FirebaseClientProvider({
     app: FirebaseApp;
     auth: Auth;
     firestore: Firestore;
+    storage: FirebaseStorage;
   } | null>(null);
 
   useEffect(() => {
