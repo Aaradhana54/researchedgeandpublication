@@ -132,6 +132,7 @@ export function CreateProjectDialog({ userId }: { userId: string}) {
       pageCount: undefined,
       courseLevel: undefined,
       deadline: undefined,
+      synopsisFile: undefined,
     },
   });
   
@@ -161,6 +162,7 @@ export function CreateProjectDialog({ userId }: { userId: string}) {
       pageCount: undefined,
       courseLevel: undefined,
       deadline: undefined,
+      synopsisFile: undefined,
     });
   };
   
@@ -376,7 +378,7 @@ export function CreateProjectDialog({ userId }: { userId: string}) {
                           <FormField control={form.control} name="pageCount" render={({ field }) => (
                               <FormItem>
                                   <FormLabel>Page Count (Approx.)</FormLabel>
-                                  <FormControl><Input type="number" placeholder="e.g., 250" {...field} /></FormControl>
+                                  <FormControl><Input type="number" placeholder="e.g., 250" {...field} value={field.value || ''} /></FormControl>
                                   <FormMessage />
                               </FormItem>
                           )} />
@@ -436,7 +438,7 @@ export function CreateProjectDialog({ userId }: { userId: string}) {
                           <FormField control={form.control} name="wordCount" render={({ field }) => (
                               <FormItem>
                                   <FormLabel>Word Count (Approx.)</FormLabel>
-                                  <FormControl><Input type="number" placeholder="e.g., 5000" {...field} /></FormControl>
+                                  <FormControl><Input type="number" placeholder="e.g., 5000" {...field} value={field.value || ''} /></FormControl>
                                   <FormMessage />
                               </FormItem>
                           )} />
@@ -594,7 +596,7 @@ export function CreateProjectDialog({ userId }: { userId: string}) {
                         <FormField control={form.control} name="pageCount" render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Page Count (Approx.)</FormLabel>
-                                <FormControl><Input type="number" placeholder="e.g., 150" {...field} /></FormControl>
+                                <FormControl><Input type="number" placeholder="e.g., 150" {...field} value={field.value || ''} /></FormControl>
                                 <FormMessage />
                             </FormItem>
                         )} />
@@ -799,3 +801,5 @@ export function ProjectList({ userId }: { userId: string }) {
     </div>
   );
 }
+
+    
