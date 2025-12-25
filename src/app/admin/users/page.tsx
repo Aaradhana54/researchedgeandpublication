@@ -75,7 +75,6 @@ export default function UserManagementPage() {
   const filteredUsers = useMemo(() => {
     if (!users) {
       return {
-        all: [],
         clients: [],
         authors: [],
         team: [],
@@ -83,7 +82,6 @@ export default function UserManagementPage() {
       };
     }
     return {
-      all: users,
       clients: users.filter(u => u.role === 'client'),
       authors: users.filter(u => u.role === 'author'),
       team: users.filter(u => u.role === 'team-member' || u.role === 'admin'),
@@ -92,7 +90,6 @@ export default function UserManagementPage() {
   }, [users]);
   
   const tabs = [
-    { value: 'all', label: 'All Users', data: filteredUsers.all },
     { value: 'clients', label: 'Research Clients', data: filteredUsers.clients },
     { value: 'authors', label: 'Authors', data: filteredUsers.authors },
     { value: 'team', label: 'Team', data: filteredUsers.team },
@@ -120,8 +117,8 @@ export default function UserManagementPage() {
             <CardDescription>Select a role to view and manage users.</CardDescription>
         </CardHeader>
         <CardContent>
-            <Tabs defaultValue="all">
-                <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-5 mb-6">
+            <Tabs defaultValue="clients">
+                <TabsList className="grid w-full grid-cols-2 sm:grid-cols-2 md:grid-cols-4 mb-6">
                    {tabs.map(tab => (
                      <TabsTrigger key={tab.value} value={tab.value}>{tab.label}</TabsTrigger>
                    ))}
