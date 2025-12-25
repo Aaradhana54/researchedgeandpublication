@@ -64,6 +64,7 @@ export function Testimonials() {
             <CarouselContent>
               {allTestimonials.map((testimonial, index) => {
                 const image = PlaceHolderImages.find(p => p.id === testimonial.avatarId);
+                const message = testimonial.message.replace(/Revio Research|Revio/gi, 'Research Agent Publication');
                 return (
                   <CarouselItem key={index} className="md:basis-1/2">
                     <div className="p-1 h-full">
@@ -84,7 +85,7 @@ export function Testimonials() {
                              </div>
                            )}
                           <blockquote className="mt-2 text-muted-foreground italic">
-                            “{testimonial.message}”
+                            “{message}”
                           </blockquote>
                           <div className="mt-auto">
                             <p className="font-bold text-primary">{testimonial.name}</p>

@@ -11,7 +11,7 @@ export function Hero() {
       <div className="container mx-auto">
         <AnimatedWrapper>
           <h1 className="text-4xl font-extrabold tracking-tight text-primary sm:text-5xl md:text-6xl lg:text-7xl font-headline">
-            Revio Research
+            Research Agent Publication
           </h1>
         </AnimatedWrapper>
         <AnimatedWrapper delay={200}>
