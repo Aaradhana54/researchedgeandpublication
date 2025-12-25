@@ -5,7 +5,7 @@ import { useFormStatus } from 'react-dom';
 import { useUser } from '@/firebase/auth/use-user';
 import { useToast } from '@/hooks/use-toast';
 import { createProject, type ProjectFormState } from '@/app/actions';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -54,6 +54,7 @@ export default function CreateProjectPage({ params }: { params: { service: strin
   const [state, formAction] = useActionState(createProject, initialState);
   const { toast } = useToast();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const formRef = useRef<HTMLFormElement>(null);
 
   const [deadline, setDeadline] = React.useState<Date | undefined>();
@@ -63,6 +64,7 @@ export default function CreateProjectPage({ params }: { params: { service: strin
     : serviceTypes.publication;
   
   const pageTitle = params.service === 'writing' ? 'New Writing Project' : 'New Publication Project';
+  const defaultServiceType = searchParams.get('serviceType');
 
   useEffect(() => {
     if (state.message) {
@@ -107,7 +109,7 @@ export default function CreateProjectPage({ params }: { params: { service: strin
                  </div>
                  <div className="space-y-2">
                     <Label htmlFor="serviceType">Service Type</Label>
-                    <Select name="serviceType" required>
+                    <Select name="serviceType" required defaultValue={defaultServiceType || undefined}>
                       <SelectTrigger id="serviceType">
                         <SelectValue placeholder="Select a service type..." />
                       </SelectTrigger>
