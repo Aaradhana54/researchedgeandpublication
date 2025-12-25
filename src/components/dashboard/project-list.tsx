@@ -38,6 +38,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { LoaderCircle, PlusCircle, FolderKanban, PenSquare, BookUp, ArrowLeft, CalendarIcon } from 'lucide-react';
 import { type Project, type ProjectServiceType, type CourseLevel } from '@/lib/types';
@@ -61,7 +62,10 @@ const projectSchema = z.object({
   deadline: z.date().optional(),
   referencingStyle: z.string().optional(),
   pageCount: z.coerce.number().positive('Must be a positive number.').optional(),
+  wordCount: z.coerce.number().positive('Must be a positive number.').optional(),
   language: z.string().optional(),
+  wantToPublish: z.boolean().optional(),
+  publishWhere: z.string().optional(),
 });
 
 type ProjectFormValues = z.infer<typeof projectSchema>;
@@ -107,9 +111,12 @@ export function CreateProjectDialog({ userId }: { userId: string}) {
     resolver: zodResolver(projectSchema),
     defaultValues: {
       title: '',
-      language: 'English'
+      language: 'English',
+      wantToPublish: false,
     },
   });
+  
+  const wantToPublishValue = form.watch('wantToPublish');
 
   const handleCategorySelect = (category: ServiceCategory) => {
     setSelectedCategory(category);
@@ -333,6 +340,129 @@ export function CreateProjectDialog({ userId }: { userId: string}) {
                     </div>
                 </>
                )}
+               
+              {(currentServiceType === 'research-paper' || currentServiceType === 'review-paper') && (
+                 <>
+                    <FormField control={form.control} name="topic" render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Topic</FormLabel>
+                            <FormControl><Input placeholder="Your research topic" {...field} /></FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )} />
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormField control={form.control} name="wordCount" render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Word Count (Approx.)</FormLabel>
+                                <FormControl><Input type="number" placeholder="e.g., 5000" {...field} /></FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )} />
+
+                        <FormField control={form.control} name="language" render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Language</FormLabel>
+                                <FormControl><Input {...field} /></FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )} />
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                       <FormField control={form.control} name="courseLevel" render={({ field }) => (
+                            <FormItem className="space-y-3">
+                                <FormLabel>Level</FormLabel>
+                                <FormControl>
+                                    <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex space-x-4">
+                                        <FormItem className="flex items-center space-x-2 space-y-0">
+                                            <FormControl><RadioGroupItem value="ug" /></FormControl>
+                                            <FormLabel className="font-normal">UG</FormLabel>
+                                        </FormItem>
+                                        <FormItem className="flex items-center space-x-2 space-y-0">
+                                            <FormControl><RadioGroupItem value="pg" /></FormControl>
+                                            <FormLabel className="font-normal">PG</FormLabel>
+                                        </FormItem>
+                                        <FormItem className="flex items-center space-x-2 space-y-0">
+                                            <FormControl><RadioGroupItem value="phd" /></FormControl>
+                                            <FormLabel className="font-normal">PhD</FormLabel>
+                                        </FormItem>
+                                    </RadioGroup>
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )} />
+
+                        <FormField control={form.control} name="deadline" render={({ field }) => (
+                            <FormItem className="flex flex-col">
+                                <FormLabel>Deadline</FormLabel>
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                        <FormControl>
+                                            <Button variant={"outline"} className={cn("pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>
+                                                {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                            </Button>
+                                        </FormControl>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-auto p-0" align="start">
+                                        <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
+                                    </PopoverContent>
+                                </Popover>
+                                <FormMessage />
+                            </FormItem>
+                        )} />
+                    </div>
+
+                    <Alert>
+                        <AlertTitle>File Upload</AlertTitle>
+                        <AlertDescription>
+                        File upload functionality will be available soon. For now, please proceed and you can share files with the team later.
+                        </AlertDescription>
+                    </Alert>
+
+                    <div className="space-y-4">
+                        <FormField
+                            control={form.control}
+                            name="wantToPublish"
+                            render={({ field }) => (
+                                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 shadow-sm">
+                                <FormControl>
+                                    <Checkbox
+                                        checked={field.value}
+                                        onCheckedChange={field.onChange}
+                                    />
+                                </FormControl>
+                                <div className="space-y-1 leading-none">
+                                    <FormLabel>
+                                        Do you want to publish this paper?
+                                    </FormLabel>
+                                    <FormDescription>
+                                       Check this box if you require publication support.
+                                    </FormDescription>
+                                </div>
+                                </FormItem>
+                            )}
+                        />
+
+                        {wantToPublishValue && (
+                             <FormField
+                                control={form.control}
+                                name="publishWhere"
+                                render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Where do you want to publish?</FormLabel>
+                                    <FormControl>
+                                    <Input placeholder="e.g., Scopus, SCI, a specific journal name" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                                )}
+                            />
+                        )}
+                    </div>
+                </>
+              )}
 
               <DialogFooter>
                 <Button type="submit" disabled={isLoading} className="w-full">
@@ -415,6 +545,9 @@ export function ProjectList({ userId }: { userId: string }) {
 
   return (
     <div>
+      <div className="flex justify-end mb-8">
+          <CreateProjectDialog userId={userId} />
+      </div>
       <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
         {projects.map((project) => (
           <ProjectCard key={project.id} project={project} />

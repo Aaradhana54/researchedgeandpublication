@@ -44,7 +44,10 @@ export interface Project {
   synopsisFileUrl?: string; // Optional file upload
   referencingStyle?: string;
   pageCount?: number;
+  wordCount?: number;
   language?: string;
+  wantToPublish?: boolean;
+  publishWhere?: string;
   currentStage: string;
   progressPercent: number; // 0-100
   status: 'active' | 'completed' | 'on-hold';
