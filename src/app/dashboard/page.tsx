@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { FilePlus } from 'lucide-react';
+import { SelectProjectTypeDialog } from '@/components/dashboard/select-project-type-dialog';
 
 export default function DashboardPage() {
   const { user } = useUser();
@@ -26,12 +27,12 @@ export default function DashboardPage() {
           <CardDescription>You have no active projects yet. Get started by adding a new one.</CardDescription>
         </CardHeader>
         <CardContent>
-          <Button asChild size="lg" className="w-full">
-              <Link href="/dashboard/projects/new">
+           <SelectProjectTypeDialog>
+              <Button size="lg" className="w-full">
                   <FilePlus className="mr-2" />
                   Add New Project
-              </Link>
-          </Button>
+              </Button>
+           </SelectProjectTypeDialog>
         </CardContent>
       </Card>
     </div>

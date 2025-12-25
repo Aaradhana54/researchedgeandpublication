@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { FilePlus, LoaderCircle } from 'lucide-react';
+import { SelectProjectTypeDialog } from '@/components/dashboard/select-project-type-dialog';
 
 export default function MyProjectsPage() {
     const { user } = useUser();
@@ -28,12 +29,12 @@ export default function MyProjectsPage() {
                     <h1 className="text-3xl font-bold tracking-tight">My Projects</h1>
                     <p className="text-muted-foreground">View and manage all your research and publishing projects.</p>
                 </div>
-                <Button asChild>
-                    <Link href="/dashboard/projects/new">
+                <SelectProjectTypeDialog>
+                    <Button>
                         <FilePlus className="mr-2" />
                         Add New Project
-                    </Link>
-                </Button>
+                    </Button>
+                </SelectProjectTypeDialog>
              </div>
 
             {loading && (
@@ -64,12 +65,12 @@ export default function MyProjectsPage() {
                  <div className="text-center border-2 border-dashed border-border rounded-lg p-12 mt-8">
                     <h3 className="text-lg font-medium text-muted-foreground mb-4">You have no active projects.</h3>
                     <p className="text-sm text-muted-foreground mb-6">Get started by creating your first project.</p>
-                    <Button asChild>
-                        <Link href="/dashboard/projects/new">
+                     <SelectProjectTypeDialog>
+                        <Button>
                             <FilePlus className="mr-2" />
                             Add New Project
-                        </Link>
-                    </Button>
+                        </Button>
+                    </SelectProjectTypeDialog>
                 </div>
             )}
         </div>
