@@ -23,37 +23,37 @@ async function getServices() {
 
 export async function createProject(
   userId: string,
-  projectData: Partial<Omit<Project, 'id' | 'deadline'>> & { title: string; serviceType: Project['serviceType']; deadline?: Date }
+  projectData: Partial<Omit<Project, 'id' | 'deadline'>> & { title: string; serviceType: Project['serviceType']; deadline?: Date, synopsisFileUrl?: string }
 ) {
   const { firestore } = await getServices();
   const projectsColRef = collection(firestore, 'projects');
 
-  const { deadline, ...restOfData } = projectData;
-
-  const newProject: Omit<Project, 'id'> = {
+  // Build the project object safely, only including fields that have values.
+  const newProjectData: Omit<Project, 'id'> = {
     userId,
-    title: restOfData.title,
-    serviceType: restOfData.serviceType,
-    topic: restOfData.topic || '',
-    courseLevel: restOfData.courseLevel,
-    referencingStyle: restOfData.referencingStyle,
-    pageCount: restOfData.pageCount,
-    wordCount: restOfData.wordCount,
-    language: restOfData.language,
-    wantToPublish: restOfData.wantToPublish,
-    publishWhere: restOfData.publishWhere,
-    synopsisFileUrl: restOfData.synopsisFileUrl,
-    deadline: deadline ? Timestamp.fromDate(deadline) : undefined,
+    title: projectData.title,
+    serviceType: projectData.serviceType,
     currentStage: 'Initiation',
     progressPercent: 0,
     status: 'active',
-    approved: false, // Default to not approved
+    approved: false,
     assignedTeam: [],
-    createdAt: serverTimestamp() as any, // Cast because SDK returns a sentinel value
-    updatedAt: serverTimestamp() as any,
+    createdAt: serverTimestamp() as Timestamp,
+    updatedAt: serverTimestamp() as Timestamp,
   };
 
-  const docRef = await addDoc(projectsColRef, newProject);
+  if (projectData.topic) newProjectData.topic = projectData.topic;
+  if (projectData.courseLevel) newProjectData.courseLevel = projectData.courseLevel;
+  if (projectData.deadline) newProjectData.deadline = Timestamp.fromDate(projectData.deadline);
+  if (projectData.synopsisFileUrl) newProjectData.synopsisFileUrl = projectData.synopsisFileUrl;
+  if (projectData.referencingStyle) newProjectData.referencingStyle = projectData.referencingStyle;
+  if (projectData.pageCount) newProjectData.pageCount = projectData.pageCount;
+  if (projectData.wordCount) newProjectData.wordCount = projectData.wordCount;
+  if (projectData.language) newProjectData.language = projectData.language;
+  if (projectData.wantToPublish) newProjectData.wantToPublish = projectData.wantToPublish;
+  if (projectData.publishWhere) newProjectData.publishWhere = projectData.publishWhere;
+
+  const docRef = await addDoc(projectsColRef, newProjectData);
   return docRef.id;
 }
 
