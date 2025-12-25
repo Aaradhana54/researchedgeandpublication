@@ -10,14 +10,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion';
-import { Book, Edit } from 'lucide-react';
+import { Book, Edit, ArrowLeft } from 'lucide-react';
 import { Button } from '../ui/button';
+import { cn } from '@/lib/utils';
 
 const writingServices = [
     { name: 'Thesis & Dissertation', value: 'thesis-dissertation' },
@@ -31,71 +26,84 @@ const publicationServices = [
     { name: 'Book Publishing', value: 'book-publishing' },
 ];
 
-const ServiceButton = ({ name, value, onSelect }: { name: string; value: string; onSelect: (value: string) => void }) => {
-    return (
-        <Button 
-            variant="ghost" 
-            className="w-full justify-start font-normal text-muted-foreground hover:text-primary"
-            onClick={() => onSelect(value)}
-        >
-            {name}
-        </Button>
-    )
-};
-
 
 export function SelectProjectTypeDialog({ children }: { children: React.ReactNode }) {
     const [open, setOpen] = useState(false);
+    const [view, setView] = useState<'main' | 'writing' | 'publication'>('main');
     const router = useRouter();
 
-    const handleSelect = (serviceValue: string) => {
+    const handleServiceSelect = (serviceValue: string) => {
         const isWriting = writingServices.some(s => s.value === serviceValue);
         const category = isWriting ? 'writing' : 'publication';
         router.push(`/dashboard/projects/create/${category}?serviceType=${serviceValue}`);
-        setOpen(false); // Close the dialog on selection
+        setOpen(false);
+        // Reset view for next time dialog is opened
+        setTimeout(() => setView('main'), 300); 
     };
+
+    const handleOpenChange = (isOpen: boolean) => {
+        setOpen(isOpen);
+        if (!isOpen) {
+            // Reset view when dialog is closed
+            setTimeout(() => setView('main'), 300);
+        }
+    }
     
     return (
-        <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog open={open} onOpenChange={handleOpenChange}>
             <DialogTrigger asChild>
                 {children}
             </DialogTrigger>
             <DialogContent className="sm:max-w-md">
                 <DialogHeader>
-                    <DialogTitle className="text-xl font-bold">Create a New Project</DialogTitle>
-                    <DialogDescription>
+                    {view !== 'main' && (
+                        <Button variant="ghost" size="sm" className="absolute left-4 top-4 w-auto h-auto p-2" onClick={() => setView('main')}>
+                            <ArrowLeft className="w-4 h-4 mr-2" />
+                            Back
+                        </Button>
+                    )}
+                    <DialogTitle className={cn("text-xl font-bold", view !== 'main' && 'text-center')}>
+                       {view === 'main' && 'Create a New Project'}
+                       {view === 'writing' && 'Writing Services'}
+                       {view === 'publication' && 'Publication Services'}
+                    </DialogTitle>
+                    <DialogDescription className={cn(view !== 'main' && 'text-center')}>
                         Select a service to begin.
                     </DialogDescription>
                 </DialogHeader>
 
-                <Accordion type="multiple" className="w-full">
-                    <AccordionItem value="writing">
-                        <AccordionTrigger className="text-lg font-medium hover:no-underline">
-                             <div className="flex items-center gap-3">
-                                <Edit className="w-5 h-5 text-primary" />
-                                <span>Writing</span>
-                            </div>
-                        </AccordionTrigger>
-                        <AccordionContent className="pl-4">
+                <div className="space-y-4 pt-4">
+                    {view === 'main' && (
+                        <>
+                            <Button variant="outline" className="w-full h-16 text-lg" onClick={() => setView('writing')}>
+                                <Edit className="w-5 h-5 mr-3" /> Writing
+                            </Button>
+                             <Button variant="outline" className="w-full h-16 text-lg" onClick={() => setView('publication')}>
+                                <Book className="w-5 h-5 mr-3" /> Publication
+                            </Button>
+                        </>
+                    )}
+
+                    {view === 'writing' && (
+                        <div className="flex flex-col gap-2">
                             {writingServices.map((service) => (
-                                <ServiceButton key={service.value} name={service.name} value={service.value} onSelect={handleSelect} />
+                                <Button key={service.value} variant="ghost" className="w-full justify-start" onClick={() => handleServiceSelect(service.value)}>
+                                    {service.name}
+                                </Button>
                             ))}
-                        </AccordionContent>
-                    </AccordionItem>
-                     <AccordionItem value="publication">
-                        <AccordionTrigger className="text-lg font-medium hover:no-underline">
-                             <div className="flex items-center gap-3">
-                                <Book className="w-5 h-5 text-primary" />
-                                <span>Publication</span>
-                            </div>
-                        </AccordionTrigger>
-                        <AccordionContent className="pl-4">
+                        </div>
+                    )}
+                    
+                     {view === 'publication' && (
+                        <div className="flex flex-col gap-2">
                            {publicationServices.map((service) => (
-                                <ServiceButton key={service.value} name={service.name} value={service.value} onSelect={handleSelect} />
+                                <Button key={service.value} variant="ghost" className="w-full justify-start" onClick={() => handleServiceSelect(service.value)}>
+                                    {service.name}
+                                </Button>
                             ))}
-                        </AccordionContent>
-                    </AccordionItem>
-                </Accordion>
+                        </div>
+                    )}
+                </div>
             </DialogContent>
         </Dialog>
     );
