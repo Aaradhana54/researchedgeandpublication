@@ -43,8 +43,8 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-[calc(100vh-10rem)] bg-secondary">
-      <Card className="w-full max-w-md mx-4 shadow-lift">
+    <div className="flex items-center justify-center min-h-screen bg-secondary p-4">
+      <Card className="w-full max-w-md mx-auto shadow-lift">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold">Create an Account</CardTitle>
           <CardDescription>Join our platform to manage your research projects.</CardDescription>
