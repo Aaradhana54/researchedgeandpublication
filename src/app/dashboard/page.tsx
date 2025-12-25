@@ -14,26 +14,26 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[calc(100vh-20rem)] text-center">
-        <div className="space-y-4">
-            <h1 className="text-4xl font-bold tracking-tight text-primary sm:text-5xl">Welcome back, {user.name}!</h1>
-            <p className="text-lg text-muted-foreground">You're ready to start your next project.</p>
-        </div>
-        
-        <Card className="mt-12 w-full max-w-lg text-left shadow-soft">
-          <CardHeader>
-            <CardTitle>Start a New Project</CardTitle>
-            <CardDescription>You have no active projects yet. Get started by adding a new one.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button asChild size="lg" className="w-full">
-                <Link href="/dashboard/projects/new">
-                    <FilePlus className="mr-2" />
-                    Add New Project
-                </Link>
-            </Button>
-          </CardContent>
-        </Card>
+    <div className="p-4 sm:p-6 lg:p-8">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold tracking-tight text-primary">Welcome back, {user.name}!</h1>
+        <p className="text-lg text-muted-foreground">You're ready to start your next project.</p>
       </div>
+      
+      <Card className="w-full max-w-2xl shadow-soft">
+        <CardHeader>
+          <CardTitle>Start a New Project</CardTitle>
+          <CardDescription>You have no active projects yet. Get started by adding a new one.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button asChild size="lg" className="w-full">
+              <Link href="/dashboard/projects/new">
+                  <FilePlus className="mr-2" />
+                  Add New Project
+              </Link>
+          </Button>
+        </CardContent>
+      </Card>
+    </div>
   );
 }

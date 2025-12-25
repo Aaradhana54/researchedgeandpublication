@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useEffect, useRef } from 'react';
+import React, { useActionState, useEffect, useRef } from 'react';
 import { useFormStatus } from 'react-dom';
 import { useUser } from '@/firebase/auth/use-user';
 import { useToast } from '@/hooks/use-toast';
@@ -79,126 +79,131 @@ export default function NewProjectPage() {
   }
 
   return (
-    <Card className="max-w-4xl mx-auto shadow-soft">
-      <CardHeader>
-        <CardTitle>Add New Project</CardTitle>
-        <CardDescription>Fill out the details below to start a new project.</CardDescription>
-      </CardHeader>
-      <CardContent>
+    <div className="p-4 sm:p-6 lg:p-8">
+        <h1 className="text-3xl font-bold tracking-tight mb-6">Add New Project</h1>
         <form ref={formRef} action={formAction} className="space-y-8">
            <input type="hidden" name="userId" value={user.uid} />
 
            {/* --- Basic Information --- */}
-           <div className="space-y-4 p-4 border rounded-lg">
-             <h3 className="text-lg font-medium">Basic Information</h3>
-             <div className="space-y-2">
-                <Label htmlFor="title">Project Title</Label>
-                <Input id="title" name="title" placeholder="e.g., A Study on AI in Healthcare" required />
-                {state.errors?.title && <p className="text-sm text-destructive">{state.errors.title[0]}</p>}
-             </div>
-             <div className="space-y-2">
-                <Label htmlFor="serviceType">Service Type</Label>
-                <Select name="serviceType" required>
-                  <SelectTrigger id="serviceType">
-                    <SelectValue placeholder="Select a service type..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {serviceTypes.map(service => (
-                      <SelectItem key={service} value={service}>{service.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                 {state.errors?.serviceType && <p className="text-sm text-destructive">{state.errors.serviceType[0]}</p>}
-             </div>
-             <div className="space-y-2">
-                <Label htmlFor="topic">Topic</Label>
-                <Input id="topic" name="topic" placeholder="e.g., Diagnostic Algorithms" />
-             </div>
-           </div>
+           <Card className="shadow-soft">
+             <CardHeader>
+                <CardTitle>Basic Information</CardTitle>
+             </CardHeader>
+             <CardContent className="space-y-6">
+                 <div className="space-y-2">
+                    <Label htmlFor="title">Project Title</Label>
+                    <Input id="title" name="title" placeholder="e.g., A Study on AI in Healthcare" required />
+                    {state.errors?.title && <p className="text-sm text-destructive">{state.errors.title[0]}</p>}
+                 </div>
+                 <div className="space-y-2">
+                    <Label htmlFor="serviceType">Service Type</Label>
+                    <Select name="serviceType" required>
+                      <SelectTrigger id="serviceType">
+                        <SelectValue placeholder="Select a service type..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {serviceTypes.map(service => (
+                          <SelectItem key={service} value={service}>{service.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                     {state.errors?.serviceType && <p className="text-sm text-destructive">{state.errors.serviceType[0]}</p>}
+                 </div>
+                 <div className="space-y-2">
+                    <Label htmlFor="topic">Topic</Label>
+                    <Input id="topic" name="topic" placeholder="e.g., Diagnostic Algorithms" />
+                 </div>
+             </CardContent>
+           </Card>
 
            {/* --- Academic Details --- */}
-           <div className="space-y-4 p-4 border rounded-lg">
-              <h3 className="text-lg font-medium">Academic Details</h3>
-              <div className="space-y-2">
-                 <Label>Course Level</Label>
-                 <RadioGroup name="courseLevel" className="flex gap-4">
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="ug" id="ug" />
-                      <Label htmlFor="ug">Undergraduate (UG)</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="pg" id="pg" />
-                      <Label htmlFor="pg">Postgraduate (PG)</Label>
-                    </div>
-                     <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="phd" id="phd" />
-                      <Label htmlFor="phd">PhD</Label>
-                    </div>
-                 </RadioGroup>
-              </div>
-               <div className="space-y-2">
-                <Label htmlFor="referencingStyle">Referencing Style</Label>
-                <Input id="referencingStyle" name="referencingStyle" placeholder="e.g., APA 7th Edition" />
-             </div>
-              <div className="space-y-2">
-                <Label htmlFor="language">Language</Label>
-                <Input id="language" name="language" placeholder="e.g., English (UK)" defaultValue="English" />
-             </div>
-           </div>
+           <Card className="shadow-soft">
+              <CardHeader><CardTitle>Academic Details</CardTitle></CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-3">
+                    <Label>Course Level</Label>
+                    <RadioGroup name="courseLevel" className="flex gap-4">
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="ug" id="ug" />
+                          <Label htmlFor="ug">Undergraduate (UG)</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="pg" id="pg" />
+                          <Label htmlFor="pg">Postgraduate (PG)</Label>
+                        </div>
+                         <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="phd" id="phd" />
+                          <Label htmlFor="phd">PhD</Label>
+                        </div>
+                    </RadioGroup>
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="referencingStyle">Referencing Style</Label>
+                    <Input id="referencingStyle" name="referencingStyle" placeholder="e.g., APA 7th Edition" />
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="language">Language</Label>
+                    <Input id="language" name="language" placeholder="e.g., English (UK)" defaultValue="English" />
+                </div>
+              </CardContent>
+           </Card>
 
 
            {/* --- Project Scope --- */}
-            <div className="space-y-4 p-4 border rounded-lg">
-                <h3 className="text-lg font-medium">Project Scope</h3>
-                <div className="grid md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                        <Label htmlFor="pageCount">Estimated Page Count</Label>
-                        <Input id="pageCount" name="pageCount" type="number" placeholder="e.g., 100" />
+            <Card className="shadow-soft">
+                <CardHeader><CardTitle>Project Scope</CardTitle></CardHeader>
+                <CardContent className="space-y-6">
+                    <div className="grid md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                            <Label htmlFor="pageCount">Estimated Page Count</Label>
+                            <Input id="pageCount" name="pageCount" type="number" placeholder="e.g., 100" />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="wordCount">Estimated Word Count</Label>
+                            <Input id="wordCount" name="wordCount" type="number" placeholder="e.g., 25000" />
+                        </div>
                     </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="wordCount">Estimated Word Count</Label>
-                        <Input id="wordCount" name="wordCount" type="number" placeholder="e.g., 25000" />
-                    </div>
-                </div>
-                 <div className="space-y-2">
-                    <Label htmlFor="deadline">Project Deadline</Label>
-                    <Popover>
-                        <PopoverTrigger asChild>
-                        <Button
-                            variant={"outline"}
-                            className={cn(
-                            "w-full justify-start text-left font-normal",
-                            !deadline && "text-muted-foreground"
-                            )}
-                        >
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {deadline ? format(deadline, "PPP") : <span>Pick a date</span>}
-                        </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0">
-                           <Calendar mode="single" selected={deadline} onSelect={setDeadline} initialFocus />
-                        </PopoverContent>
-                    </Popover>
-                    <input type="hidden" name="deadline" value={deadline?.toISOString()} />
-                 </div>
-            </div>
+                     <div className="space-y-2">
+                        <Label htmlFor="deadline">Project Deadline</Label>
+                        <Popover>
+                            <PopoverTrigger asChild>
+                            <Button
+                                variant={"outline"}
+                                className={cn(
+                                "w-full justify-start text-left font-normal",
+                                !deadline && "text-muted-foreground"
+                                )}
+                            >
+                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                {deadline ? format(deadline, "PPP") : <span>Pick a date</span>}
+                            </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0">
+                               <Calendar mode="single" selected={deadline} onSelect={setDeadline} initialFocus />
+                            </PopoverContent>
+                        </Popover>
+                        <input type="hidden" name="deadline" value={deadline?.toISOString()} />
+                     </div>
+                </CardContent>
+            </Card>
 
              {/* --- Publishing --- */}
-            <div className="space-y-4 p-4 border rounded-lg">
-                <h3 className="text-lg font-medium">Publishing</h3>
-                <div className="flex items-center space-x-2">
-                    <Checkbox id="wantToPublish" name="wantToPublish" />
-                    <Label htmlFor="wantToPublish">Do you want to publish this work?</Label>
-                </div>
-                 <div className="space-y-2">
-                    <Label htmlFor="publishWhere">If yes, where do you want to publish?</Label>
-                    <Textarea id="publishWhere" name="publishWhere" placeholder="e.g., Scopus-indexed journals, a specific conference..." />
-                 </div>
-            </div>
+            <Card className="shadow-soft">
+                <CardHeader><CardTitle>Publishing</CardTitle></CardHeader>
+                <CardContent className="space-y-6">
+                    <div className="flex items-center space-x-2">
+                        <Checkbox id="wantToPublish" name="wantToPublish" />
+                        <Label htmlFor="wantToPublish">Do you want to publish this work?</Label>
+                    </div>
+                     <div className="space-y-2">
+                        <Label htmlFor="publishWhere">If yes, where do you want to publish?</Label>
+                        <Textarea id="publishWhere" name="publishWhere" placeholder="e.g., Scopus-indexed journals, a specific conference..." />
+                     </div>
+                </CardContent>
+            </Card>
 
           <SubmitButton />
         </form>
-      </CardContent>
-    </Card>
+    </div>
   );
 }

@@ -22,43 +22,56 @@ export default function MyProjectsPage() {
     const { data: projects, loading } = useCollection<Project>(projectsQuery);
 
     return (
-        <div className="space-y-6">
-             <Card className="shadow-soft">
-                <CardHeader>
-                    <CardTitle>My Projects</CardTitle>
-                    <CardDescription>View and manage all your research and publishing projects.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    {loading && (
-                        <div className="flex justify-center items-center h-40">
-                            <LoaderCircle className="w-8 h-8 animate-spin text-primary" />
-                        </div>
-                    )}
-                    {!loading && projects && projects.length > 0 && (
-                        <div className="space-y-4">
-                            {projects.map((project) => (
-                                <Card key={project.id} className="hover:shadow-md transition-shadow">
-                                    <CardHeader>
-                                        <CardTitle>{project.title}</CardTitle>
-                                        <CardDescription>{project.serviceType.replace(/-/g, ' ')}</CardDescription>
-                                    </CardHeader>
-                                </Card>
-                            ))}
-                        </div>
-                    )}
-                     {!loading && (!projects || projects.length === 0) && (
-                         <div className="text-center border-2 border-dashed border-border rounded-lg p-12">
-                            <h3 className="text-lg font-medium text-muted-foreground mb-4">You have no active projects.</h3>
-                            <Button asChild>
-                                <Link href="/dashboard/projects/new">
-                                    <FilePlus className="mr-2" />
-                                    Add New Project
-                                </Link>
-                            </Button>
-                        </div>
-                    )}
-                </CardContent>
-            </Card>
+        <div className="p-4 sm:p-6 lg:p-8 space-y-6">
+             <div className="flex justify-between items-start">
+                <div>
+                    <h1 className="text-3xl font-bold tracking-tight">My Projects</h1>
+                    <p className="text-muted-foreground">View and manage all your research and publishing projects.</p>
+                </div>
+                <Button asChild>
+                    <Link href="/dashboard/projects/new">
+                        <FilePlus className="mr-2" />
+                        Add New Project
+                    </Link>
+                </Button>
+             </div>
+
+            {loading && (
+                <div className="flex justify-center items-center h-60">
+                    <LoaderCircle className="w-8 h-8 animate-spin text-primary" />
+                </div>
+            )}
+
+            {!loading && projects && projects.length > 0 && (
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    {projects.map((project) => (
+                        <Card key={project.id} className="hover:shadow-md transition-shadow">
+                            <CardHeader>
+                                <CardTitle>{project.title}</CardTitle>
+                                <CardDescription>{project.serviceType.replace(/-/g, ' ')}</CardDescription>
+                            </CardHeader>
+                             <CardContent>
+                                <p className="text-sm text-muted-foreground">
+                                    {project.topic || 'No topic specified'}
+                                </p>
+                            </CardContent>
+                        </Card>
+                    ))}
+                </div>
+            )}
+
+            {!loading && (!projects || projects.length === 0) && (
+                 <div className="text-center border-2 border-dashed border-border rounded-lg p-12 mt-8">
+                    <h3 className="text-lg font-medium text-muted-foreground mb-4">You have no active projects.</h3>
+                    <p className="text-sm text-muted-foreground mb-6">Get started by creating your first project.</p>
+                    <Button asChild>
+                        <Link href="/dashboard/projects/new">
+                            <FilePlus className="mr-2" />
+                            Add New Project
+                        </Link>
+                    </Button>
+                </div>
+            )}
         </div>
     );
 }
