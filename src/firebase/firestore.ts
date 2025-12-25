@@ -23,7 +23,7 @@ async function getServices() {
 
 export async function createProject(
   userId: string,
-  projectData: Partial<Project> & { title: string; serviceType: Project['serviceType']; deadline?: Date }
+  projectData: Partial<Omit<Project, 'id' | 'deadline'>> & { title: string; serviceType: Project['serviceType']; deadline?: Date }
 ) {
   const { firestore } = await getServices();
   const projectsColRef = collection(firestore, 'projects');
