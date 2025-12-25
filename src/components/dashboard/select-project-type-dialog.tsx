@@ -16,8 +16,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
-import { ArrowRight, Book, Edit } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Book, Edit } from 'lucide-react';
 import { Button } from '../ui/button';
 
 const writingServices = [
