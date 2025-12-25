@@ -12,39 +12,43 @@ export function useUser() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    let profileUnsubscribe: Unsubscribe | null = null;
+    let profileUnsubscribe: Unsubscribe | undefined;
 
     const authUnsubscribe = onAuthStateChanged(auth, (authUser) => {
+      // If the user's auth state changes, we are in a loading state until we verify their profile.
+      setLoading(true);
+      
+      // Clean up any existing profile listener
+      if (profileUnsubscribe) {
+        profileUnsubscribe();
+        profileUnsubscribe = undefined;
+      }
+
       if (authUser) {
         setUser(authUser);
-        
-        // Clean up old profile listener if it exists
-        if (profileUnsubscribe) {
-            profileUnsubscribe();
-        }
-
-        // Listen for profile changes
         const userDocRef = doc(firestore, 'users', authUser.uid);
-        profileUnsubscribe = onSnapshot(userDocRef, (doc) => {
-          if (doc.exists()) {
-            setUserProfile({ ...doc.data(), uid: doc.id } as UserProfile);
+        
+        profileUnsubscribe = onSnapshot(userDocRef, (docSnap) => {
+          if (docSnap.exists()) {
+            setUserProfile({ ...docSnap.data(), uid: docSnap.id } as UserProfile);
           } else {
+            // Auth user exists but no profile. This could be a new user
+            // or an inconsistent state. Treat as not fully logged in.
             setUserProfile(null);
           }
+          // Finished loading profile data
           setLoading(false);
         }, (error) => {
           console.error("Error fetching user profile:", error);
           setUserProfile(null);
           setLoading(false);
         });
+
       } else {
-        // User is signed out
+        // User is signed out.
         setUser(null);
         setUserProfile(null);
-        if (profileUnsubscribe) {
-            profileUnsubscribe();
-        }
-        setLoading(false);
+        setLoading(false); // Finished loading, user is not logged in.
       }
     });
 
@@ -55,7 +59,7 @@ export function useUser() {
         profileUnsubscribe();
       }
     };
-  }, []); // Empty dependency array ensures this runs only once
+  }, []); // This effect runs only once on mount
 
   return { user, userProfile, loading };
 }
