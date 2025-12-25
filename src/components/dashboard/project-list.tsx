@@ -70,7 +70,7 @@ const serviceTypeLabels: Record<ProjectServiceType, string> = {
   institutional: 'Institutional Branding',
 };
 
-function CreateProjectDialog({ userId, asHero = false }: { userId: string, asHero?: boolean }) {
+export function CreateProjectDialog({ userId, asHero = false }: { userId: string, asHero?: boolean }) {
   const [open, setOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -243,9 +243,6 @@ export function ProjectList({ userId }: { userId: string }) {
 
   return (
     <div>
-      <div className="flex justify-end mb-6">
-        <CreateProjectDialog userId={userId} />
-      </div>
       <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
         {projects.map((project) => (
           <ProjectCard key={project.id} project={project} />
