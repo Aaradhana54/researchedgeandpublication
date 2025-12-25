@@ -9,9 +9,10 @@ import {
   query,
   where,
   serverTimestamp,
+  Timestamp,
 } from 'firebase/firestore';
 import { initializeFirebase } from './index';
-import type { ProjectServiceType, Project } from '@/lib/types';
+import type { Project } from '@/lib/types';
 
 async function getServices() {
   const { firestore } = await initializeFirebase();
@@ -22,16 +23,23 @@ async function getServices() {
 
 export async function createProject(
   userId: string,
-  title: string,
-  serviceType: ProjectServiceType
+  projectData: Partial<Project> & { title: string; serviceType: Project['serviceType']; deadline?: Date }
 ) {
   const { firestore } = await getServices();
   const projectsColRef = collection(firestore, 'projects');
 
+  const { deadline, ...restOfData } = projectData;
+
   const newProject: Omit<Project, 'id'> = {
     userId,
-    title,
-    serviceType,
+    title: restOfData.title,
+    serviceType: restOfData.serviceType,
+    topic: restOfData.topic || '',
+    courseLevel: restOfData.courseLevel,
+    referencingStyle: restOfData.referencingStyle,
+    pageCount: restOfData.pageCount,
+    language: restOfData.language,
+    deadline: deadline ? Timestamp.fromDate(deadline) : undefined,
     currentStage: 'Initiation',
     progressPercent: 0,
     status: 'active',

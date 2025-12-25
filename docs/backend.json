@@ -31,10 +31,18 @@
             "thesis-dissertation", 
             "research-paper", 
             "book-writing",
+            "review-paper",
             "research-publication",
             "book-publishing"
           ]
         },
+        "topic": { "type": "string", "description": "The specific topic of the project." },
+        "courseLevel": { "type": "string", "enum": ["ug", "pg", "phd"], "description": "The academic level of the course." },
+        "deadline": { "type": "string", "format": "date-time", "description": "The project deadline." },
+        "synopsisFileUrl": { "type": "string", "description": "URL to the uploaded synopsis file." },
+        "referencingStyle": { "type": "string", "description": "The required referencing style (e.g., APA, MLA)." },
+        "pageCount": { "type": "number", "description": "The estimated number of pages." },
+        "language": { "type": "string", "description": "The language of the project." },
         "currentStage": { "type": "string" },
         "progressPercent": { "type": "number" },
         "status": { "type": "string", "enum": ["active", "completed", "on-hold"] },

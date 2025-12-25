@@ -27,14 +27,24 @@ export type ProjectServiceType =
   | 'thesis-dissertation'
   | 'research-paper'
   | 'book-writing'
+  | 'review-paper'
   | 'research-publication'
   | 'book-publishing';
+
+export type CourseLevel = 'ug' | 'pg' | 'phd';
 
 export interface Project {
   id?: string;
   userId: string; // Owner UID
   title: string;
   serviceType: ProjectServiceType;
+  topic?: string;
+  courseLevel?: CourseLevel;
+  deadline?: Timestamp;
+  synopsisFileUrl?: string; // Optional file upload
+  referencingStyle?: string;
+  pageCount?: number;
+  language?: string;
   currentStage: string;
   progressPercent: number; // 0-100
   status: 'active' | 'completed' | 'on-hold';

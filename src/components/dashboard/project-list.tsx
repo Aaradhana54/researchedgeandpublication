@@ -35,11 +35,15 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { LoaderCircle, PlusCircle, FolderKanban, PenSquare, BookUp, ArrowLeft } from 'lucide-react';
-import { type Project, type ProjectServiceType } from '@/lib/types';
+import { LoaderCircle, PlusCircle, FolderKanban, PenSquare, BookUp, ArrowLeft, CalendarIcon } from 'lucide-react';
+import { type Project, type ProjectServiceType, type CourseLevel } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { format } from 'date-fns';
 
 
 const projectSchema = z.object({
@@ -52,6 +56,12 @@ const projectSchema = z.object({
     'research-publication',
     'book-publishing',
   ]),
+  topic: z.string().optional(),
+  courseLevel: z.enum(['ug', 'pg', 'phd']).optional(),
+  deadline: z.date().optional(),
+  referencingStyle: z.string().optional(),
+  pageCount: z.coerce.number().positive('Must be a positive number.').optional(),
+  language: z.string().optional(),
 });
 
 type ProjectFormValues = z.infer<typeof projectSchema>;
@@ -60,7 +70,7 @@ type ServiceCategory = 'writing' | 'publication';
 
 const serviceCategories: Record<
   ServiceCategory,
-  { label: string; services: Record<string, string> }
+  { label: string; services: Record<ProjectServiceType, string> }
 > = {
   writing: {
     label: 'Writing & Research',
@@ -69,14 +79,14 @@ const serviceCategories: Record<
       'research-paper': 'Research Paper Writing',
       'book-writing': 'Book Writing',
       'review-paper': 'Review Paper Writing',
-    },
+    } as Record<ProjectServiceType, string>,
   },
   publication: {
     label: 'Book & Publishing',
     services: {
       'research-publication': 'Research Publication',
       'book-publishing': 'Book Publication',
-    },
+    } as Record<ProjectServiceType, string>,
   },
 };
 
@@ -97,6 +107,7 @@ export function CreateProjectDialog({ userId }: { userId: string}) {
     resolver: zodResolver(projectSchema),
     defaultValues: {
       title: '',
+      language: 'English'
     },
   });
 
@@ -126,7 +137,7 @@ export function CreateProjectDialog({ userId }: { userId: string}) {
   const onSubmit = async (data: ProjectFormValues) => {
     setIsLoading(true);
     try {
-      await createProject(userId, data.title, data.serviceType as ProjectServiceType);
+      await createProject(userId, data);
       toast({
         title: 'Project Created!',
         description: 'Your new project has been successfully created.',
@@ -134,6 +145,7 @@ export function CreateProjectDialog({ userId }: { userId: string}) {
       form.reset();
       handleOpenChange(false);
     } catch (error) {
+      console.error(error);
       toast({
         variant: 'destructive',
         title: 'Creation Failed',
@@ -144,6 +156,8 @@ export function CreateProjectDialog({ userId }: { userId: string}) {
     }
   };
 
+  const currentServiceType = form.watch('serviceType');
+
   const currentTitle = 
     step === 1 ? 'Create a New Project' 
   : step === 2 ? `Select a ${selectedCategory === 'writing' ? 'Writing' : 'Publication'} Service`
@@ -152,7 +166,7 @@ export function CreateProjectDialog({ userId }: { userId: string}) {
   const currentDescription = 
     step === 1 ? 'What kind of project are you starting?' 
   : step === 2 ? 'Choose the specific service you need.'
-  : 'Please give your project a title to get started.';
+  : 'Please provide the details for your new project.';
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -162,14 +176,14 @@ export function CreateProjectDialog({ userId }: { userId: string}) {
               Create a New Project
           </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
            {step > 1 && (
             <Button
               variant="ghost"
               size="icon"
               className="absolute left-4 top-4 h-7 w-7"
-              onClick={() => setStep(step - 1)}
+              onClick={() => step === 3 ? setStep(2) : setStep(1)}
             >
               <ArrowLeft className="h-4 w-4" />
             </Button>
@@ -202,14 +216,14 @@ export function CreateProjectDialog({ userId }: { userId: string}) {
         )}
         
         {step === 2 && selectedCategory && (
-            <div className="grid grid-cols-1 gap-3 py-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
                 {Object.entries(serviceCategories[selectedCategory].services).map(([value, label]) => (
                      <Card
                         key={value}
-                        className="flex items-center justify-center p-4 text-center cursor-pointer hover:bg-accent hover:text-accent-foreground transition-colors group h-16"
+                        className="flex items-center justify-center p-4 text-center cursor-pointer hover:bg-accent hover:text-accent-foreground transition-colors group h-24"
                         onClick={() => handleServiceSelect(value as ProjectServiceType)}
                      >
-                         <h3 className="font-semibold text-sm">{label}</h3>
+                         <h3 className="font-semibold text-base">{label}</h3>
                      </Card>
                 ))}
             </div>
@@ -217,24 +231,109 @@ export function CreateProjectDialog({ userId }: { userId: string}) {
 
         {step === 3 && (
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pt-4">
                <div className='space-y-1 text-center bg-muted/50 p-3 rounded-md'>
                     <p className='text-sm text-muted-foreground'>Selected Service</p>
                     <p className='font-semibold text-primary'>{serviceTypeLabels[form.getValues('serviceType')]}</p>
                </div>
-              <FormField
-                control={form.control}
-                name="title"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Project Title</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g., My Doctoral Thesis" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+
+                <FormField
+                    control={form.control}
+                    name="title"
+                    render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Project Title</FormLabel>
+                        <FormControl>
+                        <Input placeholder="e.g., My Doctoral Thesis" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem>
+                    )}
+                />
+              
+               {currentServiceType === 'thesis-dissertation' && (
+                <>
+                    <FormField control={form.control} name="topic" render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Topic</FormLabel>
+                            <FormControl><Input placeholder="Your research topic" {...field} /></FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )} />
+
+                    <FormField control={form.control} name="courseLevel" render={({ field }) => (
+                        <FormItem className="space-y-3">
+                            <FormLabel>Level of Course</FormLabel>
+                            <FormControl>
+                                <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex space-x-4">
+                                    <FormItem className="flex items-center space-x-2 space-y-0">
+                                        <FormControl><RadioGroupItem value="ug" /></FormControl>
+                                        <FormLabel className="font-normal">UG</FormLabel>
+                                    </FormItem>
+                                    <FormItem className="flex items-center space-x-2 space-y-0">
+                                        <FormControl><RadioGroupItem value="pg" /></FormControl>
+                                        <FormLabel className="font-normal">PG</FormLabel>
+                                    </FormItem>
+                                    <FormItem className="flex items-center space-x-2 space-y-0">
+                                        <FormControl><RadioGroupItem value="phd" /></FormControl>
+                                        <FormLabel className="font-normal">PhD</FormLabel>
+                                    </FormItem>
+                                </RadioGroup>
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )} />
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormField control={form.control} name="deadline" render={({ field }) => (
+                            <FormItem className="flex flex-col">
+                                <FormLabel>Deadline</FormLabel>
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                        <FormControl>
+                                            <Button variant={"outline"} className={cn("pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>
+                                                {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                            </Button>
+                                        </FormControl>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-auto p-0" align="start">
+                                        <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
+                                    </PopoverContent>
+                                </Popover>
+                                <FormMessage />
+                            </FormItem>
+                        )} />
+
+                        <FormField control={form.control} name="pageCount" render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Page Count (Approx.)</FormLabel>
+                                <FormControl><Input type="number" placeholder="e.g., 250" {...field} /></FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )} />
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                         <FormField control={form.control} name="referencingStyle" render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Referencing Style</FormLabel>
+                                <FormControl><Input placeholder="e.g., APA 7th Ed." {...field} /></FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )} />
+                        
+                        <FormField control={form.control} name="language" render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Language</FormLabel>
+                                <FormControl><Input {...field} /></FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )} />
+                    </div>
+                </>
+               )}
+
               <DialogFooter>
                 <Button type="submit" disabled={isLoading} className="w-full">
                   {isLoading && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />}
