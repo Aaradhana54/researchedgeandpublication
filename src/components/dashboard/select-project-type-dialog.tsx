@@ -32,21 +32,12 @@ const publicationServices = [
     { name: 'Book Publishing', value: 'book-publishing' },
 ];
 
-const ServiceButton = ({ name, value }: { name: string; value: string }) => {
-    const router = useRouter();
-    const [open, setOpen] = useState(false);
-
-    const handleSelect = () => {
-        const category = writingServices.some(s => s.value === value) ? 'writing' : 'publication';
-        router.push(`/dashboard/projects/create/${category}?serviceType=${value}`);
-        setOpen(false);
-    };
-
+const ServiceButton = ({ name, value, onSelect }: { name: string; value: string; onSelect: (value: string) => void }) => {
     return (
         <Button 
             variant="ghost" 
             className="w-full justify-start font-normal text-muted-foreground hover:text-primary"
-            onClick={handleSelect}
+            onClick={() => onSelect(value)}
         >
             {name}
         </Button>
@@ -56,6 +47,14 @@ const ServiceButton = ({ name, value }: { name: string; value: string }) => {
 
 export function SelectProjectTypeDialog({ children }: { children: React.ReactNode }) {
     const [open, setOpen] = useState(false);
+    const router = useRouter();
+
+    const handleSelect = (serviceValue: string) => {
+        const isWriting = writingServices.some(s => s.value === serviceValue);
+        const category = isWriting ? 'writing' : 'publication';
+        router.push(`/dashboard/projects/create/${category}?serviceType=${serviceValue}`);
+        setOpen(false); // Close the dialog on selection
+    };
     
     return (
         <Dialog open={open} onOpenChange={setOpen}>
@@ -80,7 +79,7 @@ export function SelectProjectTypeDialog({ children }: { children: React.ReactNod
                         </AccordionTrigger>
                         <AccordionContent className="pl-4">
                             {writingServices.map((service) => (
-                                <ServiceButton key={service.value} name={service.name} value={service.value} />
+                                <ServiceButton key={service.value} name={service.name} value={service.value} onSelect={handleSelect} />
                             ))}
                         </AccordionContent>
                     </AccordionItem>
@@ -93,7 +92,7 @@ export function SelectProjectTypeDialog({ children }: { children: React.ReactNod
                         </AccordionTrigger>
                         <AccordionContent className="pl-4">
                            {publicationServices.map((service) => (
-                                <ServiceButton key={service.value} name={service.name} value={service.value} />
+                                <ServiceButton key={service.value} name={service.name} value={service.value} onSelect={handleSelect} />
                             ))}
                         </AccordionContent>
                     </AccordionItem>
