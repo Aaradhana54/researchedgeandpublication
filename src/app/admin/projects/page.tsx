@@ -1,6 +1,57 @@
+'use client';
+
+import { useMemo } from 'react';
+import { collection, query, orderBy } from 'firebase/firestore';
+import { useCollection } from '@/firebase';
+import { firestore } from '@/firebase/client';
+import type { Project, UserProfile } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { LoaderCircle, FolderKanban } from 'lucide-react';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { format } from 'date-fns';
 
 export default function AdminProjectsPage() {
+  const projectsQuery = useMemo(() => {
+    if (!firestore) return null;
+    return query(collection(firestore, 'projects'), orderBy('createdAt', 'desc'));
+  }, []);
+
+  const usersQuery = useMemo(() => {
+    if (!firestore) return null;
+    return query(collection(firestore, 'users'));
+  }, []);
+
+  const { data: projects, loading: loadingProjects } = useCollection<Project>(projectsQuery);
+  const { data: users, loading: loadingUsers } = useCollection<UserProfile>(usersQuery);
+
+  const loading = loadingProjects || loadingUsers;
+
+  const usersMap = useMemo(() => {
+    if (!users) return new Map();
+    return new Map(users.map((user) => [user.uid, user]));
+  }, [users]);
+  
+  const getProjectStatusVariant = (status?: string): 'default' | 'secondary' | 'destructive' | 'outline' => {
+      switch (status) {
+          case 'in-progress':
+              return 'secondary';
+          case 'completed':
+              return 'default';
+          case 'pending':
+              return 'outline';
+          default:
+              return 'outline';
+      }
+  }
+
   return (
     <div className="p-4 sm:p-6 lg:p-8">
       <div className="mb-8">
@@ -9,11 +60,60 @@ export default function AdminProjectsPage() {
       </div>
       <Card>
         <CardHeader>
-          <CardTitle>Projects</CardTitle>
-          <CardDescription>This section is under construction.</CardDescription>
+          <CardTitle>All Projects</CardTitle>
+          <CardDescription>A list of all projects submitted by clients.</CardDescription>
         </CardHeader>
         <CardContent>
-          <p>A table of all projects will be displayed here.</p>
+          {loading ? (
+            <div className="flex justify-center items-center h-48">
+              <LoaderCircle className="w-8 h-8 animate-spin text-primary" />
+            </div>
+          ) : projects && projects.length > 0 ? (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Project Title</TableHead>
+                  <TableHead>Client</TableHead>
+                  <TableHead>Service</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Submitted On</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {projects.map((project) => {
+                  const client = usersMap.get(project.userId);
+                  return (
+                    <TableRow key={project.id}>
+                      <TableCell className="font-medium">{project.title}</TableCell>
+                      <TableCell>
+                        <div className="font-medium">{client?.name || 'Unknown User'}</div>
+                        <div className="text-sm text-muted-foreground">{client?.email}</div>
+                      </TableCell>
+                       <TableCell>
+                           <Badge variant="secondary" className="capitalize">
+                            {project.serviceType.replace('-', ' ')}
+                           </Badge>
+                       </TableCell>
+                       <TableCell>
+                           <Badge variant={getProjectStatusVariant(project.status)} className="capitalize">
+                            {project.status || 'Pending'}
+                           </Badge>
+                       </TableCell>
+                      <TableCell>
+                        {project.createdAt ? format(project.createdAt.toDate(), 'PPP') : 'N/A'}
+                      </TableCell>
+                    </TableRow>
+                  )
+                })}
+              </TableBody>
+            </Table>
+          ) : (
+            <div className="text-center p-12 text-muted-foreground">
+                <FolderKanban className="mx-auto w-12 h-12 mb-4" />
+                <h3 className="text-lg font-semibold">No Projects Found</h3>
+                <p>Clients have not submitted any projects yet.</p>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
