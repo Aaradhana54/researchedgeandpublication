@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { LoaderCircle, LogIn } from 'lucide-react';
+import { LoaderCircle, LogIn, ArrowLeft } from 'lucide-react';
 
 import { login } from '@/firebase/auth';
 import { Button } from '@/components/ui/button';
@@ -37,8 +37,14 @@ export default function LoginPage() {
 
   return (
     <div className="flex items-center justify-center min-h-[calc(100vh-10rem)] bg-secondary">
-      <Card className="w-full max-w-md mx-4 shadow-lift">
-        <CardHeader className="text-center">
+      <Card className="w-full max-w-md mx-4 shadow-lift relative">
+         <Button variant="ghost" size="sm" asChild className="absolute top-4 left-4">
+            <Link href="/">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back
+            </Link>
+         </Button>
+        <CardHeader className="text-center pt-16">
           <CardTitle className="text-2xl font-bold">Client Login</CardTitle>
           <CardDescription>Enter your credentials to access your dashboard.</CardDescription>
         </CardHeader>
