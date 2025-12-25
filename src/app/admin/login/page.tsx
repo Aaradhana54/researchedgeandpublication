@@ -5,7 +5,9 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { login, googleSignIn } from '@/firebase/auth';
+import { login } from '@/firebase/auth'; // Only email login needed here
+import { doc, getDoc } from 'firebase/firestore';
+import { firestore } from '@/firebase/config';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -28,8 +30,8 @@ import { useToast } from '@/hooks/use-toast';
 import { LoaderCircle, ShieldCheck } from 'lucide-react';
 import { getFirebaseErrorMessage } from '@/firebase/errors';
 import { AnimatedWrapper } from '@/components/animated-wrapper';
-import { doc, getDoc } from 'firebase/firestore';
-import { firestore } from '@/firebase/config';
+import { signOut } from 'firebase/auth';
+import { auth } from '@/firebase/config';
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address.'),
@@ -57,20 +59,22 @@ export default function AdminLoginPage() {
       const userCredential = await login(data.email, data.password);
       const user = userCredential.user;
 
-      // Check for admin role
+      // After successful Firebase Auth login, check for Firestore admin role
       const userDocRef = doc(firestore, 'users', user.uid);
       const userDoc = await getDoc(userDocRef);
 
       if (userDoc.exists() && userDoc.data().role === 'admin') {
+        // Role is verified, now we can proceed
         toast({
           title: 'Login Successful',
           description: 'Welcome back, Admin!',
         });
-        router.push('/admin');
+        // This will trigger the layout's logic to show the dashboard
+        router.push('/admin'); 
       } else {
-        // This is a security measure. Even if login is successful,
-        // if they don't have the admin role, we don't let them in.
-        await user.signOut();
+        // If login is successful but user is not an admin, deny access
+        // and sign them out immediately.
+        await signOut(auth);
         throw new Error('Access Denied: Not an administrator.');
       }
     } catch (error: any) {
