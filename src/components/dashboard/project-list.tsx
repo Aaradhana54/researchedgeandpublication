@@ -130,6 +130,8 @@ export function CreateProjectDialog({ userId }: { userId: string}) {
       publishWhere: '',
       wordCount: undefined,
       pageCount: undefined,
+      courseLevel: undefined,
+      deadline: undefined,
     },
   });
   
@@ -157,6 +159,8 @@ export function CreateProjectDialog({ userId }: { userId: string}) {
       publishWhere: '',
       wordCount: undefined,
       pageCount: undefined,
+      courseLevel: undefined,
+      deadline: undefined,
     });
   };
   
@@ -238,7 +242,7 @@ export function CreateProjectDialog({ userId }: { userId: string}) {
         </DialogHeader>
         
         {step === 1 && (
-          <div className="grid grid-cols-1 gap-4 py-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
              <Card
               className="flex flex-col items-center justify-center p-6 text-center cursor-pointer hover:bg-accent hover:text-accent-foreground transition-colors group h-32"
               onClick={() => handleCategorySelect('writing')}
@@ -334,25 +338,25 @@ export function CreateProjectDialog({ userId }: { userId: string}) {
                             <FormItem className="flex flex-col">
                               <FormLabel>Deadline</FormLabel>
                               <Popover>
-                                <div className="relative">
+                                <PopoverTrigger asChild>
                                   <FormControl>
-                                    <Input
-                                      placeholder="Pick a date"
-                                      value={field.value ? format(field.value, 'PPP') : ''}
-                                      onChange={(e) => {
-                                        const date = new Date(e.target.value);
-                                        if (!isNaN(date.getTime())) {
-                                          field.onChange(date);
-                                        }
-                                      }}
-                                    />
+                                    <div className="relative">
+                                      <Input
+                                        placeholder="Pick a date"
+                                        value={field.value ? format(field.value, 'PPP') : ''}
+                                        onChange={(e) => {
+                                          const date = new Date(e.target.value);
+                                          if (!isNaN(date.getTime())) {
+                                            field.onChange(date);
+                                          }
+                                        }}
+                                      />
+                                      <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8">
+                                        <CalendarIcon className="h-4 w-4 opacity-50" />
+                                      </Button>
+                                    </div>
                                   </FormControl>
-                                  <PopoverTrigger asChild>
-                                    <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8">
-                                      <CalendarIcon className="h-4 w-4 opacity-50" />
-                                    </Button>
-                                  </PopoverTrigger>
-                                </div>
+                                </PopoverTrigger>
                                 <PopoverContent className="w-auto p-0" align="start">
                                   <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
                                 </PopoverContent>
@@ -365,7 +369,7 @@ export function CreateProjectDialog({ userId }: { userId: string}) {
                           <FormField control={form.control} name="pageCount" render={({ field }) => (
                               <FormItem>
                                   <FormLabel>Page Count (Approx.)</FormLabel>
-                                  <FormControl><Input type="number" placeholder="e.g., 250" {...field} /></FormControl>
+                                  <FormControl><Input type="number" placeholder="e.g., 250" {...field} value={field.value ?? ''} /></FormControl>
                                   <FormMessage />
                               </FormItem>
                           )} />
@@ -425,7 +429,7 @@ export function CreateProjectDialog({ userId }: { userId: string}) {
                           <FormField control={form.control} name="wordCount" render={({ field }) => (
                               <FormItem>
                                   <FormLabel>Word Count (Approx.)</FormLabel>
-                                  <FormControl><Input type="number" placeholder="e.g., 5000" {...field} /></FormControl>
+                                  <FormControl><Input type="number" placeholder="e.g., 5000" {...field} value={field.value ?? ''} /></FormControl>
                                   <FormMessage />
                               </FormItem>
                           )} />
@@ -470,25 +474,25 @@ export function CreateProjectDialog({ userId }: { userId: string}) {
                             <FormItem className="flex flex-col">
                               <FormLabel>Deadline</FormLabel>
                               <Popover>
-                                <div className="relative">
+                                <PopoverTrigger asChild>
                                   <FormControl>
-                                    <Input
-                                      placeholder="Pick a date"
-                                      value={field.value ? format(field.value, 'PPP') : ''}
-                                      onChange={(e) => {
-                                        const date = new Date(e.target.value);
-                                        if (!isNaN(date.getTime())) {
-                                          field.onChange(date);
-                                        }
-                                      }}
-                                    />
+                                     <div className="relative">
+                                      <Input
+                                        placeholder="Pick a date"
+                                        value={field.value ? format(field.value, 'PPP') : ''}
+                                        onChange={(e) => {
+                                          const date = new Date(e.target.value);
+                                          if (!isNaN(date.getTime())) {
+                                            field.onChange(date);
+                                          }
+                                        }}
+                                      />
+                                      <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8">
+                                        <CalendarIcon className="h-4 w-4 opacity-50" />
+                                      </Button>
+                                    </div>
                                   </FormControl>
-                                  <PopoverTrigger asChild>
-                                    <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8">
-                                      <CalendarIcon className="h-4 w-4 opacity-50" />
-                                    </Button>
-                                  </PopoverTrigger>
-                                </div>
+                                </PopoverTrigger>
                                 <PopoverContent className="w-auto p-0" align="start">
                                   <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
                                 </PopoverContent>
@@ -576,7 +580,7 @@ export function CreateProjectDialog({ userId }: { userId: string}) {
                         <FormField control={form.control} name="pageCount" render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Page Count (Approx.)</FormLabel>
-                                <FormControl><Input type="number" placeholder="e.g., 150" {...field} /></FormControl>
+                                <FormControl><Input type="number" placeholder="e.g., 150" {...field} value={field.value ?? ''} /></FormControl>
                                 <FormMessage />
                             </FormItem>
                         )} />
@@ -597,25 +601,25 @@ export function CreateProjectDialog({ userId }: { userId: string}) {
                         <FormItem className="flex flex-col">
                           <FormLabel>Expected Deadline</FormLabel>
                             <Popover>
-                              <div className="relative">
+                              <PopoverTrigger asChild>
                                 <FormControl>
-                                  <Input
-                                    placeholder="Pick a date"
-                                    value={field.value ? format(field.value, 'PPP') : ''}
-                                    onChange={(e) => {
-                                      const date = new Date(e.target.value);
-                                      if (!isNaN(date.getTime())) {
-                                        field.onChange(date);
-                                      }
-                                    }}
-                                  />
+                                  <div className="relative">
+                                    <Input
+                                      placeholder="Pick a date"
+                                      value={field.value ? format(field.value, 'PPP') : ''}
+                                      onChange={(e) => {
+                                        const date = new Date(e.target.value);
+                                        if (!isNaN(date.getTime())) {
+                                          field.onChange(date);
+                                        }
+                                      }}
+                                    />
+                                    <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8">
+                                      <CalendarIcon className="h-4 w-4 opacity-50" />
+                                    </Button>
+                                  </div>
                                 </FormControl>
-                                <PopoverTrigger asChild>
-                                  <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8">
-                                    <CalendarIcon className="h-4 w-4 opacity-50" />
-                                  </Button>
-                                </PopoverTrigger>
-                              </div>
+                              </PopoverTrigger>
                               <PopoverContent className="w-auto p-0" align="start">
                                 <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
                               </PopoverContent>
