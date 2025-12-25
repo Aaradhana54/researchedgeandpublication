@@ -9,16 +9,17 @@ import {
   signOut,
   updateProfile,
 } from 'firebase/auth';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
-import { getFirestore } from 'firebase/firestore';
+import { doc, setDoc, serverTimestamp, getDoc } from 'firebase/firestore';
 import { initializeFirebase } from './index';
 
+// Initialize Firebase and get services once at the module level.
+const firebasePromise = initializeFirebase();
+
 async function getServices() {
-  const { auth, firestore } = await initializeFirebase();
-  return { auth, firestore };
+  return await firebasePromise;
 }
 
-export async function signUpClient(name: string, email: string, password: string) {
+export async function signUpClient(name: string, email: string, password:string) {
   const { auth, firestore } = await getServices();
   const userCredential = await createUserWithEmailAndPassword(auth, email, password);
   const user = userCredential.user;
@@ -58,14 +59,18 @@ export async function googleSignIn() {
 
     // Create user profile in Firestore if it's a new user
     const userDocRef = doc(firestore, 'users', user.uid);
-    await setDoc(userDocRef, {
-        uid: user.uid,
-        name: user.displayName,
-        email: user.email,
-        role: 'client',
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-    }, { merge: true }); // Merge to avoid overwriting existing data
+    const userDoc = await getDoc(userDocRef);
+
+    if (!userDoc.exists()) {
+        await setDoc(userDocRef, {
+            uid: user.uid,
+            name: user.displayName,
+            email: user.email,
+            role: 'client',
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+        });
+    }
 
     return userCredential;
 }

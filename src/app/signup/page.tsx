@@ -29,6 +29,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { LoaderCircle } from 'lucide-react';
 import { Logo } from '@/components/ui/logo';
+import { getFirebaseErrorMessage } from '@/firebase/errors';
 
 const signupSchema = z
   .object({
@@ -70,13 +71,11 @@ export default function SignupPage() {
       });
       router.push('/dashboard');
     } catch (error: any) {
+      console.error("Signup Error:", error);
       toast({
         variant: 'destructive',
         title: 'Sign Up Failed',
-        description:
-          error.code === 'auth/email-already-in-use'
-            ? 'This email is already associated with an account.'
-            : 'An unexpected error occurred. Please try again.',
+        description: getFirebaseErrorMessage(error.code),
       });
     } finally {
       setIsLoading(false);

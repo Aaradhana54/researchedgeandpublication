@@ -30,6 +30,7 @@ import { useToast } from '@/hooks/use-toast';
 import { LoaderCircle } from 'lucide-react';
 import { Logo } from '@/components/ui/logo';
 import { Separator } from '@/components/ui/separator';
+import { getFirebaseErrorMessage } from '@/firebase/errors';
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address.'),
@@ -62,13 +63,11 @@ export default function LoginPage() {
       });
       router.push('/dashboard');
     } catch (error: any) {
+      console.error("Login Error:", error);
       toast({
         variant: 'destructive',
         title: 'Login Failed',
-        description:
-          error.code === 'auth/invalid-credential'
-            ? 'Invalid email or password.'
-            : 'An unexpected error occurred. Please try again.',
+        description: getFirebaseErrorMessage(error.code),
       });
     } finally {
       setIsLoading(false);
@@ -85,10 +84,11 @@ export default function LoginPage() {
       });
       router.push('/dashboard');
     } catch (error: any) {
+      console.error("Google Sign-In Error:", error);
       toast({
         variant: 'destructive',
         title: 'Google Sign-In Failed',
-        description: 'Could not sign in with Google. Please try again.',
+        description: getFirebaseErrorMessage(error.code),
       });
     } finally {
       setIsGoogleLoading(false);
