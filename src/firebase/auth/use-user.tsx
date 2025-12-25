@@ -15,18 +15,15 @@ export function useUser() {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
       if (!user) {
-        // If user is null, we're not loading anymore
         setUserProfile(null);
         setLoading(false);
       }
     });
 
-    // Cleanup subscription on unmount
     return () => unsubscribe();
-  }, []); // Empty dependency array ensures this runs only once
+  }, []);
 
   useEffect(() => {
-    // If there's no user, we don't need to fetch a profile
     if (!user?.uid) {
         setLoading(false);
         return;
@@ -47,9 +44,8 @@ export function useUser() {
         setLoading(false);
     });
 
-    // Cleanup subscription on unmount or if user changes
     return () => unsubscribe();
-  }, [user?.uid]); // Re-run this effect only when the user's UID changes
+  }, [user?.uid]); // Depend on the stable user UID string
 
   return { user, userProfile, loading };
 }

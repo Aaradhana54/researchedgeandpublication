@@ -21,11 +21,9 @@ export function useCollection<T extends DocumentData>(
     error: null,
   });
 
-  // Memoize the path of the query to use as a stable dependency.
-  // This is the key to preventing infinite loops.
   const queryPath = useMemo(() => {
     if (!query) return null;
-    // The internal _query.path.segments is a stable representation of the query's location.
+    // The internal _query.path.segments provides a stable representation of the query's location.
     return (query as any)._query.path.segments.join('/');
   }, [query]);
 
