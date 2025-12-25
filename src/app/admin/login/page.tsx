@@ -26,8 +26,8 @@ export default function AdminLoginPage() {
 
     try {
       await login(email, password);
-      // The layout will handle role checking and redirection.
-      router.push('/admin/dashboard');
+      // The layout will handle role checking and redirection to the dashboard.
+      router.push('/admin/dashboard'); 
     } catch (err: any) {
       setError(getFirebaseErrorMessage(err.code));
     } finally {

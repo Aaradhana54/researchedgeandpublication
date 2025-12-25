@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useUser } from '@/firebase/auth/use-user';
 import { LoaderCircle, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -14,14 +14,28 @@ export default function AdminLayout({
 }) {
   const { user, loading } = useUser();
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
-    if (!loading) {
+    // If we are not loading and the current page is not the login page
+    if (!loading && pathname !== '/admin/login') {
+      // If there is no user or the user is not an admin, redirect to login
       if (!user || user.role !== 'admin') {
         router.replace('/admin/login');
       }
     }
-  }, [user, loading, router]);
+    // If the user is logged in as an admin and tries to visit the login page, redirect to dashboard
+    if (!loading && user && user.role === 'admin' && pathname === '/admin/login') {
+        router.replace('/admin/dashboard');
+    }
+
+  }, [user, loading, router, pathname]);
+
+  // Don't protect the login page itself with a loader/permission check
+  if (pathname === '/admin/login') {
+      return <>{children}</>;
+  }
+
 
   if (loading || !user) {
     return (
