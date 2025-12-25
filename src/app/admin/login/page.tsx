@@ -63,28 +63,38 @@ export default function AdminLoginPage() {
       const userDocRef = doc(firestore, 'users', user.uid);
       const userDoc = await getDoc(userDocRef);
 
-      if (userDoc.exists() && userDoc.data().role === 'admin') {
-        // Role is verified, now we can proceed
-        toast({
-          title: 'Login Successful',
-          description: 'Welcome back, Admin!',
-        });
-        // This will trigger the layout's logic to show the dashboard
-        router.push('/admin'); 
+      if (userDoc.exists()) {
+        if (userDoc.data().role === 'admin') {
+            // Role is verified, now we can proceed
+            toast({
+            title: 'Login Successful',
+            description: 'Welcome back, Admin!',
+            });
+            // This will trigger the layout's logic to show the dashboard
+            router.push('/admin');
+        } else {
+            // If login is successful but user is not an admin, deny access
+            await signOut(auth); // Sign out the non-admin user
+            throw new Error('Access Denied: You do not have administrator privileges.');
+        }
       } else {
-        // If login is successful but user is not an admin, deny access
-        // and sign them out immediately.
+        // This case handles if an auth user exists but has no corresponding firestore document
         await signOut(auth);
-        throw new Error('Access Denied: Not an administrator.');
+        throw new Error('User profile not found. Please contact support.');
       }
+
     } catch (error: any) {
       console.error("Admin Login Error:", error);
+      
+      let errorMessage = getFirebaseErrorMessage(error.code);
+      if (error.message.includes('Access Denied') || error.message.includes('User profile not found')) {
+          errorMessage = error.message;
+      }
+
       toast({
         variant: 'destructive',
         title: 'Login Failed',
-        description: error.message.includes('Access Denied') 
-          ? error.message 
-          : getFirebaseErrorMessage(error.code),
+        description: errorMessage,
       });
     } finally {
       setIsLoading(false);
