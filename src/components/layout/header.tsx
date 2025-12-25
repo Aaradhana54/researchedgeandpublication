@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Menu, LogOut } from 'lucide-react';
+import { Menu, LogOut, ChevronDown } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 import { useScrollSpy } from '@/hooks/use-scroll-spy';
@@ -118,9 +118,21 @@ export function Header() {
             </DropdownMenu>
           ) : (
              <div className="hidden md:flex items-center gap-2">
-                <Button variant="ghost" asChild>
-                    <Link href="/login">Client Login</Link>
-                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost">
+                      Portals <ChevronDown className="ml-2 h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => router.push('/login')}>
+                      Client Login
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => router.push('/admin/login')}>
+                      Admin Login
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
             </div>
           )}
 
@@ -168,8 +180,11 @@ export function Header() {
                         </>
                       ) : (
                         <>
-                         <Button asChild onClick={() => setIsMobileMenuOpen(false)}>
+                         <Button asChild onClick={() => { setIsMobileMenuOpen(false); router.push('/login'); }}>
                             <Link href="/login">Client Login</Link>
+                          </Button>
+                          <Button variant="outline" asChild onClick={() => { setIsMobileMenuOpen(false); router.push('/admin/login'); }}>
+                             <Link href="/admin/login">Admin Login</Link>
                           </Button>
                         </>
                       )}
