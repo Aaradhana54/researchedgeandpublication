@@ -7,7 +7,7 @@ import { Menu, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useScrollSpy } from '@/hooks/use-scroll-spy';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Logo } from '@/components/ui/logo';
 import { useUser } from '@/firebase';
 import {
@@ -103,10 +103,12 @@ export function Header() {
                 </Button>
               </SheetTrigger>
               <SheetContent side="right" className="w-[280px]">
-                <div className="flex flex-col h-full">
-                  <div className="flex items-center justify-between border-b pb-4">
+                <SheetHeader className="border-b pb-4">
+                    <SheetTitle className="sr-only">Main Menu</SheetTitle>
+                    <SheetDescription className="sr-only">Navigate the Revio Research website.</SheetDescription>
                     <Logo />
-                  </div>
+                </SheetHeader>
+                <div className="flex flex-col h-full">
                   <nav className="flex flex-col gap-4 mt-8">
                     {navItems.map((item) => (
                       <Link
