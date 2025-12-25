@@ -754,7 +754,7 @@ export function ProjectList({ userId }: { userId: string }) {
 
   const { data: projects, loading, error } = useCollection<Project>(projectsQuery);
 
-  if (loading) {
+  if (loading || !userId) {
     return (
       <div className="flex justify-center py-16">
         <LoaderCircle className="h-8 w-8 animate-spin text-primary" />
@@ -804,9 +804,3 @@ export function ProjectList({ userId }: { userId: string }) {
     </div>
   );
 }
-
-    
-
-    
-
-    
