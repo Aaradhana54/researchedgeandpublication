@@ -41,8 +41,8 @@
     },
     {
       "id": "hero-background",
-      "description": "A modern, well-lit architectural interior, evoking a sense of research and innovation.",
-      "imageUrl": "https://images.unsplash.com/photo-1579547945412-1d8a21053cd2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxtb2Rlcm4lMjByZXNlYXJjaCUyMGJhY2tncm91bmR8ZW58MHx8fHwxNzE3NjYzOTMxfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "description": "A vibrant and modern abstract background representing data and research.",
+      "imageUrl": "https://images.unsplash.com/photo-1554147090-e1221a04a025?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2070&q=80",
       "imageHint": "modern research"
     }
   ]
