@@ -3,7 +3,7 @@
 import { z } from 'zod';
 import { approveTestimonial } from '@/ai/flows/approve-testimonials-flow';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { initializeFirebase } from '@/firebase';
+import { firestore } from '@/firebase';
 
 const contactFormSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters.'),
@@ -44,7 +44,6 @@ export async function submitContactForm(
   }
 
   try {
-    const { firestore } = await initializeFirebase();
     const leadsRef = collection(firestore, 'contact_leads');
     await addDoc(leadsRef, {
       ...validatedFields.data,
@@ -100,7 +99,6 @@ export async function submitTestimonialForApproval(
     
     // If approved by AI, save to Firestore
     if (result.approved) {
-        const { firestore } = await initializeFirebase();
         const testimonialsRef = collection(firestore, 'testimonials');
         await addDoc(testimonialsRef, {
             ...validatedFields.data,

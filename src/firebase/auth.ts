@@ -1,7 +1,6 @@
 'use client';
 
 import {
-  getAuth,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signInWithPopup,
@@ -10,17 +9,10 @@ import {
   updateProfile,
 } from 'firebase/auth';
 import { doc, setDoc, serverTimestamp, getDoc } from 'firebase/firestore';
-import { initializeFirebase } from './index';
+import { auth, firestore } from './index';
 
-// Initialize Firebase and get services once at the module level.
-const firebasePromise = initializeFirebase();
-
-async function getServices() {
-  return await firebasePromise;
-}
 
 export async function signUpClient(name: string, email: string, password:string) {
-  const { auth, firestore } = await getServices();
   const userCredential = await createUserWithEmailAndPassword(auth, email, password);
   const user = userCredential.user;
 
@@ -42,17 +34,14 @@ export async function signUpClient(name: string, email: string, password:string)
 }
 
 export async function login(email: string, password: string) {
-  const { auth } = await getServices();
   return signInWithEmailAndPassword(auth, email, password);
 }
 
 export async function logout() {
-  const { auth } = await getServices();
   return signOut(auth);
 }
 
 export async function googleSignIn() {
-    const { auth, firestore } = await getServices();
     const provider = new GoogleAuthProvider();
     const userCredential = await signInWithPopup(auth, provider);
     const user = userCredential.user;
