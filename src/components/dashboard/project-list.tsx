@@ -29,13 +29,6 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
   Card,
   CardContent,
   CardDescription,
@@ -111,6 +104,11 @@ export function CreateProjectDialog({ userId }: { userId: string}) {
     setSelectedCategory(category);
     setStep(2);
   };
+  
+  const handleServiceSelect = (service: ProjectServiceType) => {
+    form.setValue('serviceType', service);
+    setStep(3);
+  }
 
   const resetDialog = () => {
     setStep(1);
@@ -121,7 +119,7 @@ export function CreateProjectDialog({ userId }: { userId: string}) {
   const handleOpenChange = (isOpen: boolean) => {
     setOpen(isOpen);
     if (!isOpen) {
-      resetDialog();
+      setTimeout(resetDialog, 300);
     }
   }
 
@@ -146,6 +144,16 @@ export function CreateProjectDialog({ userId }: { userId: string}) {
     }
   };
 
+  const currentTitle = 
+    step === 1 ? 'Create a New Project' 
+  : step === 2 ? `Select a ${selectedCategory} Service`
+  : `Finalize Your Project`;
+
+  const currentDescription = 
+    step === 1 ? 'What kind of project are you starting?' 
+  : step === 2 ? 'Choose the specific service you need.'
+  : 'Please give your project a title to get started.';
+
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
@@ -166,13 +174,14 @@ export function CreateProjectDialog({ userId }: { userId: string}) {
               <ArrowLeft className="h-4 w-4" />
             </Button>
           )}
-          <DialogTitle className={cn(step > 1 && "text-center")}>
-            {step === 1 ? 'Create a New Project' : serviceCategories[selectedCategory!]?.label}
+          <DialogTitle className="text-center">
+            {currentTitle}
           </DialogTitle>
-          <DialogDescription className={cn(step > 1 && "text-center")}>
-            {step === 1 ? 'What kind of project are you starting?' : 'Fill in the details below to get started.'}
+          <DialogDescription className="text-center">
+            {currentDescription}
           </DialogDescription>
         </DialogHeader>
+        
         {step === 1 && (
           <div className="grid grid-cols-2 gap-4 py-4">
              <Card
@@ -191,9 +200,28 @@ export function CreateProjectDialog({ userId }: { userId: string}) {
             </Card>
           </div>
         )}
+        
         {step === 2 && selectedCategory && (
+            <div className="grid grid-cols-2 gap-4 py-4">
+                {Object.entries(serviceCategories[selectedCategory].services).map(([value, label]) => (
+                     <Card
+                        key={value}
+                        className="flex flex-col items-center justify-center p-4 text-center cursor-pointer hover:bg-accent hover:text-accent-foreground transition-colors group"
+                        onClick={() => handleServiceSelect(value as ProjectServiceType)}
+                     >
+                         <h3 className="font-semibold text-sm">{label}</h3>
+                     </Card>
+                ))}
+            </div>
+        )}
+
+        {step === 3 && (
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
+               <div className='space-y-1 text-center bg-muted/50 p-3 rounded-md'>
+                    <p className='text-sm text-muted-foreground'>Selected Service</p>
+                    <p className='font-semibold text-primary'>{serviceTypeLabels[form.getValues('serviceType')]}</p>
+               </div>
               <FormField
                 control={form.control}
                 name="title"
@@ -203,33 +231,6 @@ export function CreateProjectDialog({ userId }: { userId: string}) {
                     <FormControl>
                       <Input placeholder="e.g., My Doctoral Thesis" {...field} />
                     </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="serviceType"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Specific Service</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a service" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {Object.entries(serviceCategories[selectedCategory].services).map(([value, label]) => (
-                          <SelectItem key={value} value={value}>
-                            {label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
