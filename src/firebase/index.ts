@@ -1,6 +1,13 @@
-
 // --- RE-EXPORTS for SERVICES, PROVIDERS and HOOKS ---
 export { firebaseApp, auth, firestore, storage } from './client';
+export { FirebaseClientProvider } from './client-provider';
+export { 
+    useFirebase, 
+    useFirebaseApp, 
+    useAuth, 
+    useFirestore, 
+    useStorage 
+} from './provider';
 
 // --- Auth Hooks ---
 export { useUser } from './auth/use-user';

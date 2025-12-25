@@ -4,10 +4,12 @@ import { useEffect, useState } from 'react';
 import { onAuthStateChanged, type User } from 'firebase/auth';
 import { doc, onSnapshot } from 'firebase/firestore';
 
-import { auth, firestore } from '@/firebase/client';
+import { useAuth, useFirestore } from '@/firebase/provider';
 import type { UserProfile } from '@/lib/types';
 
 export function useUser() {
+  const auth = useAuth();
+  const firestore = useFirestore();
   const [user, setUser] = useState<User | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -22,7 +24,7 @@ export function useUser() {
     });
 
     return () => unsubscribeAuth();
-  }, []);
+  }, [auth]);
 
   useEffect(() => {
     if (user && firestore) {
@@ -37,7 +39,7 @@ export function useUser() {
       });
       return () => unsubscribeProfile();
     }
-  }, [user]);
+  }, [user, firestore]);
 
   return { user, userProfile, loading };
 }

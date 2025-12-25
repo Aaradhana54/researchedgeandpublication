@@ -12,7 +12,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { AnimatedWrapper } from '@/components/animated-wrapper';
 import { type Testimonial } from '@/lib/types';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { useCollection } from '@/firebase';
+import { useCollection } from '@/firebase/firestore/use-collection';
 import { collection, query, where } from 'firebase/firestore';
 import { firestore } from '@/firebase/client';
 import { LoaderCircle } from 'lucide-react';
@@ -28,7 +28,6 @@ const staticTestimonials: Testimonial[] = PlaceHolderImages
 
 export function Testimonials() {
   const testimonialsQuery = useMemo(() => {
-    if (!firestore) return null;
     return query(collection(firestore, 'testimonials'), where('approved', '==', true));
   }, []);
   

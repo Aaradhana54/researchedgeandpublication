@@ -1,7 +1,7 @@
 'use client';
 
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { storage } from './config';
+import { storage } from './client';
 
 
 export async function uploadFileAndGetURL(userId: string, file: File): Promise<string> {

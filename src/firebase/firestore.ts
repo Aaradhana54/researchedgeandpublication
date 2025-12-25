@@ -11,7 +11,7 @@ import {
   serverTimestamp,
   Timestamp,
 } from 'firebase/firestore';
-import { firestore } from './config';
+import { firestore } from './client';
 import type { Project } from '@/lib/types';
 import { errorEmitter } from './error-emitter';
 import { FirestorePermissionError } from './errors';
