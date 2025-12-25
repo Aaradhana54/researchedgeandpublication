@@ -1,4 +1,6 @@
+'use client';
 
+// A more specific error message for Firebase authentication issues.
 export function getFirebaseErrorMessage(errorCode: string): string {
     switch (errorCode) {
         // --- Auth Errors ---
@@ -30,4 +32,33 @@ export function getFirebaseErrorMessage(errorCode: string): string {
         default:
             return 'An unexpected error occurred. Please try again later.';
     }
+}
+
+
+// --- Contextual Firestore Security Rule Error Handling ---
+
+export type SecurityRuleContext = {
+  path: string;
+  operation: 'get' | 'list' | 'create' | 'update' | 'delete' | 'write';
+  requestResourceData?: any;
+};
+
+/**
+ * A custom error class to provide detailed context about Firestore security rule failures.
+ * This should only be used in a development environment.
+ */
+export class FirestorePermissionError extends Error {
+  public readonly context: SecurityRuleContext;
+  public readonly serverError: any;
+
+  constructor(context: SecurityRuleContext, serverError?: any) {
+    const message = `FirestoreError: Missing or insufficient permissions: The following request was denied by Firestore Security Rules:\n${JSON.stringify(context, null, 2)}`;
+    super(message);
+    this.name = 'FirestorePermissionError';
+    this.context = context;
+    this.serverError = serverError;
+
+    // This is necessary for transitioning to a custom Error type.
+    Object.setPrototypeOf(this, FirestorePermissionError.prototype);
+  }
 }

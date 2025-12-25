@@ -3,6 +3,8 @@
 import { useEffect, useState, useMemo } from 'react';
 import type { DocumentReference, DocumentData } from 'firebase/firestore';
 import { onSnapshot } from 'firebase/firestore';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 interface DocState<T> {
   data: T | null;
@@ -43,6 +45,16 @@ export function useDoc<T extends DocumentData>(
         }
       },
       (error) => {
+        if (error.code === 'permission-denied') {
+          const permissionError = new FirestorePermissionError(
+            {
+              path: refMemo.path,
+              operation: 'get',
+            },
+            error
+          );
+          errorEmitter.emit('permission-error', permissionError);
+        }
         console.error('useDoc error:', error);
         setState({ data: null, loading: false, error });
       }

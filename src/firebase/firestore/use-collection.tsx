@@ -3,6 +3,8 @@
 import { useEffect, useState, useMemo } from 'react';
 import type { Query, DocumentData } from 'firebase/firestore';
 import { onSnapshot } from 'firebase/firestore';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 interface CollectionState<T> {
   data: T[] | null;
@@ -38,6 +40,16 @@ export function useCollection<T extends DocumentData>(
         setState({ data, loading: false, error: null });
       },
       (error) => {
+        if (error.code === 'permission-denied') {
+          const permissionError = new FirestorePermissionError(
+            {
+              path: (queryMemo as any)._query.path.segments.join('/'),
+              operation: 'list',
+            },
+            error
+          );
+          errorEmitter.emit('permission-error', permissionError);
+        }
         console.error('useCollection error:', error);
         setState({ data: null, loading: false, error });
       }

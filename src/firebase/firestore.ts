@@ -13,6 +13,8 @@ import {
 } from 'firebase/firestore';
 import { firestore } from './config';
 import type { Project } from '@/lib/types';
+import { errorEmitter } from './error-emitter';
+import { FirestorePermissionError } from './errors';
 
 
 // --- Project Functions ---
@@ -23,7 +25,6 @@ export async function createProject(
 ) {
   const projectsColRef = collection(firestore, 'projects');
 
-  // Build the project object safely, only including fields that have values.
   const newProjectData: Omit<Project, 'id'> = {
     userId,
     title: projectData.title,
@@ -47,9 +48,23 @@ export async function createProject(
   if (projectData.language) newProjectData.language = projectData.language;
   if (projectData.wantToPublish) newProjectData.wantToPublish = projectData.wantToPublish;
   if (projectData.publishWhere) newProjectData.publishWhere = projectData.publishWhere;
-
-  const docRef = await addDoc(projectsColRef, newProjectData);
-  return docRef.id;
+  
+  addDoc(projectsColRef, newProjectData)
+    .then(docRef => {
+      return docRef.id;
+    })
+    .catch(error => {
+       if (error.code === 'permission-denied') {
+          const permissionError = new FirestorePermissionError({
+            path: projectsColRef.path,
+            operation: 'create',
+            requestResourceData: newProjectData
+          }, error);
+          errorEmitter.emit('permission-error', permissionError);
+        }
+        // Re-throw the original error to be caught by the calling function's catch block
+        throw error;
+    });
 }
 
 export async function listProjectsForUser(userId: string) {
@@ -64,11 +79,23 @@ export async function listProjectsForUser(userId: string) {
 
 export async function updateProjectTitle(projectId: string, newTitle: string) {
   const projectDocRef = doc(firestore, 'projects', projectId);
-
-  await updateDoc(projectDocRef, {
+  const updateData = {
     title: newTitle,
     updatedAt: serverTimestamp(),
-  });
+  };
+
+  updateDoc(projectDocRef, updateData)
+    .catch(error => {
+       if (error.code === 'permission-denied') {
+          const permissionError = new FirestorePermissionError({
+            path: projectDocRef.path,
+            operation: 'update',
+            requestResourceData: updateData
+          }, error);
+          errorEmitter.emit('permission-error', permissionError);
+        }
+        throw error;
+    });
 }
 
 /**
@@ -80,9 +107,21 @@ export async function staffUpdateProjectProgress(
   progress: number
 ) {
   const projectDocRef = doc(firestore, 'projects', projectId);
-
-  await updateDoc(projectDocRef, {
+  const updateData = {
     progressPercent: progress,
     updatedAt: serverTimestamp(),
-  });
+  };
+
+  updateDoc(projectDocRef, updateData)
+    .catch(error => {
+        if (error.code === 'permission-denied') {
+            const permissionError = new FirestorePermissionError({
+                path: projectDocRef.path,
+                operation: 'update',
+                requestResourceData: updateData
+            }, error);
+            errorEmitter.emit('permission-error', permissionError);
+        }
+        throw error;
+    });
 }

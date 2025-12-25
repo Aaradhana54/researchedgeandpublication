@@ -4,6 +4,8 @@ import { z } from 'zod';
 import { approveTestimonial } from '@/ai/flows/approve-testimonials-flow';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { firestore } from '@/firebase/config';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 const contactFormSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters.'),
@@ -43,15 +45,28 @@ export async function submitContactForm(
     };
   }
 
+  const leadsRef = collection(firestore, 'contact_leads');
+  const leadData = {
+    ...validatedFields.data,
+    createdAt: serverTimestamp(),
+  };
+
   try {
-    const leadsRef = collection(firestore, 'contact_leads');
-    await addDoc(leadsRef, {
-      ...validatedFields.data,
-      createdAt: serverTimestamp(),
-    });
+    await addDoc(leadsRef, leadData);
     return { message: 'Success: Your message has been sent!' };
-  } catch (e) {
-    console.error('Contact form submission error:', e);
+  } catch (e: any) {
+    if (e.code === 'permission-denied') {
+      const permissionError = new FirestorePermissionError({
+        path: leadsRef.path,
+        operation: 'create',
+        requestResourceData: leadData,
+      }, e);
+      // This is a server action, so we can't rely on the client-side listener.
+      // We'll log it server-side and return a generic error to the client.
+      console.error(permissionError.message);
+    } else {
+        console.error('Contact form submission error:', e);
+    }
     return { message: 'Error: Could not submit the form.' };
   }
 }
@@ -100,11 +115,31 @@ export async function submitTestimonialForApproval(
     // If approved by AI, save to Firestore
     if (result.approved) {
         const testimonialsRef = collection(firestore, 'testimonials');
-        await addDoc(testimonialsRef, {
+        const testimonialData = {
             ...validatedFields.data,
             approved: true,
             createdAt: serverTimestamp(),
-        });
+        };
+
+        try {
+            await addDoc(testimonialsRef, testimonialData);
+        } catch (e: any) {
+             if (e.code === 'permission-denied') {
+                const permissionError = new FirestorePermissionError({
+                    path: testimonialsRef.path,
+                    operation: 'create',
+                    requestResourceData: testimonialData,
+                }, e);
+                console.error(permissionError.message);
+             } else {
+                console.error('Firestore saving error:', e);
+             }
+             // Return a more specific error if saving fails
+             return {
+                message: 'AI approved, but failed to save to database.',
+                result: result,
+             };
+        }
     }
 
     return {
