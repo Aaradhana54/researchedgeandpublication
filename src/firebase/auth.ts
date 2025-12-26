@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -58,21 +59,22 @@ export async function signup(email: string, password: string, name: string, role
   const userCredential = await createUserWithEmailAndPassword(auth, email, password);
   const user = userCredential.user;
 
-  const userProfile: Omit<UserProfile, 'createdAt' | 'uid'> = {
+  const dataToSet: any = {
     name,
     email,
-    role: role,
+    role,
+    uid: user.uid,
+    createdAt: serverTimestamp(),
   };
+
+  if (role === 'referral-partner') {
+    // Generate a unique referral code for partners. For simplicity, we use part of the UID.
+    dataToSet.referralCode = user.uid.substring(0, 8);
+  }
 
   const userDocRef = doc(firestore, 'users', user.uid);
 
   // Firestore rules should allow the user to create their own profile document
-  const dataToSet = {
-      ...userProfile,
-      uid: user.uid, // Add UID to the document data
-      createdAt: serverTimestamp(),
-  };
-
   setDoc(userDocRef, dataToSet).catch((error) => {
     const permissionError = new FirestorePermissionError({
       path: userDocRef.path,

@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "UserProfile": {
@@ -9,7 +10,9 @@
         "name": { "type": "string", "description": "The user's full name." },
         "email": { "type": "string", "format": "email", "description": "The user's email address." },
         "role": { "type": "string", "enum": ["client", "admin", "author", "referral-partner", "writing-team", "sales-team", "publication-team", "accounts-team"], "description": "The user's role."},
-        "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp of when the user account was created." }
+        "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp of when the user account was created." },
+        "referralCode": { "type": "string", "description": "Unique code for referral partners to share."},
+        "referredBy": { "type": "string", "description": "The referral code of the partner who referred this user."}
       },
       "required": ["uid", "name", "email", "role", "createdAt"]
     },
@@ -117,6 +120,18 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["userId", "message", "isRead", "createdAt"]
+    },
+     "Referral": {
+      "title": "Referral",
+      "description": "Tracks a client referred by a partner.",
+      "type": "object",
+      "properties": {
+        "partnerId": { "type": "string", "description": "The UID of the referral partner." },
+        "referredUserId": { "type": "string", "description": "The UID of the new client who was referred." },
+        "status": { "type": "string", "enum": ["pending", "converted"], "description": "Status of the referral."},
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["partnerId", "referredUserId", "status", "createdAt"]
     }
   },
   "auth": {
@@ -150,6 +165,10 @@
     "/notifications/{notificationId}": {
       "schema": { "$ref": "#/entities/Notification" },
       "description": "Collection for storing user notifications."
+    },
+    "/referrals/{referralId}": {
+      "schema": { "$ref": "#/entities/Referral" },
+      "description": "Collection for tracking referrals made by partners."
     }
   }
 }

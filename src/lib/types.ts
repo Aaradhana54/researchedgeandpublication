@@ -1,3 +1,4 @@
+
 import type { Timestamp } from 'firebase/firestore';
 
 export type Testimonial = {
@@ -29,6 +30,8 @@ export type UserProfile = {
   email: string;
   role: UserRole;
   createdAt: Timestamp;
+  referralCode?: string; // For partners
+  referredBy?: string; // For clients
 };
 
 export type ProjectServiceType =
@@ -109,5 +112,13 @@ export interface Notification {
     userId: string;
     message: string;
     isRead: boolean;
+    createdAt: Timestamp;
+}
+
+export interface Referral {
+    id?: string;
+    partnerId: string; // UID of the referral partner
+    referredUserId: string; // UID of the new client
+    status: 'pending' | 'converted';
     createdAt: Timestamp;
 }
