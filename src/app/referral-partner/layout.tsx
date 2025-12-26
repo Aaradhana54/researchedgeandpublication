@@ -1,11 +1,8 @@
 'use client';
 
 import {
-  FolderKanban,
   LayoutGrid,
   LogOut,
-  FileText,
-  CreditCard,
   ChevronDown,
 } from 'lucide-react';
 import React from 'react';
@@ -41,13 +38,11 @@ import { LoaderCircle } from 'lucide-react';
 import { useEffect } from 'react';
 
 const dashboardNavItems = [
-  { href: '/dashboard', label: 'Overview', icon: <LayoutGrid /> },
-  { href: '/dashboard/projects', label: 'My Projects', icon: <FolderKanban /> },
-  { href: '/dashboard/files', label: 'Files & Deliverables', icon: <FileText /> },
-  { href: '/dashboard/payments', label: 'Payment & Invoices', icon: <CreditCard /> },
+  { href: '/referral-partner/dashboard', label: 'Overview', icon: <LayoutGrid /> },
+  // Add more partner-specific links here in the future
 ];
 
-function DashboardSidebar() {
+function PartnerSidebar() {
   const pathname = usePathname();
   const { user } = useUser();
   const router = useRouter();
@@ -118,22 +113,30 @@ function DashboardSidebar() {
   );
 }
 
-export default function AuthenticatedLayout({
+export default function ReferralPartnerLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   const { user, loading } = useUser();
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     if (!loading) {
-        // If not loading and there's no user, or the user is not a client, redirect to client login.
-        if (!user || user.role !== 'client') {
-            router.push('/login');
-        }
+      if (!user || user.role !== 'referral-partner') {
+        router.replace('/referral-partner/login');
+      }
     }
-  }, [user, loading, router]);
+     // If the user is logged in as a partner and tries to visit the login page, redirect to dashboard
+    if (!loading && user && user.role === 'referral-partner' && pathname === '/referral-partner/login') {
+        router.replace('/referral-partner/dashboard');
+    }
+  }, [user, loading, router, pathname]);
+
+   if (pathname === '/referral-partner/login') {
+      return <>{children}</>;
+  }
 
   if (loading || !user) {
     return (
@@ -143,20 +146,17 @@ export default function AuthenticatedLayout({
     );
   }
 
-  // A final check before rendering children. If the role somehow is not 'client',
-  // this prevents a flash of incorrect content.
-  if (user.role !== 'client') {
-      return (
-         <div className="flex h-screen w-full items-center justify-center bg-background">
-          <p>Redirecting to login...</p>
-          <LoaderCircle className="h-10 w-10 animate-spin text-primary" />
-        </div>
-      )
+  if (user.role !== 'referral-partner') {
+    return (
+       <div className="flex h-screen w-full items-center justify-center bg-background">
+        <p>You do not have permission to view this page.</p>
+      </div>
+    );
   }
 
   return (
     <SidebarProvider>
-      <DashboardSidebar />
+      <PartnerSidebar />
       <SidebarInset>{children}</SidebarInset>
     </SidebarProvider>
   );

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { LoaderCircle, LogIn, ArrowLeft } from 'lucide-react';
 
-import { login } from '@/firebase/auth';
+import { loginWithRole } from '@/firebase/auth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -26,11 +26,10 @@ export default function ReferralPartnerLoginPage() {
     setLoading(true);
 
     try {
-      await login(email, password);
-      // You can create a dedicated dashboard for referral partners later
-      router.push('/dashboard'); 
+      await loginWithRole(email, password, 'referral-partner');
+      router.push('/referral-partner/dashboard'); 
     } catch (err: any) {
-      setError(getFirebaseErrorMessage(err.code));
+      setError(getFirebaseErrorMessage(err.code) || err.message);
     } finally {
       setLoading(false);
     }

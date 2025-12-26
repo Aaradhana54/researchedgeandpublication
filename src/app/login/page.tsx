@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { LoaderCircle, LogIn, ArrowLeft } from 'lucide-react';
 
-import { login } from '@/firebase/auth';
+import { loginWithRole } from '@/firebase/auth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -26,10 +26,10 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      await login(email, password);
+      await loginWithRole(email, password, 'client');
       router.push('/dashboard');
     } catch (err: any) {
-      setError(getFirebaseErrorMessage(err.code));
+      setError(getFirebaseErrorMessage(err.code) || err.message);
     } finally {
       setLoading(false);
     }
