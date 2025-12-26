@@ -104,8 +104,8 @@ export async function createProject(
     courseLevel: formData.get('courseLevel') || undefined,
     deadline: formData.get('deadline') || undefined,
     referencingStyle: formData.get('referencingStyle') || undefined,
-    pageCount: formData.get('pageCount') === '' ? undefined : formData.get('pageCount'),
-    wordCount: formData.get('wordCount') === '' ? undefined : formData.get('wordCount'),
+    pageCount: formData.get('pageCount'),
+    wordCount: formData.get('wordCount'),
     language: formData.get('language') || undefined,
     wantToPublish: formData.get('wantToPublish'),
     publishWhere: formData.get('publishWhere') || undefined,
@@ -113,8 +113,21 @@ export async function createProject(
     synopsisFileUrl: synopsisFileUrl,
   };
 
+  // Convert empty strings for optional fields to undefined before validation
+   const processedFormData = {
+        ...rawFormData,
+        topic: rawFormData.topic === '' ? undefined : rawFormData.topic,
+        courseLevel: rawFormData.courseLevel === '' ? undefined : rawFormData.courseLevel,
+        deadline: rawFormData.deadline === '' ? undefined : rawFormData.deadline,
+        referencingStyle: rawFormData.referencingStyle === '' ? undefined : rawFormData.referencingStyle,
+        pageCount: rawFormData.pageCount === '' || rawFormData.pageCount === null ? undefined : rawFormData.pageCount,
+        wordCount: rawFormData.wordCount === '' || rawFormData.wordCount === null ? undefined : rawFormData.wordCount,
+        language: rawFormData.language === '' ? undefined : rawFormData.language,
+        publishWhere: rawFormData.publishWhere === '' ? undefined : rawFormData.publishWhere,
+    };
 
-  const validatedFields = projectFormSchema.safeParse(rawFormData);
+
+  const validatedFields = projectFormSchema.safeParse(processedFormData);
   
   if (!validatedFields.success) {
       console.log("Validation Errors:", validatedFields.error.flatten().fieldErrors);
