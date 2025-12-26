@@ -13,15 +13,16 @@ import {
 import { Book, Edit, ArrowLeft } from 'lucide-react';
 import { Button } from '../ui/button';
 import { cn } from '@/lib/utils';
+import type { ProjectServiceType } from '@/lib/types';
 
-const writingServices = [
+const writingServices: { name: string, value: ProjectServiceType }[] = [
     { name: 'Thesis & Dissertation', value: 'thesis-dissertation' },
     { name: 'Research Paper', value: 'research-paper' },
     { name: 'Book Writing', value: 'book-writing' },
     { name: 'Review Paper', value: 'review-paper' },
 ];
 
-const publicationServices = [
+const publicationServices: { name: string, value: ProjectServiceType }[] = [
     { name: 'Research Publication', value: 'research-publication' },
     { name: 'Book Publishing', value: 'book-publishing' },
 ];
@@ -32,13 +33,11 @@ export function SelectProjectTypeDialog({ children }: { children: React.ReactNod
     const [view, setView] = useState<'main' | 'writing' | 'publication'>('main');
     const router = useRouter();
 
-    const handleServiceSelect = (serviceValue: string) => {
-        // const isWriting = writingServices.some(s => s.value === serviceValue);
-        // const category = isWriting ? 'writing' : 'publication';
-        // router.push(`/dashboard/projects/create/${category}?serviceType=${serviceValue}`);
-        // setOpen(false);
-        // // Reset view for next time dialog is opened
-        // setTimeout(() => setView('main'), 300); 
+    const handleServiceSelect = (serviceValue: ProjectServiceType) => {
+        router.push(`/dashboard/projects/create/${serviceValue}`);
+        setOpen(false);
+        // Reset view for next time dialog is opened
+        setTimeout(() => setView('main'), 300); 
     };
 
     const handleOpenChange = (isOpen: boolean) => {
