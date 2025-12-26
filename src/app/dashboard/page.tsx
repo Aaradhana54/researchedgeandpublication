@@ -19,10 +19,11 @@ export default function DashboardPage() {
 
   const projectsQuery = useMemo(() => {
     if (!user || !firestore) return null;
+    // Order by 'asc' and then reverse on the client to avoid needing a composite index
     return query(
       collection(firestore, 'projects'), 
       where('userId', '==', user.uid),
-      orderBy('createdAt', 'desc'),
+      orderBy('createdAt', 'asc'),
       limit(3)
     );
   }, [user, firestore]);
@@ -36,6 +37,9 @@ export default function DashboardPage() {
   const { data: allProjects, loading: loadingAll } = useCollection<Project>(allProjectsQuery);
   
   const loading = loadingRecent || loadingAll;
+
+  // Reverse the array to show the most recent projects first
+  const displayedProjects = useMemo(() => recentProjects?.reverse() ?? [], [recentProjects]);
 
   if (!user || loading) {
     return (
@@ -114,7 +118,7 @@ export default function DashboardPage() {
                 </div>
              </div>
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {recentProjects && recentProjects.map((project) => (
+                {displayedProjects && displayedProjects.map((project) => (
                     <Card key={project.id} className="hover:shadow-md transition-shadow flex flex-col">
                         <CardHeader>
                             <div className="flex justify-between items-start gap-2">
