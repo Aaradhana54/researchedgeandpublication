@@ -84,6 +84,7 @@ export async function updateProjectStatus(projectId: string, status: ProjectStat
         });
 
         revalidatePath('/admin/projects');
+        revalidatePath(`/admin/projects/${projectId}`);
         return { success: true, message: `Project status updated to ${status}.` };
     } catch (error: any) {
         console.error('Error updating project status:', error);
