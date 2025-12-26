@@ -1,4 +1,5 @@
 
+
 import type { Timestamp } from 'firebase/firestore';
 
 export type Testimonial = {
@@ -123,12 +124,17 @@ export interface Referral {
     createdAt: Timestamp;
 }
 
+export type MarketingAssetCategory = 'demo-thesis' | 'demo-synopsis' | 'general-marketing';
+
 export interface MarketingAsset {
     id?: string;
     title: string;
     description: string;
+    category: MarketingAssetCategory;
     fileName: string;
     downloadUrl: string;
     fileType: string;
     createdAt: Timestamp;
 }
+
+    

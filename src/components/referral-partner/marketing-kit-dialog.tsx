@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useMemo, useState } from 'react';
@@ -14,7 +15,7 @@ import { Download, File as FileIcon, Image as ImageIcon, FileText, LoaderCircle 
 import { Separator } from '@/components/ui/separator';
 import { useCollection, useFirestore } from '@/firebase';
 import { collection, query, orderBy } from 'firebase/firestore';
-import type { MarketingAsset } from '@/lib/types';
+import type { MarketingAsset, MarketingAssetCategory } from '@/lib/types';
 
 
 function AssetIcon({ fileType }: { fileType: string }) {
@@ -27,6 +28,11 @@ function AssetIcon({ fileType }: { fileType: string }) {
     return <FileIcon className="w-5 h-5 text-primary" />;
 }
 
+const categoryLabels: Record<MarketingAssetCategory, string> = {
+    'demo-thesis': 'Demo Thesis',
+    'demo-synopsis': 'Demo Synopsis',
+    'general-marketing': 'General Marketing Materials',
+};
 
 export function MarketingKitDialog({ children }: { children: React.ReactNode }) {
     const [open, setOpen] = useState(false);
@@ -38,13 +44,25 @@ export function MarketingKitDialog({ children }: { children: React.ReactNode }) 
     }, [firestore]);
 
     const { data: assets, loading } = useCollection<MarketingAsset>(assetsQuery);
+
+    const groupedAssets = useMemo(() => {
+        if (!assets) return {};
+        return assets.reduce((acc, asset) => {
+            const category = asset.category || 'general-marketing';
+            if (!acc[category]) {
+                acc[category] = [];
+            }
+            acc[category].push(asset);
+            return acc;
+        }, {} as Record<MarketingAssetCategory, MarketingAsset[]>);
+    }, [assets]);
     
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
                 {children}
             </DialogTrigger>
-            <DialogContent className="sm:max-w-lg">
+            <DialogContent className="sm:max-w-2xl">
                 <DialogHeader>
                     <DialogTitle className="text-2xl font-bold">Marketing Kit</DialogTitle>
                     <DialogDescription>
@@ -55,28 +73,35 @@ export function MarketingKitDialog({ children }: { children: React.ReactNode }) 
                     {loading ? (
                         <div className="flex justify-center items-center h-40"><LoaderCircle className="w-8 h-8 animate-spin text-primary"/></div>
                     ) : assets && assets.length > 0 ? (
-                         <ul className="space-y-4">
-                            {assets.map((asset, index) => (
-                               <li key={asset.id}>
-                                   <div className="flex items-start gap-4">
-                                       <div className="p-2 bg-primary/10 rounded-md mt-1">
-                                           <AssetIcon fileType={asset.fileType} />
-                                       </div>
-                                       <div className="flex-1">
-                                           <h4 className="font-semibold">{asset.title}</h4>
-                                           <p className="text-sm text-muted-foreground">{asset.description}</p>
-                                       </div>
-                                       <Button variant="outline" size="sm" asChild>
-                                            <a href={asset.downloadUrl} target="_blank" rel="noopener noreferrer">
-                                                <Download className="mr-2 h-4 w-4" />
-                                                Download
-                                            </a>
-                                       </Button>
-                                   </div>
-                                   {index < assets.length - 1 && <Separator className="mt-4" />}
-                               </li>
-                           ))}
-                        </ul>
+                         <div className="space-y-6">
+                            {Object.entries(groupedAssets).map(([category, categoryAssets]) => (
+                                <div key={category}>
+                                    <h3 className="text-lg font-semibold mb-3">{categoryLabels[category as MarketingAssetCategory]}</h3>
+                                     <ul className="space-y-4">
+                                        {categoryAssets.map((asset, index) => (
+                                           <li key={asset.id}>
+                                               <div className="flex items-start gap-4">
+                                                   <div className="p-2 bg-primary/10 rounded-md mt-1">
+                                                       <AssetIcon fileType={asset.fileType} />
+                                                   </div>
+                                                   <div className="flex-1">
+                                                       <h4 className="font-semibold">{asset.title}</h4>
+                                                       <p className="text-sm text-muted-foreground">{asset.description}</p>
+                                                   </div>
+                                                   <Button variant="outline" size="sm" asChild>
+                                                        <a href={asset.downloadUrl} target="_blank" rel="noopener noreferrer">
+                                                            <Download className="mr-2 h-4 w-4" />
+                                                            Download
+                                                        </a>
+                                                   </Button>
+                                               </div>
+                                               {index < categoryAssets.length - 1 && <Separator className="mt-4" />}
+                                           </li>
+                                       ))}
+                                    </ul>
+                                </div>
+                            ))}
+                         </div>
                     ) : (
                          <div className="text-center p-12 text-muted-foreground">
                             <FileIcon className="mx-auto w-12 h-12 mb-4" />
@@ -89,3 +114,5 @@ export function MarketingKitDialog({ children }: { children: React.ReactNode }) 
         </Dialog>
     );
 }
+
+    

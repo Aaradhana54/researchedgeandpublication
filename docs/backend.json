@@ -140,12 +140,13 @@
       "properties": {
         "title": { "type": "string", "description": "The display name of the asset." },
         "description": { "type": "string", "description": "A brief description of the asset." },
+        "category": { "type": "string", "enum": ["demo-thesis", "demo-synopsis", "general-marketing"], "description": "The category of the marketing asset." },
         "fileName": { "type": "string", "description": "The name of the uploaded file." },
         "downloadUrl": { "type": "string", "description": "The public URL to download the file from Firebase Storage." },
         "fileType": { "type": "string", "description": "The MIME type of the file." },
         "createdAt": { "type": "string", "format": "date-time" }
       },
-      "required": ["title", "fileName", "downloadUrl", "fileType", "createdAt"]
+      "required": ["title", "fileName", "downloadUrl", "fileType", "category", "createdAt"]
     }
   },
   "auth": {
@@ -190,3 +191,5 @@
     }
   }
 }
+
+    

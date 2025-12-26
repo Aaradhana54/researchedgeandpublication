@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo, ChangeEvent } from 'react';
@@ -19,10 +20,16 @@ import {
 import { useStorage, useFirestore, useCollection } from '@/firebase';
 import { ref, uploadBytesResumable, getDownloadURL, deleteObject } from 'firebase/storage';
 import { addDoc, collection, serverTimestamp, query, orderBy, deleteDoc, doc } from 'firebase/firestore';
-import type { MarketingAsset } from '@/lib/types';
+import type { MarketingAsset, MarketingAssetCategory } from '@/lib/types';
 import { format } from 'date-fns';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
+const assetCategories: { value: MarketingAssetCategory, label: string }[] = [
+    { value: 'demo-thesis', label: 'Demo Thesis' },
+    { value: 'demo-synopsis', label: 'Demo Synopsis' },
+    { value: 'general-marketing', label: 'General Marketing' },
+];
 
 function AssetIcon({ fileType }: { fileType: string }) {
     if (fileType.startsWith('image/')) {
@@ -38,6 +45,7 @@ export default function MarketingAdminPage() {
   const [file, setFile] = useState<File | null>(null);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [category, setCategory] = useState<MarketingAssetCategory>('general-marketing');
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const { toast } = useToast();
@@ -59,11 +67,11 @@ export default function MarketingAdminPage() {
   };
 
   const handleUpload = async () => {
-    if (!file || !title) {
+    if (!file || !title || !category) {
       toast({
         variant: 'destructive',
         title: 'Missing Information',
-        description: 'Please provide a title and select a file to upload.',
+        description: 'Please provide a title, category, and select a file to upload.',
       });
       return;
     }
@@ -97,6 +105,7 @@ export default function MarketingAdminPage() {
           await addDoc(assetsCollection, {
             title,
             description,
+            category,
             fileName: file.name,
             fileType: file.type,
             downloadUrl,
@@ -109,6 +118,7 @@ export default function MarketingAdminPage() {
           setFile(null);
           setTitle('');
           setDescription('');
+          setCategory('general-marketing');
 
         } catch (error: any) {
             console.error('Failed to save asset metadata:', error);
@@ -169,6 +179,23 @@ export default function MarketingAdminPage() {
                   placeholder="e.g., Company Logo Pack"
                   disabled={uploading}
                 />
+              </div>
+               <div className="space-y-2">
+                <Label htmlFor="asset-category">Category</Label>
+                 <Select
+                    value={category}
+                    onValueChange={(value) => setCategory(value as MarketingAssetCategory)}
+                    disabled={uploading}
+                >
+                    <SelectTrigger id="asset-category">
+                        <SelectValue placeholder="Select a category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {assetCategories.map(cat => (
+                            <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="asset-desc">Description (Optional)</Label>
@@ -256,3 +283,5 @@ export default function MarketingAdminPage() {
     </div>
   );
 }
+
+    

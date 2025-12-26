@@ -88,7 +88,7 @@ service cloud.firestore {
 
     match /marketing_assets/{assetId} {
         // Only admins can create, update, or delete marketing assets.
-        allow create, update, delete: if isAdmin();
+        allow create, update, delete: if isAdmin() && request.resource.data.category in ['demo-thesis', 'demo-synopsis', 'general-marketing'];
         // All authenticated users (including referral partners) can read and list the assets.
         allow read, list: if request.auth != null;
     }
@@ -112,3 +112,5 @@ service cloud.firestore {
     }
   }
 }
+
+    
