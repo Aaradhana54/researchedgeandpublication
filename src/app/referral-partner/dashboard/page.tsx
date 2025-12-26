@@ -4,7 +4,7 @@
 import { useMemo, useState } from 'react';
 import { useUser } from '@/firebase/auth/use-user';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { LoaderCircle, Copy, Users, CheckCircle, DollarSign, Download, Paintbrush, Share2 } from 'lucide-react';
+import { LoaderCircle, Copy, Users, CheckCircle, DollarSign, Download, Paintbrush, Share2, Wallet, Receipt } from 'lucide-react';
 import { useCollection, useFirestore } from '@/firebase';
 import { collection, query, where } from 'firebase/firestore';
 import type { UserProfile } from '@/lib/types';
@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/table';
 import { format } from 'date-fns';
 import { MarketingKitDialog } from '@/components/referral-partner/marketing-kit-dialog';
+import { Badge } from '@/components/ui/badge';
 
 
 function StatCard({ title, value, icon }: { title: string, value: string | number, icon: React.ReactNode }) {
@@ -35,6 +36,14 @@ function StatCard({ title, value, icon }: { title: string, value: string | numbe
     </Card>
   );
 }
+
+// Dummy data for payout history
+const dummyPayouts = [
+    { id: 'PAY-2024015', date: '2024-05-15', amount: '₹12,500', status: 'paid' },
+    { id: 'PAY-2024014', date: '2024-04-15', amount: '₹8,200', status: 'paid' },
+    { id: 'PAY-2024013', date: '2024-03-15', amount: '₹15,000', status: 'paid' },
+] as const;
+
 
 export default function ReferralDashboardPage() {
   const { user, loading: userLoading } = useUser();
@@ -152,11 +161,48 @@ export default function ReferralDashboardPage() {
         <div className="space-y-8">
             <Card>
                 <CardHeader>
-                    <CardTitle>Payout History</CardTitle>
-                    <CardDescription>This section is under construction.</CardDescription>
+                    <div className="flex justify-between items-center">
+                        <div>
+                            <CardTitle>Payout History</CardTitle>
+                            <CardDescription>A record of your past commission payouts.</CardDescription>
+                        </div>
+                        <Button variant="outline" size="sm" disabled>
+                           <Download className="mr-2 h-4 w-4" />
+                            Statements
+                        </Button>
+                    </div>
                 </CardHeader>
                 <CardContent>
-                    <Button disabled><Download className="mr-2"/> Download Statements</Button>
+                    {dummyPayouts.length > 0 ? (
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Date</TableHead>
+                                    <TableHead>Amount</TableHead>
+                                    <TableHead className="text-right">Status</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {dummyPayouts.map(payout => (
+                                    <TableRow key={payout.id}>
+                                        <TableCell className="font-medium">{payout.date}</TableCell>
+                                        <TableCell>{payout.amount}</TableCell>
+                                        <TableCell className="text-right">
+                                            <Badge variant={payout.status === 'paid' ? 'default' : 'secondary'} className="capitalize bg-green-100 text-green-800">
+                                                {payout.status}
+                                            </Badge>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    ) : (
+                        <div className="text-center p-8 text-muted-foreground">
+                            <Receipt className="mx-auto w-10 h-10 mb-4" />
+                            <h3 className="text-lg font-semibold">No Payouts Yet</h3>
+                            <p className="text-sm">Your payout history will appear here once available.</p>
+                        </div>
+                    )}
                 </CardContent>
             </Card>
              <Card>
