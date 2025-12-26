@@ -21,6 +21,7 @@ import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { updateProjectStatus } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
+import Link from 'next/link';
 
 export default function AdminProjectsPage() {
   const firestore = useFirestore();
@@ -113,14 +114,18 @@ export default function AdminProjectsPage() {
                   const client = usersMap.get(project.userId);
                   return (
                     <TableRow key={project.id}>
-                      <TableCell className="font-medium">{project.title}</TableCell>
+                      <TableCell className="font-medium">
+                        <Link href={`/admin/projects/${project.id}`} className="hover:underline text-primary">
+                          {project.title}
+                        </Link>
+                      </TableCell>
                       <TableCell>
                         <div className="font-medium">{client?.name || 'Unknown User'}</div>
                         <div className="text-sm text-muted-foreground">{client?.email}</div>
                       </TableCell>
                        <TableCell>
                            <Badge variant="secondary" className="capitalize">
-                            {project.serviceType.replace('-', ' ')}
+                            {project.serviceType.replace(/-/g, ' ')}
                            </Badge>
                        </TableCell>
                        <TableCell>
