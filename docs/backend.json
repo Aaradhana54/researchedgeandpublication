@@ -9,6 +9,7 @@
         "uid": { "type": "string", "description": "The user's unique ID from Firebase Auth." },
         "name": { "type": "string", "description": "The user's full name." },
         "email": { "type": "string", "format": "email", "description": "The user's email address." },
+        "mobile": { "type": "string", "description": "The user's mobile phone number." },
         "role": { "type": "string", "enum": ["client", "admin", "author", "referral-partner", "writing-team", "sales-team", "publication-team", "accounts-team"], "description": "The user's role."},
         "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp of when the user account was created." },
         "referralCode": { "type": "string", "description": "Unique code for referral partners to share."},

@@ -19,6 +19,7 @@ export default function SignupPage() {
   const searchParams = useSearchParams();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [mobile, setMobile] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -43,7 +44,7 @@ export default function SignupPage() {
     }
 
     try {
-      await signup(email, password, name, 'client', referralCode);
+      await signup(email, password, name, 'client', referralCode, mobile);
       router.push('/dashboard');
     } catch (err: any) {
       setError(getFirebaseErrorMessage(err.code));
@@ -94,6 +95,18 @@ export default function SignupPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                disabled={loading}
+              />
+            </div>
+             <div className="space-y-2">
+              <Label htmlFor="mobile">Mobile No.</Label>
+              <Input
+                id="mobile"
+                type="tel"
+                placeholder="9876543210"
+                required
+                value={mobile}
+                onChange={(e) => setMobile(e.target.value)}
                 disabled={loading}
               />
             </div>

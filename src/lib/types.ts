@@ -29,6 +29,7 @@ export type UserProfile = {
   uid: string;
   name: string;
   email: string;
+  mobile?: string;
   role: UserRole;
   createdAt: Timestamp;
   referralCode?: string; // For partners

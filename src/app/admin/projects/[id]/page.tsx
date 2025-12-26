@@ -71,7 +71,9 @@ export default function ProjectDetailPage() {
                 title: 'Status Updated',
                 description: `Project has been marked as ${status}.`
             });
-            router.refresh();
+            // The useDoc hook will automatically update the UI, so a refresh isn't strictly necessary
+            // but can be good for ensuring all state is fresh.
+            // router.refresh();
         } catch (error: any) {
             toast({
                 variant: 'destructive',
@@ -179,6 +181,7 @@ export default function ProjectDetailPage() {
                                 <>
                                     <DetailItem label="Name" value={user.name} />
                                     <DetailItem label="Email" value={user.email} />
+                                    <DetailItem label="Mobile No." value={user.mobile} />
                                     <DetailItem label="Joined On" value={user.createdAt ? format(user.createdAt.toDate(), 'PPP') : 'N/A'} />
                                 </>
                             ) : <p>User not found.</p>}

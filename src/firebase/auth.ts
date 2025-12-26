@@ -54,7 +54,7 @@ export async function login(email: string, password: string) {
 }
 
 // --- Signup with specific role ---
-export async function signup(email: string, password: string, name: string, role: UserRole = 'client', referredByCode: string | null = null) {
+export async function signup(email: string, password: string, name: string, role: UserRole = 'client', referredByCode: string | null = null, mobile: string | null = null) {
   const userCredential = await createUserWithEmailAndPassword(auth, email, password);
   const user = userCredential.user;
 
@@ -65,6 +65,10 @@ export async function signup(email: string, password: string, name: string, role
     uid: user.uid,
     createdAt: serverTimestamp(),
   };
+  
+  if (mobile) {
+    dataToSet.mobile = mobile;
+  }
 
   if (role === 'referral-partner') {
     // Generate a unique referral code for partners. For simplicity, we use part of the UID.
