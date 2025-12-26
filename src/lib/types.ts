@@ -51,6 +51,7 @@ export interface Project {
   id?: string;
   userId: string;
   title: string;
+  mobile?: string;
   serviceType: ProjectServiceType;
   topic?: string;
   courseLevel?: CourseLevel;
@@ -138,5 +139,3 @@ export interface MarketingAsset {
     fileType: string;
     createdAt: Timestamp;
 }
-
-    

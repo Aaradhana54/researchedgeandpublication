@@ -24,6 +24,7 @@
       "properties": {
         "userId": { "type": "string", "description": "The UID of the user who owns this project." },
         "title": { "type": "string" },
+        "mobile": { "type": "string", "description": "Contact mobile number for this specific project." },
         "serviceType": {
           "type": "string",
           "enum": [
@@ -196,5 +197,3 @@
     }
   }
 }
-
-    

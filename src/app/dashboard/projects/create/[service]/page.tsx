@@ -90,18 +90,32 @@ export default function CreateProjectPage() {
             const storageRef = ref(storage, `projects/${user.uid}/${Date.now()}-${file.name}`);
             const uploadTask = uploadBytesResumable(storageRef, file);
 
-            uploadTask.on('state_changed',
+            // Wait for the upload to complete by listening to the 'state_changed' event
+            // and wrapping it in a promise.
+            await new Promise((resolve, reject) => {
+              uploadTask.on(
+                'state_changed',
                 (snapshot) => {
-                    const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                    setUploadProgress(progress);
+                  const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                  setUploadProgress(progress);
+                },
+                (error) => {
+                  console.error('Upload failed:', error);
+                  reject(error);
+                },
+                async () => {
+                  // Upload completed successfully, now get the download URL
+                  try {
+                    const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+                    synopsisFileUrl = downloadURL;
+                    resolve(downloadURL);
+                  } catch (urlError) {
+                    console.error('Failed to get download URL:', urlError);
+                    reject(urlError);
+                  }
                 }
-            );
-
-            // Wait for the upload to complete
-            await uploadTask;
-
-            // Get the download URL
-            synopsisFileUrl = await getDownloadURL(uploadTask.snapshot.ref);
+              );
+            });
             setUploading(false);
         }
 
@@ -116,6 +130,7 @@ export default function CreateProjectPage() {
           synopsisFileUrl: synopsisFileUrl,
         };
         
+        if (rawFormData.mobile) dataToSave.mobile = rawFormData.mobile;
         if (rawFormData.topic) dataToSave.topic = rawFormData.topic;
         if (rawFormData.courseLevel) dataToSave.courseLevel = rawFormData.courseLevel;
         if (rawFormData.referencingStyle) dataToSave.referencingStyle = rawFormData.referencingStyle;
@@ -192,6 +207,20 @@ export default function CreateProjectPage() {
       </div>
   );
 
+  const commonFields = () => (
+    <div className="space-y-2">
+        <Label htmlFor="mobile">Mobile No. (for this project)</Label>
+        <Input 
+          id="mobile" 
+          name="mobile" 
+          type="tel"
+          defaultValue={user?.mobile || ''}
+          placeholder="Enter a contact number"
+          disabled={loading}
+        />
+      </div>
+  );
+
 
   const renderThesisForm = () => (
     <>
@@ -220,6 +249,8 @@ export default function CreateProjectPage() {
           <Input id="deadline" name="deadline" type="date" disabled={loading}/>
         </div>
       </div>
+      
+      {commonFields()}
 
       {commonFileUpload()}
 
@@ -279,6 +310,7 @@ export default function CreateProjectPage() {
         </div>
       </div>
 
+      {commonFields()}
       {commonFileUpload()}
 
       <div className="space-y-4">
@@ -320,7 +352,8 @@ export default function CreateProjectPage() {
         <Label htmlFor="deadline">Deadline</Label>
         <Input id="deadline" name="deadline" type="date" disabled={loading}/>
       </div>
-
+      
+      {commonFields()}
       {commonFileUpload()}
 
       <div className="space-y-4">
