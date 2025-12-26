@@ -77,7 +77,7 @@ const projectFormSchema = z.object({
 
 export type ProjectFormState = {
     message: string;
-    errors?: Zod.ZodError<z.infer<typeof projectFormSchema>>['formErrors']['fieldErrors'];
+    errors?: z.inferFlattenedErrors<typeof projectFormSchema>['fieldErrors'];
     success: boolean;
 };
 
@@ -100,15 +100,15 @@ export async function createProject(
   const rawFormData = {
     title: formData.get('title'),
     serviceType: formData.get('serviceType'),
-    topic: formData.get('topic') || undefined,
-    courseLevel: formData.get('courseLevel') || undefined,
-    deadline: formData.get('deadline') || undefined,
-    referencingStyle: formData.get('referencingStyle') || undefined,
+    topic: formData.get('topic'),
+    courseLevel: formData.get('courseLevel'),
+    deadline: formData.get('deadline'),
+    referencingStyle: formData.get('referencingStyle'),
     pageCount: formData.get('pageCount'),
     wordCount: formData.get('wordCount'),
-    language: formData.get('language') || undefined,
+    language: formData.get('language'),
     wantToPublish: formData.get('wantToPublish'),
-    publishWhere: formData.get('publishWhere') || undefined,
+    publishWhere: formData.get('publishWhere'),
     userId: formData.get('userId'),
     synopsisFileUrl: synopsisFileUrl,
   };
