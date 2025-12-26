@@ -3,24 +3,35 @@ import { firebaseConfig } from './config';
 
 // --- SERVER-SIDE ADMIN SDK INITIALIZATION ---
 
-// Ensure you have the GOOGLE_APPLICATION_CREDENTIALS environment variable set.
-// This is typically handled by the Firebase/Google Cloud environment.
-// For local development, you'd download a service account key JSON file and set the env var.
-// `export GOOGLE_APPLICATION_CREDENTIALS="/path/to/your/service-account-file.json"`
-
-const serviceAccount = process.env.GOOGLE_APPLICATION_CREDENTIALS 
-  ? JSON.parse(Buffer.from(process.env.GOOGLE_APPLICATION_CREDENTIALS, 'base64').toString('ascii'))
-  : undefined;
-
 if (!admin.apps.length) {
   try {
+    // When running in a Google Cloud environment, the SDK will automatically
+    // find the service account credentials.
     admin.initializeApp({
-      credential: serviceAccount ? admin.credential.cert(serviceAccount) : admin.credential.applicationDefault(),
+      credential: admin.credential.applicationDefault(),
       databaseURL: `https://${firebaseConfig.projectId}.firebaseio.com`,
       storageBucket: firebaseConfig.storageBucket,
     });
   } catch (error) {
     console.error('Firebase Admin initialization error', error);
+    // For local development outside of a Google environment, you might need
+    // to manually set up a service account.
+    // Download a service account key JSON file from your Firebase project settings,
+    // then set the GOOGLE_APPLICATION_CREDENTIALS environment variable.
+    // e.g., `export GOOGLE_APPLICATION_CREDENTIALS="/path/to/your/service-account-file.json"`
+    // Or, you can initialize with the service account object directly:
+    /*
+    try {
+        const serviceAccount = require('/path/to/your/service-account-file.json');
+        admin.initializeApp({
+            credential: admin.credential.cert(serviceAccount),
+            databaseURL: `https://${firebaseConfig.projectId}.firebaseio.com`,
+            storageBucket: firebaseConfig.storageBucket,
+        });
+    } catch (e) {
+        console.error('Secondary Firebase Admin initialization attempt failed', e)
+    }
+    */
   }
 }
 
