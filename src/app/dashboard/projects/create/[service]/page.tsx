@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState, use } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useActionState } from 'react';
 import { useParams, useRouter, notFound } from 'next/navigation';
 import Link from 'next/link';
@@ -150,7 +150,7 @@ export default function CreateProjectPage() {
                         />
                     </PopoverContent>
                 </Popover>
-                <Input type="hidden" name="deadline" value={deadline?.toISOString()} />
+                <Input type="hidden" name="deadline" value={deadline?.toISOString() || ''} />
                  {state.errors?.deadline && <p className="text-sm text-destructive">{state.errors.deadline[0]}</p>}
             </div>
         </div>
@@ -234,7 +234,7 @@ export default function CreateProjectPage() {
                         <Calendar mode="single" selected={deadline} onSelect={setDeadline} initialFocus />
                     </PopoverContent>
                 </Popover>
-                <Input type="hidden" name="deadline" value={deadline?.toISOString()} />
+                <Input type="hidden" name="deadline" value={deadline?.toISOString() || ''} />
                  {state.errors?.deadline && <p className="text-sm text-destructive">{state.errors.deadline[0]}</p>}
             </div>
         </div>
@@ -297,7 +297,7 @@ export default function CreateProjectPage() {
             <Calendar mode="single" selected={deadline} onSelect={setDeadline} initialFocus />
           </PopoverContent>
         </Popover>
-        <Input type="hidden" name="deadline" value={deadline?.toISOString()} />
+        <Input type="hidden" name="deadline" value={deadline?.toISOString() || ''} />
         {state.errors?.deadline && <p className="text-sm text-destructive">{state.errors.deadline[0]}</p>}
       </div>
 
