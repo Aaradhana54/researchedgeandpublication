@@ -38,7 +38,7 @@ const courseLevels = [
     { label: 'Doctorate (PhD)', value: 'phd' },
 ];
 
-const initialFormState: ProjectFormState = {
+const initialProjectFormState: ProjectFormState = {
   message: '',
   errors: undefined,
   success: false,
@@ -68,7 +68,7 @@ export default function CreateProjectPage() {
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
   
-  const [state, formAction] = useActionState(createProject, initialFormState);
+  const [state, formAction] = useActionState(createProject, initialProjectFormState);
   
   const [deadline, setDeadline] = useState<Date | undefined>(undefined);
   const [wantToPublish, setWantToPublish] = useState(false);
@@ -82,19 +82,19 @@ export default function CreateProjectPage() {
       formRef.current?.reset();
       setDeadline(undefined);
       setWantToPublish(false);
-      // Redirect after a short delay
+      // Redirect after a short delay to allow toast to be seen
       setTimeout(() => {
         router.push('/dashboard/projects');
       }, 1500);
     } else if (state.message && !state.success && !state.errors) {
-      // Only show toast for non-validation errors
+      // This case handles server-side errors that are not validation errors (e.g., database errors)
       toast({
         title: 'Submission Failed',
         description: state.message,
         variant: 'destructive',
       });
     }
-  }, [state, toast, router]);
+  }, [state, router, toast]);
 
 
   if (!service || !serviceDisplayNames[service]) {
@@ -368,5 +368,3 @@ export default function CreateProjectPage() {
     </div>
   );
 }
-
-    
