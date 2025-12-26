@@ -31,7 +31,7 @@ function DetailItem({ label, value, isBadge = false, badgeVariant }: { label: st
     return (
         <div className="grid grid-cols-3 gap-2 py-2 border-b">
             <p className="font-semibold text-muted-foreground">{label}</p>
-            <p className="col-span-2">{displayValue}</p>
+            <div className="col-span-2">{displayValue}</div>
         </div>
     );
 }
@@ -181,4 +181,3 @@ export default function ProjectDetailPage() {
         </div>
     );
 }
-
