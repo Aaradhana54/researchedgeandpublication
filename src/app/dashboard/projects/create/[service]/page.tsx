@@ -57,7 +57,7 @@ function SubmitButton() {
 export default function CreateProjectPage() {
   const params = useParams();
   const service = params.service as ProjectServiceType;
-  const { user } = useUser();
+  const { user, loading: userLoading } = useUser();
   const router = useRouter();
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
@@ -78,7 +78,7 @@ export default function CreateProjectPage() {
       setDeadline(undefined);
       setWantToPublish(false);
       router.push('/dashboard/projects');
-    } else if (state.message && !state.errors) {
+    } else if (state.message && !state.success && !state.errors) {
        toast({
         variant: 'destructive',
         title: 'Submission Failed',
@@ -91,7 +91,7 @@ export default function CreateProjectPage() {
     notFound();
   }
   
-  if (!user) {
+  if (userLoading || !user) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
         <LoaderCircle className="h-10 w-10 animate-spin text-primary" />
@@ -345,7 +345,7 @@ export default function CreateProjectPage() {
           <CardDescription>Fields marked with * are required.</CardDescription>
         </CardHeader>
         <CardContent>
-          <form ref={formRef} action={(formData) => boundFormAction(state, formData)} className="space-y-6">
+          <form ref={formRef} action={boundFormAction} className="space-y-6">
             <input type="hidden" name="serviceType" value={service} />
             
             <div className="space-y-2">
