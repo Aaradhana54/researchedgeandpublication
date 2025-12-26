@@ -11,10 +11,16 @@ service cloud.firestore {
       return request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
 
+    function isAllowedToCreateOwnProfile() {
+      return request.auth != null && 
+             request.auth.uid == request.resource.data.uid &&
+             (request.resource.data.role == 'client' || request.resource.data.role == 'referral-partner');
+    }
+
     match /users/{userId} {
-      // New users can only create their own profile with the 'client' role.
+      // New users can create their own profile with 'client' or 'referral-partner' role.
       // Admins can create any user with any role.
-      allow create: if (isOwner(userId) && request.resource.data.role == 'client') || isAdmin();
+      allow create: if isAllowedToCreateOwnProfile() || isAdmin();
       // Users can read their own profile. Admins can read any profile and list all users.
       allow read, list: if isOwner(userId) || isAdmin();
       // Users can update their own profile, but cannot change their role. 
