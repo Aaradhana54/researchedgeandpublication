@@ -184,9 +184,9 @@ export default function CreateProjectPage() {
       </div>
   );
 
-  const commonFields = () => (
+  const commonFields = ({ mobileRequired = false }: { mobileRequired?: boolean }) => (
     <div className="space-y-2">
-        <Label htmlFor="mobile">Mobile No. (for this project)</Label>
+        <Label htmlFor="mobile">Mobile No. (for this project){mobileRequired ? ' *' : ''}</Label>
         <Input 
           id="mobile" 
           name="mobile" 
@@ -194,6 +194,7 @@ export default function CreateProjectPage() {
           defaultValue={user?.mobile || ''}
           placeholder="Enter a contact number"
           disabled={loading}
+          required={mobileRequired}
         />
       </div>
   );
@@ -227,7 +228,7 @@ export default function CreateProjectPage() {
         </div>
       </div>
       
-      {commonFields()}
+      {commonFields({ mobileRequired: false })}
 
       {commonFileUpload()}
 
@@ -287,7 +288,7 @@ export default function CreateProjectPage() {
         </div>
       </div>
 
-      {commonFields()}
+      {commonFields({ mobileRequired: false })}
       {commonFileUpload()}
 
       <div className="space-y-4">
@@ -310,14 +311,14 @@ export default function CreateProjectPage() {
     const renderBookWritingForm = () => (
     <>
       <div className="space-y-2">
-        <Label htmlFor="topic">Topic</Label>
-        <Input id="topic" name="topic" placeholder="e.g., A History of Ancient Rome" disabled={loading}/>
+        <Label htmlFor="topic">Topic *</Label>
+        <Input id="topic" name="topic" placeholder="e.g., A History of Ancient Rome" disabled={loading} required/>
       </div>
 
       <div className="grid md:grid-cols-2 gap-6">
         <div className="space-y-2">
-          <Label htmlFor="pageCount">Page Count</Label>
-          <Input id="pageCount" name="pageCount" type="number" placeholder="e.g., 300" disabled={loading}/>
+          <Label htmlFor="pageCount">Page Count *</Label>
+          <Input id="pageCount" name="pageCount" type="number" placeholder="e.g., 300" disabled={loading} required/>
         </div>
         <div className="space-y-2">
           <Label htmlFor="language">Language (Mode)</Label>
@@ -330,7 +331,7 @@ export default function CreateProjectPage() {
         <Input id="deadline" name="deadline" type="date" disabled={loading}/>
       </div>
       
-      {commonFields()}
+      {commonFields({ mobileRequired: true })}
       {commonFileUpload()}
 
       <div className="space-y-4">
