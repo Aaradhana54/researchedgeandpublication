@@ -90,29 +90,18 @@ export default function CreateProjectPage() {
             const storageRef = ref(storage, `projects/${user.uid}/${Date.now()}-${file.name}`);
             const uploadTask = uploadBytesResumable(storageRef, file);
 
-            await new Promise<void>((resolve, reject) => {
-                uploadTask.on(
-                    'state_changed',
-                    (snapshot) => {
-                        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                        setUploadProgress(progress);
-                    },
-                    (error) => {
-                        console.error("Upload failed:", error);
-                        reject(new Error(`File upload failed: ${error.message}`));
-                    },
-                    async () => {
-                        try {
-                            const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-                            synopsisFileUrl = downloadURL;
-                            resolve();
-                        } catch (getUrlError) {
-                             console.error("Failed to get download URL:", getUrlError);
-                            reject(new Error(`File upload failed: Could not get download URL.`));
-                        }
-                    }
-                );
-            });
+            uploadTask.on('state_changed',
+                (snapshot) => {
+                    const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                    setUploadProgress(progress);
+                }
+            );
+
+            // Wait for the upload to complete
+            await uploadTask;
+
+            // Get the download URL
+            synopsisFileUrl = await getDownloadURL(uploadTask.snapshot.ref);
             setUploading(false);
         }
 
@@ -398,5 +387,3 @@ export default function CreateProjectPage() {
     </div>
   );
 }
-
-    
