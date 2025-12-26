@@ -4,7 +4,7 @@
 import { useMemo } from 'react';
 import { useUser } from '@/firebase/auth/use-user';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { LoaderCircle, Copy, Users, CheckCircle, DollarSign, Download, PaintBrush, Share2 } from 'lucide-react';
+import { LoaderCircle, Copy, Users, CheckCircle, DollarSign, Download, Paintbrush, Share2 } from 'lucide-react';
 import { useCollection, useFirestore } from '@/firebase';
 import { collection, query, where } from 'firebase/firestore';
 import type { UserProfile } from '@/lib/types';
@@ -163,7 +163,7 @@ export default function ReferralDashboardPage() {
                     <CardDescription>This section is under construction.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                     <Button disabled><PaintBrush className="mr-2"/> Access Materials</Button>
+                     <Button disabled><Paintbrush className="mr-2"/> Access Materials</Button>
                 </CardContent>
             </Card>
         </div>
