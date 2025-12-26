@@ -69,7 +69,7 @@ export default function CreateProjectPage() {
       title: rawFormData.title,
       topic: rawFormData.topic,
       courseLevel: rawFormData.courseLevel,
-      referencingStyle: rawFormData.referencingStyle,
+      referencingStyle: rawFormData.referencingStyle || '',
       language: rawFormData.language,
       wantToPublish: rawFormData.wantToPublish === 'on',
       publishWhere: rawFormData.publishWhere || '',
