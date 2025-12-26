@@ -4,7 +4,15 @@
 import { z } from 'zod';
 import { revalidatePath } from 'next/cache';
 import type { UserRole, ProjectStatus } from '@/lib/types';
-import { firestore, auth as adminAuth, admin } from '@/firebase/server';
+import * as admin from 'firebase-admin';
+
+// Re-initialize admin within the action to ensure context
+if (!admin.apps.length) {
+  admin.initializeApp();
+}
+
+const firestore = admin.firestore();
+const adminAuth = admin.auth();
 
 
 const CreateUserSchema = z.object({
@@ -81,7 +89,13 @@ export async function updateProjectStatus(projectId: string, status: ProjectStat
     }
 
     try {
-        const projectRef = firestore.collection('projects').doc(projectId);
+        // This initialization is now self-contained within the action.
+        if (!admin.apps.length) {
+            admin.initializeApp();
+        }
+        const db = admin.firestore();
+        const projectRef = db.collection('projects').doc(projectId);
+        
         await projectRef.update({
             status: status,
             updatedAt: admin.firestore.Timestamp.now(),
