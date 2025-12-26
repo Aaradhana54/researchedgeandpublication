@@ -89,27 +89,28 @@ export async function createProject(
   // 1. Sanitize and prepare data for validation
   const rawData = Object.fromEntries(formData.entries());
 
+  // Convert empty strings and other falsy values from optional fields to undefined for Zod
   const dataToValidate = {
       ...rawData,
-      // Convert empty strings from optional fields to undefined for Zod
       topic: rawData.topic || undefined,
       courseLevel: rawData.courseLevel || undefined,
       deadline: rawData.deadline || undefined,
       referencingStyle: rawData.referencingStyle || undefined,
       language: rawData.language || undefined,
       publishWhere: rawData.publishWhere || undefined,
+      // Coerce number fields, ensuring empty strings become undefined
       pageCount: rawData.pageCount ? Number(rawData.pageCount) : undefined,
       wordCount: rawData.wordCount ? Number(rawData.wordCount) : undefined,
       wantToPublish: rawData.wantToPublish === 'on',
-      // File handling should be done here. For now, we simulate a URL.
+      // File handling is not implemented in this example
       synopsisFileUrl: formData.get('synopsisFile') ? '/uploads/placeholder.txt' : undefined,
   };
+
 
   // 2. Validate the data using Zod
   const validatedFields = projectFormSchema.safeParse(dataToValidate);
   
   if (!validatedFields.success) {
-    console.log('Validation failed:', validatedFields.error.flatten());
     return {
       message: 'Validation Error: Please correct the errors in the form.',
       errors: validatedFields.error.flatten().fieldErrors,
@@ -136,7 +137,7 @@ export async function createProject(
     });
     
     // 5. Return success response
-    return { message: `Success: Project "${firestoreData.title}" created!`, success: true, errors: undefined };
+    return { message: `Success: Project "${firestoreData.title}" created!`, success: true };
 
   } catch (e: any) {
     console.error('Project creation error:', e);
