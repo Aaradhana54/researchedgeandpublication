@@ -1,13 +1,13 @@
 
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState }from 'react';
 import { useUser } from '@/firebase/auth/use-user';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoaderCircle, Copy, Users, CheckCircle, DollarSign, Wallet, Share2, Receipt, Banknote, Paintbrush } from 'lucide-react';
 import { useCollection, useFirestore } from '@/firebase';
-import { collection, query, where } from 'firebase/firestore';
-import type { UserProfile, Payout } from '@/lib/types';
+import { collection, query, where, documentId } from 'firebase/firestore';
+import type { UserProfile, Payout, Project } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -23,6 +23,8 @@ import { MarketingKitDialog } from '@/components/referral-partner/marketing-kit-
 import { RequestPayoutDialog } from '@/components/referral-partner/request-payout-dialog';
 import { Badge } from '@/components/ui/badge';
 
+
+const COMMISSION_PER_PROJECT = 50; // Example commission amount
 
 function StatCard({ title, value, icon }: { title: string, value: string | number, icon: React.ReactNode }) {
   return (
@@ -48,15 +50,27 @@ export default function ReferralDashboardPage() {
     return query(collection(firestore, 'users'), where('referredBy', '==', user.referralCode));
   }, [user, firestore]);
 
+  const { data: referredUsers, loading: referralsLoading } = useCollection<UserProfile>(referredUsersQuery);
+
+  const referredUserIds = useMemo(() => {
+    return referredUsers ? referredUsers.map(u => u.uid) : [];
+  }, [referredUsers]);
+
+  const projectsQuery = useMemo(() => {
+      if (!firestore || referredUserIds.length === 0) return null;
+      return query(collection(firestore, 'projects'), where('userId', 'in', referredUserIds));
+  }, [firestore, referredUserIds]);
+
+  const { data: projects, loading: projectsLoading } = useCollection<Project>(projectsQuery);
+
   const payoutsQuery = useMemo(() => {
     if (!user || !firestore) return null;
     return query(collection(firestore, 'payouts'), where('userId', '==', user.uid));
   }, [user, firestore]);
 
-  const { data: referredUsers, loading: referralsLoading } = useCollection<UserProfile>(referredUsersQuery);
   const { data: payouts, loading: payoutsLoading } = useCollection<Payout>(payoutsQuery);
 
-  const loading = userLoading || referralsLoading || payoutsLoading;
+  const loading = userLoading || referralsLoading || payoutsLoading || projectsLoading;
 
   const referralLink = useMemo(() => {
     if (typeof window === 'undefined' || !user?.referralCode) return '';
@@ -73,10 +87,16 @@ export default function ReferralDashboardPage() {
   };
   
   const totalLeads = referredUsers?.length ?? 0;
-  const convertedLeads = referredUsers?.filter(u => u.role === 'client' /* and has made a purchase, etc. */).length ?? 0; // This logic would need to be more complex
-  
-  const pendingCommission = (convertedLeads * 50); // Dummy calculation for demo
-  const totalEarnings = payouts?.filter(p => p.status === 'paid').reduce((acc, p) => acc + p.amount, 0) ?? 0;
+  const convertedLeads = useMemo(() => {
+    if (!projects || !referredUsers) return 0;
+    const projectUserIds = new Set(projects.map(p => p.userId));
+    return referredUsers.filter(u => projectUserIds.has(u.uid)).length;
+  }, [projects, referredUsers]);
+
+  const totalCommissionEarned = (projects?.length ?? 0) * COMMISSION_PER_PROJECT;
+  const totalPaidOut = payouts?.filter(p => p.status === 'paid').reduce((acc, p) => acc + p.amount, 0) ?? 0;
+  const pendingCommission = totalCommissionEarned - totalPaidOut;
+
 
   if (loading || !user) {
     return (
@@ -116,9 +136,9 @@ export default function ReferralDashboardPage() {
       
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatCard title="Total Leads" value={totalLeads} icon={<Users className="h-4 w-4 text-muted-foreground" />} />
-        <StatCard title="Converted Leads" value={convertedLeads} icon={<CheckCircle className="h-4 w-4 text-muted-foreground" />} />
-        <StatCard title="Pending Commission" value={pendingCommission.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })} icon={<Wallet className="h-4 w-4 text-muted-foreground" />} />
-        <StatCard title="Total Earnings" value={totalEarnings.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })} icon={<DollarSign className="h-4 w-4 text-muted-foreground" />} />
+        <StatCard title="Converted Clients" value={convertedLeads} icon={<CheckCircle className="h-4 w-4 text-muted-foreground" />} />
+        <StatCard title="Available Commission" value={pendingCommission.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })} icon={<Wallet className="h-4 w-4 text-muted-foreground" />} />
+        <StatCard title="Total Earnings" value={totalCommissionEarned.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })} icon={<DollarSign className="h-4 w-4 text-muted-foreground" />} />
       </div>
 
       <div className="grid gap-8 lg:grid-cols-2">
@@ -191,7 +211,8 @@ export default function ReferralDashboardPage() {
                                         <TableCell className="text-right">
                                             <Badge 
                                               variant={payout.status === 'paid' ? 'default' : 'secondary'} 
-                                              className={payout.status === 'paid' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'}>
+                                              className="capitalize"
+                                            >
                                                 {payout.status}
                                             </Badge>
                                         </TableCell>

@@ -26,9 +26,12 @@ service cloud.firestore {
       // New users can create their own profile with 'client' or 'referral-partner' role.
       // Admins can create any user with any role.
       allow create: if isAllowedToCreateOwnProfile() || isAdmin();
-      // Users can read their own profile. Admins can read any profile and list all users.
-      // Referral partners can list clients they have referred.
-      allow read: if isOwner(userId) || isAdmin();
+
+      // Users can read their own profile. Admins can read any profile.
+      // Referral partners can read profiles of clients they referred.
+      allow read: if isOwner(userId) || isAdmin() || (isReferralPartner() && resource.data.referredBy == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.referralCode);
+      
+      // Admins and referral partners can list users (will be filtered in app).
       allow list: if isAdmin() || isReferralPartner();
 
       // Users can update their own profile, but cannot change their role. 
@@ -40,11 +43,14 @@ service cloud.firestore {
     
     match /projects/{projectId} {
       // Authenticated users can create projects for themselves.
-      // The shape of the data is validated by the server action, so we only check auth here.
       allow create: if request.auth != null && isOwner(request.resource.data.userId);
+
       // Owners or admins can manage projects.
-      allow read, update, delete: if isOwner(resource.data.userId) || isAdmin();
-      // Authenticated users can list projects (will be filtered by user ID in the app query). Admins can list all.
+      // Referral partners can read projects of users they referred to calculate conversions.
+      allow read: if isOwner(resource.data.userId) || isAdmin() || (isReferralPartner() && get(/databases/$(database)/documents/users/$(resource.data.userId)).data.referredBy == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.referralCode);
+      allow update, delete: if isOwner(resource.data.userId) || isAdmin();
+      
+      // Authenticated users (clients, admins, partners) can list projects.
       allow list: if request.auth != null;
     }
     
