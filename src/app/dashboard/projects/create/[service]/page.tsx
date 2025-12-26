@@ -86,7 +86,8 @@ export default function CreateProjectPage() {
       setTimeout(() => {
         router.push('/dashboard/projects');
       }, 1500);
-    } else if (state.message && !state.success && state.message.startsWith('Error')) {
+    } else if (state.message && !state.success && !state.errors) {
+      // Only show toast for non-validation errors
       toast({
         title: 'Submission Failed',
         description: state.message,
@@ -101,7 +102,6 @@ export default function CreateProjectPage() {
   }
 
   const pageTitle = serviceDisplayNames[service];
-  const formHasBeenProcessed = state !== initialFormState;
 
   const renderThesisForm = () => (
     <>
@@ -330,12 +330,6 @@ export default function CreateProjectPage() {
             <p className="text-muted-foreground">Please fill in the details for your new project.</p>
         </div>
 
-        {formHasBeenProcessed && state.message && !state.success && (
-             <div className="bg-destructive/10 text-destructive p-3 rounded-md mb-6 text-sm">
-                <strong>Submission Failed:</strong> {state.message.replace('Error: ', '')}
-             </div>
-        )}
-
         <Card className="max-w-4xl">
             <CardHeader>
                 <CardTitle>Project Details</CardTitle>
@@ -374,3 +368,5 @@ export default function CreateProjectPage() {
     </div>
   );
 }
+
+    
