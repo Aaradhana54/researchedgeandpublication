@@ -17,7 +17,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { Calendar as CalendarIcon, LoaderCircle, Send } from 'lucide-react';
+import { Calendar as CalendarIcon, LoaderCircle, Send, Upload } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 
@@ -163,7 +163,7 @@ export default function CreateProjectPage({ params }: { params: { service: strin
 
            {/* --- Project Scope --- */}
             <Card className="shadow-soft">
-                <CardHeader><CardTitle>Project Scope</CardTitle></CardHeader>
+                <CardHeader><CardTitle>Project Scope &amp; Files</CardTitle></CardHeader>
                 <CardContent className="space-y-6">
                     <div className="grid md:grid-cols-2 gap-6">
                         <div className="space-y-2">
@@ -195,6 +195,11 @@ export default function CreateProjectPage({ params }: { params: { service: strin
                             </PopoverContent>
                         </Popover>
                         <input type="hidden" name="deadline" value={deadline?.toISOString()} />
+                     </div>
+                     <div className="space-y-2">
+                        <Label htmlFor="synopsisFile">Synopsis/Assignment File (Optional)</Label>
+                        <Input id="synopsisFile" name="synopsisFile" type="file" className="pt-2" />
+                        <p className="text-xs text-muted-foreground">Upload your synopsis or any relevant assignment files.</p>
                      </div>
                 </CardContent>
             </Card>

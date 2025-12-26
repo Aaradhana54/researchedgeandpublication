@@ -65,6 +65,7 @@ const projectFormSchema = z.object({
   topic: z.string().optional(),
   courseLevel: z.enum(['ug', 'pg', 'phd']).optional(),
   deadline: z.coerce.date().optional(),
+  synopsisFileUrl: z.string().optional(),
   referencingStyle: z.string().optional(),
   pageCount: z.coerce.number().int().positive().optional(),
   wordCount: z.coerce.number().int().positive().optional(),
@@ -87,6 +88,17 @@ export async function createProject(
   formData: FormData
 ): Promise<ProjectFormState> {
 
+  // Note: File handling would happen here. For now, we just pass a placeholder.
+  // In a real app, you'd upload the file to Firebase Storage and get a URL.
+  const synopsisFile = formData.get('synopsisFile') as File | null;
+  let synopsisFileUrl: string | undefined = undefined;
+  if (synopsisFile && synopsisFile.size > 0) {
+      // Placeholder for file upload logic
+      synopsisFileUrl = `/uploads/placeholder/${synopsisFile.name}`;
+      console.log(`File "${synopsisFile.name}" would be uploaded. URL: ${synopsisFileUrl}`);
+  }
+
+
   const validatedFields = projectFormSchema.safeParse({
     title: formData.get('title'),
     serviceType: formData.get('serviceType'),
@@ -100,6 +112,7 @@ export async function createProject(
     wantToPublish: formData.get('wantToPublish'),
     publishWhere: formData.get('publishWhere'),
     userId: formData.get('userId'),
+    synopsisFileUrl: synopsisFileUrl,
   });
   
   if (!validatedFields.success) {
