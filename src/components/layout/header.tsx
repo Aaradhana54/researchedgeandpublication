@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Menu, LogOut, ChevronDown, User, Shield, Briefcase } from 'lucide-react';
+import { Menu, LogOut, ChevronDown, User, Shield, Briefcase, Users } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 import { useScrollSpy } from '@/hooks/use-scroll-spy';
@@ -20,6 +20,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuGroup,
 } from '@/components/ui/dropdown-menu';
 
 
@@ -126,14 +127,25 @@ export function Header() {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => router.push('/admin/login')}>
-                      <Shield className="mr-2 h-4 w-4" />
-                      <span>Admin Login</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => router.push('/login')}>
-                      <Briefcase className="mr-2 h-4 w-4" />
-                      <span>Client Login</span>
-                    </DropdownMenuItem>
+                    <DropdownMenuGroup>
+                        <DropdownMenuLabel>Logins</DropdownMenuLabel>
+                        <DropdownMenuItem onClick={() => router.push('/admin/login')}>
+                          <Shield className="mr-2 h-4 w-4" />
+                          <span>Admin Login</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => router.push('/login')}>
+                          <Briefcase className="mr-2 h-4 w-4" />
+                          <span>Client Login</span>
+                        </DropdownMenuItem>
+                    </DropdownMenuGroup>
+                    <DropdownMenuSeparator />
+                     <DropdownMenuGroup>
+                        <DropdownMenuLabel>Signups</DropdownMenuLabel>
+                        <DropdownMenuItem onClick={() => router.push('/referral-partner/signup')}>
+                          <Users className="mr-2 h-4 w-4" />
+                          <span>Referral Partner</span>
+                        </DropdownMenuItem>
+                    </DropdownMenuGroup>
                   </DropdownMenuContent>
                 </DropdownMenu>
             </div>

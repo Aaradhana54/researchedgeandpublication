@@ -14,7 +14,7 @@ import { errorEmitter } from './error-emitter';
 import { FirestorePermissionError } from './errors';
 
 // --- Sign Up ---
-export async function signup(email: string, password: string, name: string) {
+export async function signup(email: string, password: string, name: string, role: UserRole = 'client') {
   const userCredential = await createUserWithEmailAndPassword(auth, email, password);
   const user = userCredential.user;
 
@@ -23,7 +23,7 @@ export async function signup(email: string, password: string, name: string) {
     uid: user.uid,
     name,
     email,
-    role: 'client', // Assign 'client' role by default
+    role: role, // Assign specified role, default to 'client'
   };
 
   const userDocRef = doc(firestore, 'users', user.uid);
