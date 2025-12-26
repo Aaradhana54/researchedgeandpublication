@@ -86,8 +86,14 @@ export default function CreateProjectPage() {
       setDeadline(undefined);
       setWantToPublish(false);
       router.push('/dashboard/projects');
-    } else if (state.message && state.message !== 'Submitting...') {
+    } else if (state.message.startsWith('Error:')) {
       toast({
+        title: 'Validation Error',
+        description: "Please correct the errors in the form.",
+        variant: 'destructive',
+      });
+    } else if (state.message && state.message !== 'Submitting...') {
+       toast({
         title: 'Error',
         description: state.message,
         variant: 'destructive',
@@ -106,7 +112,7 @@ export default function CreateProjectPage() {
     <>
         <div className="space-y-2">
             <Label htmlFor="topic">Topic *</Label>
-            <Input id="topic" name="topic" placeholder="e.g., The Impact of AI on Modern Literature" required />
+            <Input id="topic" name="topic" placeholder="e.g., The Impact of AI on Modern Literature" required defaultValue="" />
             {state.errors?.topic && <p className="text-sm text-destructive">{state.errors.topic[0]}</p>}
         </div>
 
@@ -164,12 +170,12 @@ export default function CreateProjectPage() {
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
              <div className="space-y-2">
                 <Label htmlFor="referencingStyle">Referencing Style</Label>
-                <Input id="referencingStyle" name="referencingStyle" placeholder="e.g., APA, MLA, Chicago" />
+                <Input id="referencingStyle" name="referencingStyle" placeholder="e.g., APA, MLA, Chicago" defaultValue="" />
                 {state.errors?.referencingStyle && <p className="text-sm text-destructive">{state.errors.referencingStyle[0]}</p>}
             </div>
              <div className="space-y-2">
                 <Label htmlFor="pageCount">Page Count</Label>
-                <Input id="pageCount" name="pageCount" type="number" placeholder="e.g., 100" />
+                <Input id="pageCount" name="pageCount" type="number" placeholder="e.g., 100" defaultValue="" />
                 {state.errors?.pageCount && <p className="text-sm text-destructive">{state.errors.pageCount[0]}</p>}
             </div>
              <div className="space-y-2">
@@ -185,14 +191,14 @@ export default function CreateProjectPage() {
      <>
         <div className="space-y-2">
             <Label htmlFor="topic">Topic *</Label>
-            <Input id="topic" name="topic" placeholder="e.g., Quantum Computing in Cybersecurity" required />
+            <Input id="topic" name="topic" placeholder="e.g., Quantum Computing in Cybersecurity" required defaultValue="" />
             {state.errors?.topic && <p className="text-sm text-destructive">{state.errors.topic[0]}</p>}
         </div>
 
         <div className="grid md:grid-cols-2 gap-6">
             <div className="space-y-2">
                 <Label htmlFor="wordCount">Word Count</Label>
-                <Input id="wordCount" name="wordCount" type="number" placeholder="e.g., 5000" />
+                <Input id="wordCount" name="wordCount" type="number" placeholder="e.g., 5000" defaultValue="" />
                 {state.errors?.wordCount && <p className="text-sm text-destructive">{state.errors.wordCount[0]}</p>}
             </div>
             <div className="space-y-2">
@@ -267,14 +273,14 @@ export default function CreateProjectPage() {
     <>
       <div className="space-y-2">
         <Label htmlFor="topic">Topic *</Label>
-        <Input id="topic" name="topic" placeholder="e.g., A History of Ancient Rome" required />
+        <Input id="topic" name="topic" placeholder="e.g., A History of Ancient Rome" required defaultValue="" />
         {state.errors?.topic && <p className="text-sm text-destructive">{state.errors.topic[0]}</p>}
       </div>
 
       <div className="grid md:grid-cols-2 gap-6">
         <div className="space-y-2">
           <Label htmlFor="pageCount">Page Count</Label>
-          <Input id="pageCount" name="pageCount" type="number" placeholder="e.g., 300" />
+          <Input id="pageCount" name="pageCount" type="number" placeholder="e.g., 300" defaultValue="" />
           {state.errors?.pageCount && <p className="text-sm text-destructive">{state.errors.pageCount[0]}</p>}
         </div>
         <div className="space-y-2">
