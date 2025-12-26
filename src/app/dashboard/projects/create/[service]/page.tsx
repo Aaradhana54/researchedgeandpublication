@@ -127,11 +127,10 @@ export default function CreateProjectPage() {
                 title: 'Submitted Successfully!',
                 description: 'Your project details have been validated.',
             });
-            // Here you would typically proceed with submitting the data
             console.log('Form is valid:', formState);
         }
     }
-    // Logic for other forms can be added here
+    // Logic for other forms can be added here, for now they do nothing
   };
 
 
