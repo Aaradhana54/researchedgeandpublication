@@ -4,6 +4,9 @@ import {
   LayoutGrid,
   LogOut,
   ChevronDown,
+  Users,
+  Receipt,
+  Paintbrush,
 } from 'lucide-react';
 import React from 'react';
 import { usePathname, useRouter } from 'next/navigation';
@@ -39,7 +42,9 @@ import { useEffect } from 'react';
 
 const dashboardNavItems = [
   { href: '/referral-partner/dashboard', label: 'Overview', icon: <LayoutGrid /> },
-  // Add more partner-specific links here in the future
+  { href: '/referral-partner/dashboard#referred-clients', label: 'Referred Clients', icon: <Users /> },
+  { href: '/referral-partner/dashboard#payout-history', label: 'Payouts', icon: <Receipt /> },
+  { href: '/referral-partner/dashboard#marketing-kit', label: 'Marketing Kit', icon: <Paintbrush /> },
 ];
 
 function PartnerSidebar() {

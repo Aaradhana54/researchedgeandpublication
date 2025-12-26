@@ -142,7 +142,7 @@ export default function ReferralDashboardPage() {
       </div>
 
       <div className="grid gap-8 lg:grid-cols-2">
-        <Card>
+        <Card id="referred-clients">
             <CardHeader>
                 <CardTitle>Referred Clients</CardTitle>
                 <CardDescription>A list of clients you have referred.</CardDescription>
@@ -178,7 +178,7 @@ export default function ReferralDashboardPage() {
         </Card>
 
         <div className="space-y-8">
-            <Card>
+            <Card id="payout-history">
                 <CardHeader>
                     <div className="flex justify-between items-center">
                         <div>
@@ -229,7 +229,7 @@ export default function ReferralDashboardPage() {
                     )}
                 </CardContent>
             </Card>
-             <Card>
+             <Card id="marketing-kit">
                 <CardHeader>
                     <CardTitle>Marketing Kit</CardTitle>
                     <CardDescription>Download logos, creatives, and templates to help you promote our services.</CardDescription>
