@@ -40,7 +40,7 @@ export async function createUserAsAdmin(formData: FormData) {
     });
 
     // 2. Create the user profile in Firestore
-    const userProfile = {
+    const userProfile: any = {
       uid: userRecord.uid,
       name,
       email,
@@ -48,6 +48,10 @@ export async function createUserAsAdmin(formData: FormData) {
       createdAt: admin.firestore.Timestamp.now(),
     };
     
+    if (role === 'referral-partner') {
+        userProfile.referralCode = userRecord.uid.substring(0, 8);
+    }
+
     // Use the admin firestore instance
     await firestore.collection('users').doc(userRecord.uid).set(userProfile);
 
@@ -85,6 +89,7 @@ export async function updateProjectStatus(projectId: string, status: ProjectStat
 
         revalidatePath('/admin/projects');
         revalidatePath(`/admin/projects/${projectId}`);
+        
         return { success: true, message: `Project status updated to ${status}.` };
     } catch (error: any) {
         console.error('Error updating project status:', error);
