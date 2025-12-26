@@ -11,6 +11,11 @@ import {
   Bell,
   CreditCard,
   ClipboardCheck,
+  Briefcase,
+  PenTool,
+  TrendingUp,
+  BookCheck,
+  Banknote,
 } from 'lucide-react';
 import React from 'react';
 import { useEffect } from 'react';
@@ -31,6 +36,8 @@ import {
   SidebarGroup,
   SidebarSeparator,
   SidebarInset,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
 } from '@/components/ui/sidebar';
 import { Logo } from '@/components/ui/logo';
 import { Button } from '@/components/ui/button';
@@ -43,6 +50,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { LoaderCircle } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 const adminNavItems = [
   { href: '/admin/dashboard', label: 'Overview', icon: <LayoutGrid /> },
@@ -54,6 +62,13 @@ const adminNavItems = [
   { href: '/admin/invoices', label: 'Invoices', icon: <CreditCard /> },
   { href: '/admin/notifications', label: 'Notifications', icon: <Bell /> },
 ];
+
+const teamNavItems = [
+    { href: '/admin/team/writing', label: 'Writing Team', icon: <PenTool /> },
+    { href: '/admin/team/sales', label: 'Sales Team', icon: <TrendingUp /> },
+    { href: '/admin/team/publication', label: 'Publication Team', icon: <BookCheck /> },
+    { href: '/admin/team/accounts', label: 'Accounts Team', icon: <Banknote /> },
+]
 
 function AdminSidebar() {
   const pathname = usePathname();
@@ -68,6 +83,8 @@ function AdminSidebar() {
   const getInitials = (name = '') => {
     return name.split(' ').map((n) => n[0]).join('').toUpperCase();
   };
+
+  const isTeamRouteActive = teamNavItems.some(item => pathname.startsWith(item.href));
 
   return (
     <Sidebar>
@@ -86,6 +103,31 @@ function AdminSidebar() {
               </Link>
             </SidebarMenuItem>
           ))}
+           <Collapsible defaultOpen={isTeamRouteActive}>
+                <SidebarMenuItem>
+                    <CollapsibleTrigger asChild>
+                        <SidebarMenuButton className="w-full">
+                            <Briefcase />
+                            <span>Team</span>
+                            <ChevronDown className="ml-auto h-4 w-4 shrink-0 transition-transform duration-200 group-data-[state=open]:rotate-180" />
+                        </SidebarMenuButton>
+                    </CollapsibleTrigger>
+                </SidebarMenuItem>
+                <CollapsibleContent>
+                    <SidebarMenuSub>
+                        {teamNavItems.map((item) => (
+                            <SidebarMenuItem key={item.label}>
+                                <Link href={item.href}>
+                                    <SidebarMenuSubButton isActive={pathname === item.href}>
+                                        {item.icon}
+                                        <span>{item.label}</span>
+                                    </SidebarMenuSubButton>
+                                </Link>
+                            </SidebarMenuItem>
+                        ))}
+                    </SidebarMenuSub>
+                </CollapsibleContent>
+            </Collapsible>
         </SidebarMenu>
       </SidebarContent>
       <SidebarFooter>

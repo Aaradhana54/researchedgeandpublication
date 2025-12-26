@@ -80,10 +80,6 @@ export default function UserManagementPage() {
       return {
         clients: [],
         authors: [],
-        writingTeam: [],
-        salesTeam: [],
-        publicationTeam: [],
-        accountsTeam: [],
         partners: [],
         admins: [],
       };
@@ -91,10 +87,6 @@ export default function UserManagementPage() {
     return {
       clients: users.filter(u => u.role === 'client'),
       authors: users.filter(u => u.role === 'author'),
-      writingTeam: users.filter(u => u.role === 'writing-team'),
-      salesTeam: users.filter(u => u.role === 'sales-team'),
-      publicationTeam: users.filter(u => u.role === 'publication-team'),
-      accountsTeam: users.filter(u => u.role === 'accounts-team'),
       partners: users.filter(u => u.role === 'referral-partner'),
       admins: users.filter(u => u.role === 'admin'),
     };
@@ -103,10 +95,6 @@ export default function UserManagementPage() {
   const tabs = [
     { value: 'clients', label: 'Research Clients', data: filteredUsers.clients },
     { value: 'authors', label: 'Authors', data: filteredUsers.authors },
-    { value: 'writing-team', label: 'Writing Team', data: filteredUsers.writingTeam },
-    { value: 'sales-team', label: 'Sales Team', data: filteredUsers.salesTeam },
-    { value: 'publication-team', label: 'Publication Team', data: filteredUsers.publicationTeam },
-    { value: 'accounts-team', label: 'Accounts Team', data: filteredUsers.accountsTeam },
     { value: 'partners', label: 'Referral Partners', data: filteredUsers.partners },
     { value: 'admins', label: 'Admins', data: filteredUsers.admins },
   ];
@@ -116,7 +104,7 @@ export default function UserManagementPage() {
       <div className="mb-8 flex justify-between items-start">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">User Management</h1>
-          <p className="text-muted-foreground">Manage all client, author, team, and partner users.</p>
+          <p className="text-muted-foreground">Manage all client, author, partner, and admin users.</p>
         </div>
         <CreateUserDialog>
             <Button>
@@ -133,7 +121,7 @@ export default function UserManagementPage() {
         </CardHeader>
         <CardContent>
             <Tabs defaultValue="clients">
-                <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-8 mb-6 h-auto flex-wrap">
+                <TabsList className="grid w-full grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 mb-6 h-auto flex-wrap">
                    {tabs.map(tab => (
                      <TabsTrigger key={tab.value} value={tab.value} className="flex-1">{tab.label}</TabsTrigger>
                    ))}
