@@ -1,7 +1,11 @@
 'use client';
 
-export default function CreateProjectPage({ params }: { params: { service: string }}) {
-  const pageTitle = params.service === 'writing' ? 'New Writing Project' : 'New Publication Project';
+import { useParams } from 'next/navigation';
+
+export default function CreateProjectPage() {
+  const params = useParams();
+  const service = params.service as string;
+  const pageTitle = service === 'writing' ? 'New Writing Project' : 'New Publication Project';
 
   return (
     <div className="p-4 sm:p-6 lg:p-8">
