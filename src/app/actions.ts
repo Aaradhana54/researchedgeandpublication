@@ -87,17 +87,23 @@ export async function createProject(
     };
   }
 
-  const dataToSave: any = {};
-  for (const [key, value] of Object.entries(validatedFields.data)) {
-    if (value !== undefined) {
-      if (value instanceof Date) {
-        // Convert Date objects to Firestore Timestamps
-        dataToSave[key] = Timestamp.fromDate(value);
-      } else {
-        dataToSave[key] = value;
-      }
-    }
+  const dataToSave: any = {
+    ...validatedFields.data,
+  };
+  
+  // Explicitly handle date conversion to Firestore Timestamp
+  if (validatedFields.data.deadline) {
+    dataToSave.deadline = Timestamp.fromDate(validatedFields.data.deadline);
+  } else {
+    delete dataToSave.deadline; // Ensure undefined dates are not sent
   }
+
+  // Remove any other keys that are undefined to keep the document clean
+  Object.keys(dataToSave).forEach(key => {
+    if (dataToSave[key] === undefined) {
+      delete dataToSave[key];
+    }
+  });
 
 
   try {
