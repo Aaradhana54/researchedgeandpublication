@@ -1,8 +1,7 @@
 
-
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, notFound, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useUser } from '@/firebase/auth/use-user';
@@ -16,10 +15,12 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { CalendarIcon, ArrowLeft, LoaderCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
-import type { ProjectServiceType } from '@/lib/types';
+import type { ProjectServiceType, CourseLevel } from '@/lib/types';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
 import { FormMessage } from '@/components/ui/form';
+import { useToast } from '@/hooks/use-toast';
+
 
 const serviceDisplayNames: Record<ProjectServiceType, string> = {
   'thesis-dissertation': 'New Thesis / Dissertation Project',
@@ -30,11 +31,31 @@ const serviceDisplayNames: Record<ProjectServiceType, string> = {
   'book-publishing': 'New Book Publishing Project',
 };
 
-const courseLevels = [
+const courseLevels: { label: string, value: CourseLevel }[] = [
   { label: 'Undergraduate (UG)', value: 'ug' },
   { label: 'Postgraduate (PG)', value: 'pg' },
   { label: 'Doctorate (PhD)', value: 'phd' },
 ];
+
+interface FormState {
+    title: string;
+    topic: string;
+    courseLevel: CourseLevel | '';
+    deadline: Date | undefined;
+    referencingStyle: string;
+    pageCount: string; // Keep as string for input control
+    language: string;
+}
+
+interface FormErrors {
+    title?: string;
+    topic?: string;
+    courseLevel?: string;
+    deadline?: string;
+    referencingStyle?: string;
+    pageCount?: string;
+    language?: string;
+}
 
 
 export default function CreateProjectPage() {
@@ -42,11 +63,22 @@ export default function CreateProjectPage() {
   const service = params.service as ProjectServiceType;
   const { user, loading: userLoading } = useUser();
   const router = useRouter();
+  const { toast } = useToast();
 
-  const [deadline, setDeadline] = useState<Date | undefined>(undefined);
+  const [formState, setFormState] = useState<FormState>({
+    title: '',
+    topic: '',
+    courseLevel: '',
+    deadline: undefined,
+    referencingStyle: '',
+    pageCount: '',
+    language: 'English'
+  });
+
+  const [errors, setErrors] = useState<FormErrors>({});
   const [wantToPublish, setWantToPublish] = useState(false);
 
-  if (userLoading || !user) {
+  if (userLoading) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
         <LoaderCircle className="h-10 w-10 animate-spin text-primary" />
@@ -54,24 +86,69 @@ export default function CreateProjectPage() {
     );
   }
 
-
   if (!service || !serviceDisplayNames[service]) {
     notFound();
   }
+  
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormState(prevState => ({ ...prevState, [name]: value }));
+  };
+
+  const handleSelectChange = (name: keyof FormState) => (value: string) => {
+    setFormState(prevState => ({ ...prevState, [name]: value }));
+  };
+
+  const handleDateChange = (date: Date | undefined) => {
+      setFormState(prevState => ({ ...prevState, deadline: date }));
+  };
+  
+  const validateThesisForm = (): boolean => {
+    const newErrors: FormErrors = {};
+    if (!formState.title) newErrors.title = 'Project title is required.';
+    if (!formState.topic) newErrors.topic = 'Topic is required.';
+    if (!formState.courseLevel) newErrors.courseLevel = 'Course level is required.';
+    if (!formState.deadline) newErrors.deadline = 'Deadline is required.';
+    if (!formState.referencingStyle) newErrors.referencingStyle = 'Referencing style is required.';
+    if (!formState.pageCount) newErrors.pageCount = 'Page count is required.';
+    if (formState.pageCount && isNaN(Number(formState.pageCount))) newErrors.pageCount = 'Page count must be a number.';
+    if (!formState.language) newErrors.language = 'Language is required.';
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (service === 'thesis-dissertation') {
+        const isValid = validateThesisForm();
+        if (isValid) {
+            toast({
+                title: 'Submitted Successfully!',
+                description: 'Your project details have been validated.',
+            });
+            // Here you would typically proceed with submitting the data
+            console.log('Form is valid:', formState);
+        }
+    }
+    // Logic for other forms can be added here
+  };
+
 
   const pageTitle = serviceDisplayNames[service];
 
   const renderThesisForm = () => (
     <>
       <div className="space-y-2">
-        <Label htmlFor="topic">Topic</Label>
-        <Input id="topic" name="topic" placeholder="e.g., The Impact of AI on Modern Literature" />
+        <Label htmlFor="topic">Topic *</Label>
+        <Input id="topic" name="topic" placeholder="e.g., The Impact of AI on Modern Literature" value={formState.topic} onChange={handleInputChange} />
+        {errors.topic && <FormMessage>{errors.topic}</FormMessage>}
       </div>
 
       <div className="grid md:grid-cols-2 gap-6">
         <div className="space-y-2">
-          <Label htmlFor="courseLevel">Course Level</Label>
-          <Select name="courseLevel">
+          <Label htmlFor="courseLevel">Course Level *</Label>
+          <Select name="courseLevel" value={formState.courseLevel} onValueChange={handleSelectChange('courseLevel')}>
             <SelectTrigger id="courseLevel">
               <SelectValue placeholder="Select course level" />
             </SelectTrigger>
@@ -81,33 +158,34 @@ export default function CreateProjectPage() {
               ))}
             </SelectContent>
           </Select>
+          {errors.courseLevel && <FormMessage>{errors.courseLevel}</FormMessage>}
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="deadline">Deadline</Label>
+          <Label htmlFor="deadline">Deadline *</Label>
           <Popover>
             <PopoverTrigger asChild>
               <Button
                 variant={"outline"}
                 className={cn(
                   "w-full justify-start text-left font-normal",
-                  !deadline && "text-muted-foreground"
+                  !formState.deadline && "text-muted-foreground"
                 )}
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
-                {deadline ? format(deadline, "PPP") : <span>Pick a date</span>}
+                {formState.deadline ? format(formState.deadline, "PPP") : <span>Pick a date</span>}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0">
               <Calendar
                 mode="single"
-                selected={deadline}
-                onSelect={setDeadline}
+                selected={formState.deadline}
+                onSelect={handleDateChange}
                 initialFocus
               />
             </PopoverContent>
           </Popover>
-          <Input type="hidden" name="deadline" value={deadline?.toISOString() || ''} />
+          {errors.deadline && <FormMessage>{errors.deadline}</FormMessage>}
         </div>
       </div>
 
@@ -119,16 +197,19 @@ export default function CreateProjectPage() {
 
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
         <div className="space-y-2">
-          <Label htmlFor="referencingStyle">Referencing Style</Label>
-          <Input id="referencingStyle" name="referencingStyle" placeholder="e.g., APA, MLA, Chicago" />
+          <Label htmlFor="referencingStyle">Referencing Style *</Label>
+          <Input id="referencingStyle" name="referencingStyle" placeholder="e.g., APA, MLA, Chicago" value={formState.referencingStyle} onChange={handleInputChange} />
+           {errors.referencingStyle && <FormMessage>{errors.referencingStyle}</FormMessage>}
         </div>
         <div className="space-y-2">
-          <Label htmlFor="pageCount">Page Count</Label>
-          <Input id="pageCount" name="pageCount" type="number" placeholder="e.g., 100" />
+          <Label htmlFor="pageCount">Page Count *</Label>
+          <Input id="pageCount" name="pageCount" type="number" placeholder="e.g., 100" value={formState.pageCount} onChange={handleInputChange} />
+          {errors.pageCount && <FormMessage>{errors.pageCount}</FormMessage>}
         </div>
         <div className="space-y-2">
-          <Label htmlFor="language">Language</Label>
-          <Input id="language" name="language" placeholder="e.g., English, Spanish" defaultValue="English" />
+          <Label htmlFor="language">Language *</Label>
+          <Input id="language" name="language" placeholder="e.g., English, Spanish" value={formState.language} onChange={handleInputChange} />
+          {errors.language && <FormMessage>{errors.language}</FormMessage>}
         </div>
       </div>
     </>
@@ -173,17 +254,16 @@ export default function CreateProjectPage() {
             <PopoverTrigger asChild>
               <Button
                 variant={"outline"}
-                className={cn("w-full justify-start text-left font-normal", !deadline && "text-muted-foreground")}
+                className={cn("w-full justify-start text-left font-normal", !formState.deadline && "text-muted-foreground")}
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
-                {deadline ? format(deadline, "PPP") : <span>Pick a date</span>}
+                {formState.deadline ? format(formState.deadline, "PPP") : <span>Pick a date</span>}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0">
-              <Calendar mode="single" selected={deadline} onSelect={setDeadline} initialFocus />
+              <Calendar mode="single" selected={formState.deadline} onSelect={handleDateChange} initialFocus />
             </PopoverContent>
           </Popover>
-          <Input type="hidden" name="deadline" value={deadline?.toISOString() || ''} />
         </div>
       </div>
 
@@ -232,16 +312,15 @@ export default function CreateProjectPage() {
         <Label htmlFor="deadline">Deadline</Label>
         <Popover>
           <PopoverTrigger asChild>
-            <Button variant={"outline"} className={cn("w-full justify-start text-left font-normal", !deadline && "text-muted-foreground")}>
+            <Button variant={"outline"} className={cn("w-full justify-start text-left font-normal", !formState.deadline && "text-muted-foreground")}>
               <CalendarIcon className="mr-2 h-4 w-4" />
-              {deadline ? format(deadline, "PPP") : <span>Pick a date</span>}
+              {formState.deadline ? format(formState.deadline, "PPP") : <span>Pick a date</span>}
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0">
-            <Calendar mode="single" selected={deadline} onSelect={setDeadline} initialFocus />
+            <Calendar mode="single" selected={formState.deadline} onSelect={handleDateChange} initialFocus />
           </PopoverContent>
         </Popover>
-        <Input type="hidden" name="deadline" value={deadline?.toISOString() || ''} />
       </div>
 
       <div className="space-y-2">
@@ -286,11 +365,11 @@ export default function CreateProjectPage() {
           <CardDescription>Fields marked with * are required.</CardDescription>
         </CardHeader>
         <CardContent>
-          <form className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
               <Label htmlFor="title">Project Title *</Label>
-              <Input id="title" name="title" placeholder="A concise title for your project" />
-              <FormMessage />
+              <Input id="title" name="title" placeholder="A concise title for your project" value={formState.title} onChange={handleInputChange} />
+              {errors.title && <FormMessage>{errors.title}</FormMessage>}
             </div>
 
             {service === 'thesis-dissertation' && renderThesisForm()}
@@ -299,7 +378,7 @@ export default function CreateProjectPage() {
             {(service === 'research-publication' || service === 'book-publishing') && renderPaperForm()}
 
             <div className="flex justify-end pt-4">
-               <Button size="lg" type="button" className="w-full sm:w-auto">
+               <Button size="lg" type="submit" className="w-full sm:w-auto">
                 Submit Project
               </Button>
             </div>
