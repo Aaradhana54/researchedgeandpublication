@@ -1,11 +1,14 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { useActionState } from 'react';
 import { useParams, useRouter, notFound } from 'next/navigation';
 import Link from 'next/link';
 import { useUser } from '@/firebase/auth/use-user';
 import { useToast } from '@/hooks/use-toast';
+import { useFormStatus } from 'react-dom';
 
+import { createProject, type ProjectFormState } from '@/app/actions';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -19,7 +22,6 @@ import { format } from 'date-fns';
 import type { ProjectServiceType } from '@/lib/types';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
-
 
 const serviceDisplayNames: Record<ProjectServiceType, string> = {
     'thesis-dissertation': 'New Thesis / Dissertation Project',
@@ -36,16 +38,56 @@ const courseLevels = [
     { label: 'Doctorate (PhD)', value: 'phd' },
 ];
 
+const initialState: ProjectFormState = {
+  message: '',
+  errors: undefined,
+  success: false,
+};
+
+function SubmitButton() {
+  const { pending } = useFormStatus();
+  return (
+    <Button size="lg" type="submit" disabled={pending}>
+      {pending && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />}
+      Submit Project
+    </Button>
+  );
+}
 
 export default function CreateProjectPage() {
   const params = useParams();
   const service = params.service as ProjectServiceType;
   const router = useRouter();
-  const { user, loading: userLoading } = useUser();
+  const { user } = useUser();
   const { toast } = useToast();
+  const formRef = useRef<HTMLFormElement>(null);
+  
+  const [state, formAction] = useActionState(createProject, initialState);
   
   const [deadline, setDeadline] = useState<Date | undefined>(undefined);
   const [wantToPublish, setWantToPublish] = useState(false);
+
+  useEffect(() => {
+    if (state.success) {
+      toast({
+        title: 'Project Submitted!',
+        description: state.message,
+      });
+      formRef.current?.reset();
+      setDeadline(undefined);
+      setWantToPublish(false);
+      // Optional: redirect after a short delay
+      setTimeout(() => {
+        router.push('/dashboard/projects');
+      }, 1500);
+    } else if (state.message.startsWith('Error')) {
+      toast({
+        title: 'Validation Error',
+        description: state.message,
+        variant: 'destructive',
+      });
+    }
+  }, [state, toast, router]);
 
 
   if (!service || !serviceDisplayNames[service]) {
@@ -59,12 +101,13 @@ export default function CreateProjectPage() {
         <div className="space-y-2">
             <Label htmlFor="topic">Topic *</Label>
             <Input id="topic" name="topic" placeholder="e.g., The Impact of AI on Modern Literature" required />
+            {state.errors?.topic && <p className="text-sm text-destructive">{state.errors.topic[0]}</p>}
         </div>
 
         <div className="grid md:grid-cols-2 gap-6">
             <div className="space-y-2">
-                <Label htmlFor="courseLevel">Course Level *</Label>
-                 <Select name="courseLevel" required>
+                <Label htmlFor="courseLevel">Course Level</Label>
+                 <Select name="courseLevel">
                     <SelectTrigger id="courseLevel">
                         <SelectValue placeholder="Select course level" />
                     </SelectTrigger>
@@ -74,6 +117,7 @@ export default function CreateProjectPage() {
                         ))}
                     </SelectContent>
                 </Select>
+                 {state.errors?.courseLevel && <p className="text-sm text-destructive">{state.errors.courseLevel[0]}</p>}
             </div>
 
             <div className="space-y-2">
@@ -117,6 +161,7 @@ export default function CreateProjectPage() {
              <div className="space-y-2">
                 <Label htmlFor="pageCount">Page Count</Label>
                 <Input id="pageCount" name="pageCount" type="number" placeholder="e.g., 100" />
+                 {state.errors?.pageCount && <p className="text-sm text-destructive">{state.errors.pageCount[0]}</p>}
             </div>
              <div className="space-y-2">
                 <Label htmlFor="language">Language</Label>
@@ -131,12 +176,14 @@ export default function CreateProjectPage() {
         <div className="space-y-2">
             <Label htmlFor="topic">Topic *</Label>
             <Input id="topic" name="topic" placeholder="e.g., Quantum Computing in Cybersecurity" required />
+            {state.errors?.topic && <p className="text-sm text-destructive">{state.errors.topic[0]}</p>}
         </div>
 
         <div className="grid md:grid-cols-2 gap-6">
             <div className="space-y-2">
                 <Label htmlFor="wordCount">Word Count</Label>
                 <Input id="wordCount" name="wordCount" type="number" placeholder="e.g., 5000" />
+                 {state.errors?.wordCount && <p className="text-sm text-destructive">{state.errors.wordCount[0]}</p>}
             </div>
             <div className="space-y-2">
                 <Label htmlFor="language">Language</Label>
@@ -157,6 +204,7 @@ export default function CreateProjectPage() {
                         ))}
                     </SelectContent>
                 </Select>
+                 {state.errors?.courseLevel && <p className="text-sm text-destructive">{state.errors.courseLevel[0]}</p>}
             </div>
 
             <div className="space-y-2">
@@ -206,12 +254,14 @@ export default function CreateProjectPage() {
       <div className="space-y-2">
         <Label htmlFor="topic">Topic *</Label>
         <Input id="topic" name="topic" placeholder="e.g., A History of Ancient Rome" required />
+        {state.errors?.topic && <p className="text-sm text-destructive">{state.errors.topic[0]}</p>}
       </div>
 
       <div className="grid md:grid-cols-2 gap-6">
         <div className="space-y-2">
           <Label htmlFor="pageCount">Page Count</Label>
           <Input id="pageCount" name="pageCount" type="number" placeholder="e.g., 300" />
+          {state.errors?.pageCount && <p className="text-sm text-destructive">{state.errors.pageCount[0]}</p>}
         </div>
         <div className="space-y-2">
           <Label htmlFor="language">Language (Mode)</Label>
@@ -276,13 +326,14 @@ export default function CreateProjectPage() {
                 <CardDescription>All fields marked with an asterisk (*) are required.</CardDescription>
             </CardHeader>
             <CardContent>
-                <form className="space-y-6">
+                <form ref={formRef} action={formAction} className="space-y-6">
                     <input type="hidden" name="serviceType" value={service} />
                     <input type="hidden" name="userId" value={user?.uid || ''} />
 
                     <div className="space-y-2">
                         <Label htmlFor="title">Project Title *</Label>
                         <Input id="title" name="title" placeholder="A concise title for your project" required />
+                         {state.errors?.title && <p className="text-sm text-destructive">{state.errors.title[0]}</p>}
                     </div>
 
                     {service === 'thesis-dissertation' && renderThesisForm()}
@@ -298,9 +349,7 @@ export default function CreateProjectPage() {
                     <div className="flex justify-end pt-4">
                        {/* Only show submit button if form is implemented */}
                        {(service === 'thesis-dissertation' || service === 'research-paper' || service === 'review-paper' || service === 'book-writing') && (
-                           <Button size="lg" disabled>
-                             Submit Project
-                           </Button>
+                           <SubmitButton />
                        )}
                     </div>
                 </form>
