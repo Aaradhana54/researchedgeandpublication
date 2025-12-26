@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
@@ -87,11 +88,7 @@ export default function CreateProjectPage() {
     }
   }, [state, router, toast]);
 
-  if (!service || !serviceDisplayNames[service]) {
-    notFound();
-  }
-  
-  if (userLoading || !user) {
+  if (userLoading) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
         <LoaderCircle className="h-10 w-10 animate-spin text-primary" />
@@ -100,8 +97,21 @@ export default function CreateProjectPage() {
     );
   }
 
+  if (!user) {
+    // This case should ideally be handled by the layout, but as a fallback:
+    return (
+        <div className="flex h-screen w-full items-center justify-center bg-background">
+            <p>You must be logged in to create a project.</p>
+        </div>
+    );
+  }
+
+
+  if (!service || !serviceDisplayNames[service]) {
+    notFound();
+  }
+
   const pageTitle = serviceDisplayNames[service];
-  const boundFormAction = formAction.bind(null, user.uid);
 
   const renderThesisForm = () => (
     <>
@@ -345,8 +355,9 @@ export default function CreateProjectPage() {
           <CardDescription>Fields marked with * are required.</CardDescription>
         </CardHeader>
         <CardContent>
-          <form ref={formRef} action={boundFormAction} className="space-y-6">
+          <form ref={formRef} action={formAction} className="space-y-6">
             <input type="hidden" name="serviceType" value={service} />
+            <input type="hidden" name="userId" value={user.uid} />
             
             <div className="space-y-2">
               <Label htmlFor="title">Project Title *</Label>

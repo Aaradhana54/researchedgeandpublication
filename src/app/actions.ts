@@ -7,6 +7,7 @@ import { firestore } from '@/firebase/server';
 import { revalidatePath } from 'next/cache';
 
 const projectFormSchema = z.object({
+  userId: z.string().min(1, 'User ID is required.'),
   title: z.string().min(3, 'Project title must be at least 3 characters.'),
   serviceType: z.string(),
   topic: z.string().optional(),
@@ -38,18 +39,11 @@ export type ProjectFormState = {
 
 export async function createProject(
   prevState: ProjectFormState,
-  formData: FormData,
-  userId: string
+  formData: FormData
 ): Promise<ProjectFormState> {
-
-  if (!userId) {
-     return {
-      message: 'Authentication error: User ID is missing. Please log in again.',
-      success: false,
-    };
-  }
   
   const rawFormData = {
+    userId: formData.get('userId'),
     title: formData.get('title'),
     serviceType: formData.get('serviceType'),
     topic: formData.get('topic') || undefined,
@@ -66,6 +60,13 @@ export async function createProject(
   const validatedFields = projectFormSchema.safeParse(rawFormData);
 
   if (!validatedFields.success) {
+    if (validatedFields.error.flatten().fieldErrors.userId) {
+        return {
+            message: 'Authentication error: User ID is missing. Please log in again.',
+            errors: validatedFields.error.flatten().fieldErrors,
+            success: false,
+        };
+    }
     return {
       message: 'Validation failed. Please correct the errors in the form.',
       errors: validatedFields.error.flatten().fieldErrors,
@@ -83,7 +84,6 @@ export async function createProject(
 
     await firestore.collection('projects').add({
       ...dataToSave,
-      userId: userId,
       status: 'pending',
       createdAt: FieldValue.serverTimestamp(),
       updatedAt: FieldValue.serverTimestamp(),
