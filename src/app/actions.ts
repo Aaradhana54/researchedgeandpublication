@@ -37,9 +37,9 @@ export type ProjectFormState = {
 };
 
 export async function createProject(
-  userId: string,
   prevState: ProjectFormState,
-  formData: FormData
+  formData: FormData,
+  userId: string
 ): Promise<ProjectFormState> {
 
   if (!userId) {

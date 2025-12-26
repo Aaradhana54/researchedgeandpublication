@@ -1,7 +1,8 @@
 
 'use client';
 
-import { useState, useEffect, useRef, useActionState } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { useActionState } from 'react';
 import { useParams, notFound, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useFormStatus } from 'react-dom';
@@ -302,8 +303,8 @@ export default function CreateProjectPage() {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="synopsisFile">Manuscript/Synopsis (Optional)</Label>
-        <Input id="synopsisFile" name="synopsisFile" type="file" disabled />
+        <Label htmlFor="manuscriptFile">Manuscript/Synopsis (Optional)</Label>
+        <Input id="manuscriptFile" name="manuscriptFile" type="file" disabled />
         <p className="text-xs text-muted-foreground">File uploads are under construction.</p>
       </div>
 
@@ -344,7 +345,7 @@ export default function CreateProjectPage() {
           <CardDescription>Fields marked with * are required.</CardDescription>
         </CardHeader>
         <CardContent>
-          <form ref={formRef} action={boundFormAction} className="space-y-6">
+          <form ref={formRef} action={(formData) => boundFormAction(state, formData)} className="space-y-6">
             <input type="hidden" name="serviceType" value={service} />
             
             <div className="space-y-2">
