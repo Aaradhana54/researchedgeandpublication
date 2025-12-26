@@ -33,12 +33,12 @@ export function SelectProjectTypeDialog({ children }: { children: React.ReactNod
     const router = useRouter();
 
     const handleServiceSelect = (serviceValue: string) => {
-        const isWriting = writingServices.some(s => s.value === serviceValue);
-        const category = isWriting ? 'writing' : 'publication';
-        router.push(`/dashboard/projects/create/${category}?serviceType=${serviceValue}`);
-        setOpen(false);
-        // Reset view for next time dialog is opened
-        setTimeout(() => setView('main'), 300); 
+        // const isWriting = writingServices.some(s => s.value === serviceValue);
+        // const category = isWriting ? 'writing' : 'publication';
+        // router.push(`/dashboard/projects/create/${category}?serviceType=${serviceValue}`);
+        // setOpen(false);
+        // // Reset view for next time dialog is opened
+        // setTimeout(() => setView('main'), 300); 
     };
 
     const handleOpenChange = (isOpen: boolean) => {
