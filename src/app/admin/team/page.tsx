@@ -1,4 +1,5 @@
 'use client';
+import Link from 'next/link';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { PenTool, TrendingUp, BookCheck, Banknote, ArrowRight } from 'lucide-react';
 
@@ -39,7 +40,7 @@ export default function TeamManagementPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {teams.map((team) => (
-          <div key={team.href} className="group">
+          <Link key={team.href} href={team.href} className="group">
             <Card className="h-full shadow-soft hover:shadow-lift transition-all duration-300 transform hover:-translate-y-1 cursor-pointer">
               <CardHeader>
                 <div className="flex justify-between items-center">
@@ -50,7 +51,7 @@ export default function TeamManagementPage() {
                 <CardDescription>{team.description}</CardDescription>
               </CardHeader>
             </Card>
-          </div>
+          </Link>
         ))}
       </div>
     </div>
