@@ -72,7 +72,7 @@ export default function CreateProjectPage() {
       referencingStyle: rawFormData.referencingStyle,
       language: rawFormData.language,
       wantToPublish: rawFormData.wantToPublish === 'on',
-      publishWhere: rawFormData.publishWhere,
+      publishWhere: rawFormData.publishWhere || '',
       status: 'pending',
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
