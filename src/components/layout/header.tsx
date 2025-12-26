@@ -137,13 +137,17 @@ export function Header() {
                           <Briefcase className="mr-2 h-4 w-4" />
                           <span>Client Login</span>
                         </DropdownMenuItem>
+                         <DropdownMenuItem onClick={() => router.push('/referral-partner/login')}>
+                          <Users className="mr-2 h-4 w-4" />
+                          <span>Referral Partner</span>
+                        </DropdownMenuItem>
                     </DropdownMenuGroup>
                     <DropdownMenuSeparator />
                      <DropdownMenuGroup>
                         <DropdownMenuLabel>Signups</DropdownMenuLabel>
-                        <DropdownMenuItem onClick={() => router.push('/referral-partner/signup')}>
-                          <Users className="mr-2 h-4 w-4" />
-                          <span>Referral Partner</span>
+                        <DropdownMenuItem onClick={() => router.push('/signup')}>
+                          <User className="mr-2 h-4 w-4" />
+                          <span>Client Signup</span>
                         </DropdownMenuItem>
                     </DropdownMenuGroup>
                   </DropdownMenuContent>

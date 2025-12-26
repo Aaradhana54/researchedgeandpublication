@@ -3,9 +3,9 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { LoaderCircle, UserPlus, ArrowLeft } from 'lucide-react';
+import { LoaderCircle, LogIn, ArrowLeft } from 'lucide-react';
 
-import { signup } from '@/firebase/auth';
+import { login } from '@/firebase/auth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -13,31 +13,22 @@ import { Label } from '@/components/ui/label';
 import { getFirebaseErrorMessage } from '@/firebase/errors';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
-export default function ReferralPartnerSignupPage() {
+export default function ReferralPartnerLoginPage() {
   const router = useRouter();
-  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const handleSignup = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
     setLoading(true);
 
-    if (password.length < 6) {
-        setError('Password must be at least 6 characters long.');
-        setLoading(false);
-        return;
-    }
-
     try {
-      // Sign up user with the 'referral-partner' role
-      await signup(email, password, name, 'referral-partner');
-      // Redirect to a future partner dashboard, for now, we can redirect to the home page
-      router.push('/'); 
-      // You can also show a toast message here
+      await login(email, password);
+      // You can create a dedicated dashboard for referral partners later
+      router.push('/dashboard'); 
     } catch (err: any) {
       setError(getFirebaseErrorMessage(err.code));
     } finally {
@@ -47,7 +38,7 @@ export default function ReferralPartnerSignupPage() {
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-secondary p-4">
-       <Card className="w-full max-w-md mx-auto shadow-lift relative">
+      <Card className="w-full max-w-md mx-auto shadow-lift relative">
          <Button variant="ghost" size="sm" asChild className="absolute top-4 left-4">
             <Link href="/">
                 <ArrowLeft className="mr-2 h-4 w-4" />
@@ -55,29 +46,17 @@ export default function ReferralPartnerSignupPage() {
             </Link>
          </Button>
         <CardHeader className="text-center pt-16">
-          <CardTitle className="text-2xl font-bold">Referral Partner Signup</CardTitle>
-          <CardDescription>Join our network of referral partners.</CardDescription>
+          <CardTitle className="text-2xl font-bold">Referral Partner Login</CardTitle>
+          <CardDescription>Access your partner dashboard.</CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSignup} className="space-y-4">
+          <form onSubmit={handleLogin} className="space-y-4">
             {error && (
               <Alert variant="destructive">
-                <AlertTitle>Signup Failed</AlertTitle>
+                <AlertTitle>Login Failed</AlertTitle>
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
-            <div className="space-y-2">
-              <Label htmlFor="name">Full Name</Label>
-              <Input
-                id="name"
-                type="text"
-                placeholder="John Doe"
-                required
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                disabled={loading}
-              />
-            </div>
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -99,30 +78,20 @@ export default function ReferralPartnerSignupPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={loading}
-                aria-describedby="password-help"
               />
-              <p id="password-help" className="text-xs text-muted-foreground">Password must be at least 6 characters.</p>
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? (
                 <LoaderCircle className="animate-spin" />
               ) : (
                 <>
-                  <UserPlus className="mr-2 h-4 w-4" />
-                  Become a Partner
+                  <LogIn className="mr-2 h-4 w-4" />
+                  Login
                 </>
               )}
             </Button>
           </form>
         </CardContent>
-         <CardFooter className="flex justify-center">
-          <p className="text-sm text-muted-foreground">
-            {'Already have an account?'}{' '}
-            <Link href="/login" className="font-semibold text-primary hover:underline">
-              Login
-            </Link>
-          </p>
-        </CardFooter>
       </Card>
     </div>
   );
