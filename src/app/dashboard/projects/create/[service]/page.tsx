@@ -20,10 +20,10 @@ import type { ProjectServiceType, CourseLevel } from '@/lib/types';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { useActionState } from 'react';
 import { createProject, type ProjectFormState } from '@/app/actions';
 import { FormMessage } from '@/components/ui/form';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { useFormState, useFormStatus } from 'react-dom';
 
 
 const serviceDisplayNames: Record<ProjectServiceType, string> = {
@@ -42,10 +42,11 @@ const courseLevels: { label: string, value: CourseLevel }[] = [
 ];
 
 function SubmitButton() {
-  // This component will be used inside the form to show a loading state, but we need to implement `useFormStatus`.
-  // For now, we'll keep the button logic in the main component.
+  const { pending } = useFormStatus();
+
   return (
-    <Button size="lg" type="submit" className="w-full sm:w-auto">
+    <Button size="lg" type="submit" className="w-full sm:w-auto" disabled={pending}>
+       {pending && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />}
       Submit Project
     </Button>
   );
@@ -59,7 +60,7 @@ export default function CreateProjectPage() {
   const { toast } = useToast();
 
   const initialState: ProjectFormState = { message: '', errors: {}, success: false };
-  const [state, formAction] = useActionState(createProject, initialState);
+  const [state, formAction] = useFormState(createProject, initialState);
 
   const [formKey, setFormKey] = useState(Date.now()); // Used to reset the form
 

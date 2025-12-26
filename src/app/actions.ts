@@ -1,12 +1,13 @@
 
 
-'use server';
+'use client';
 
 import { z } from 'zod';
-import { FieldValue, Timestamp }from 'firebase-admin/firestore';
-import { firestore, auth as adminAuth } from '@/firebase/server';
+import { addDoc, collection, serverTimestamp, Timestamp } from 'firebase/firestore';
 import { revalidatePath } from 'next/cache';
-import type { ProjectServiceType, CourseLevel, UserRole } from '@/lib/types';
+import type { UserRole } from '@/lib/types';
+import { firestore } from '@/firebase/client';
+import { auth as adminAuth } from '@/firebase/server';
 
 
 export type ProjectFormState = {
@@ -89,10 +90,11 @@ export async function createProject(
     };
   }
 
-  const dataToSave: any = {
-    ...validatedFields.data,
-  };
-  
+  const dataToSave: any = {};
+
+  // Copy validated data
+  Object.assign(dataToSave, validatedFields.data);
+
   // Explicitly handle date conversion to Firestore Timestamp
   if (validatedFields.data.deadline) {
     dataToSave.deadline = Timestamp.fromDate(validatedFields.data.deadline);
@@ -109,12 +111,13 @@ export async function createProject(
 
 
   try {
-    await firestore.collection('projects').add({
+    const projectsCollection = collection(firestore, 'projects');
+    await addDoc(projectsCollection, {
       ...dataToSave,
       userId: userId,
       status: 'pending',
-      createdAt: FieldValue.serverTimestamp(),
-      updatedAt: FieldValue.serverTimestamp(),
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
     });
 
     revalidatePath('/dashboard/projects');
@@ -169,10 +172,12 @@ export async function createUserAsAdmin(formData: FormData) {
       name,
       email,
       role,
-      createdAt: FieldValue.serverTimestamp(),
+      createdAt: Timestamp.now(),
     };
+    
+    const usersCollection = collection(firestore, 'users');
+    await addDoc(usersCollection, userProfile);
 
-    await firestore.collection('users').doc(userRecord.uid).set(userProfile);
 
     // 3. Revalidate paths to update the user lists in the admin panel
     revalidatePath('/admin/users');
