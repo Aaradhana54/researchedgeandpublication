@@ -6,17 +6,24 @@ import { FieldValue } from 'firebase-admin/firestore';
 import { firestore } from '@/firebase/server';
 import { revalidatePath } from 'next/cache';
 
-// Zod schema for validation, now with transformations to handle optional fields
 const projectFormSchema = z.object({
-  userId: z.string().min(1, 'User ID is required.'),
   title: z.string().min(3, 'Project title must be at least 3 characters.'),
   serviceType: z.string(),
   topic: z.string().optional(),
   courseLevel: z.string().optional(),
-  deadline: z.coerce.date().optional(),
+  deadline: z.preprocess(
+    (val) => (typeof val === 'string' && val !== '' ? new Date(val) : undefined),
+    z.date().optional()
+  ),
   referencingStyle: z.string().optional(),
-  pageCount: z.coerce.number().optional(),
-  wordCount: z.coerce.number().optional(),
+  pageCount: z.preprocess(
+    (val) => (val === '' || val == null ? undefined : Number(val)),
+    z.number().optional()
+  ),
+  wordCount: z.preprocess(
+    (val) => (val === '' || val == null ? undefined : Number(val)),
+    z.number().optional()
+  ),
   language: z.string().optional(),
   wantToPublish: z.boolean().optional(),
   publishWhere: z.string().optional(),
@@ -30,13 +37,19 @@ export type ProjectFormState = {
 };
 
 export async function createProject(
+  userId: string,
   prevState: ProjectFormState,
   formData: FormData
 ): Promise<ProjectFormState> {
+
+  if (!userId) {
+     return {
+      message: 'Authentication error: User ID is missing. Please log in again.',
+      success: false,
+    };
+  }
   
-  // Convert FormData to a plain object, ensuring empty strings become undefined for optional fields
   const rawFormData = {
-    userId: formData.get('userId'),
     title: formData.get('title'),
     serviceType: formData.get('serviceType'),
     topic: formData.get('topic') || undefined,
@@ -50,10 +63,8 @@ export async function createProject(
     publishWhere: formData.get('publishWhere') || undefined,
   };
 
-  // Validate the data
   const validatedFields = projectFormSchema.safeParse(rawFormData);
 
-  // If validation fails, return the errors
   if (!validatedFields.success) {
     return {
       message: 'Validation failed. Please correct the errors in the form.',
@@ -63,24 +74,21 @@ export async function createProject(
   }
 
   try {
-    // Prepare the data for Firestore, removing any keys with undefined values
-    const dataToSave: { [key: string]: any } = { ...validatedFields.data };
-    
-    Object.keys(dataToSave).forEach(key => {
-      if (dataToSave[key] === undefined || dataToSave[key] === null) {
-          delete dataToSave[key];
-      }
-    });
+    const dataToSave: { [key: string]: any } = {};
+    for (const [key, value] of Object.entries(validatedFields.data)) {
+        if (value !== undefined) {
+            dataToSave[key] = value;
+        }
+    }
 
-    // Save to Firestore using the Admin SDK
     await firestore.collection('projects').add({
       ...dataToSave,
+      userId: userId,
       status: 'pending',
       createdAt: FieldValue.serverTimestamp(),
       updatedAt: FieldValue.serverTimestamp(),
     });
 
-    // Revalidate the projects page to show the new data
     revalidatePath('/dashboard/projects');
 
     return {
@@ -89,7 +97,6 @@ export async function createProject(
     };
   } catch (error) {
     console.error('Error creating project:', error);
-    // Return a generic server error message
     return {
       message: 'An unexpected error occurred while saving the project. Please try again.',
       success: false,
