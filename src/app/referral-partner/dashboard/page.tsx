@@ -10,6 +10,16 @@ import { collection, query, where } from 'firebase/firestore';
 import type { UserProfile, Payout, Project } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 const COMMISSION_PER_PROJECT = 50; // Example commission amount
 
@@ -102,24 +112,60 @@ export default function ReferralDashboardPage() {
         <p className="text-lg text-muted-foreground">This is your Referral Partner Dashboard Overview.</p>
       </div>
 
-      <Card className="shadow-lift">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Share2 className="w-6 h-6 text-primary" />
-            Your Referral Link
-          </CardTitle>
-          <CardDescription>
-            Share this link to bring clients and earn commissions.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col sm:flex-row items-center gap-4">
-            <pre className="flex-1 p-3 bg-muted rounded-md overflow-x-auto text-sm text-muted-foreground">{referralLink}</pre>
-            <Button onClick={handleCopyLink} className="w-full sm:w-auto" disabled={!referralLink}>
-                <Copy className="mr-2 h-4 w-4" />
-                Copy Link
-            </Button>
-        </CardContent>
-      </Card>
+       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+            <Card className="shadow-lift col-span-1 lg:col-span-2">
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-3">
+                        <Share2 className="w-6 h-6 text-primary"/>
+                        Refer a Client
+                    </CardTitle>
+                    <CardDescription>
+                        Share your unique link to bring new clients and earn commissions on their projects.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Dialog>
+                        <DialogTrigger asChild>
+                            <Button size="lg" className="w-full">Refer a Client</Button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-md">
+                            <DialogHeader>
+                                <DialogTitle>Share Your Referral Link</DialogTitle>
+                                <DialogDescription>
+                                    Copy the link below and share it with potential clients. You'll earn a commission for every new client who signs up and starts a project.
+                                </DialogDescription>
+                            </DialogHeader>
+                            <div className="space-y-4 py-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="referral-link">Your Unique Link</Label>
+                                    <Input id="referral-link" value={referralLink} readOnly />
+                                </div>
+                                <Button onClick={handleCopyLink} className="w-full">
+                                    <Copy className="mr-2 h-4 w-4" />
+                                    Copy Link
+                                </Button>
+                            </div>
+                        </DialogContent>
+                    </Dialog>
+                </CardContent>
+            </Card>
+
+             <Card className="col-span-1 lg:col-span-2">
+                <CardHeader>
+                    <CardTitle>Your Referral Link</CardTitle>
+                    <CardDescription>
+                        This is your unique link for sharing.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="flex flex-col sm:flex-row items-center gap-4">
+                    <pre className="flex-1 p-3 bg-muted rounded-md overflow-x-auto text-sm text-muted-foreground">{referralLink}</pre>
+                    <Button onClick={handleCopyLink} className="w-full sm:w-auto" disabled={!referralLink}>
+                        <Copy className="mr-2 h-4 w-4" />
+                        Copy Link
+                    </Button>
+                </CardContent>
+            </Card>
+        </div>
       
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatCard title="Total Leads" value={totalLeads} icon={<Users className="h-4 w-4 text-muted-foreground" />} />
