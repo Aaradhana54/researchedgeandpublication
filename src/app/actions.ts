@@ -89,30 +89,28 @@ export async function createProject(
       synopsisFileUrl = `/uploads/placeholder/${synopsisFile.name}`;
       console.log(`File "${synopsisFile.name}" would be uploaded. Using placeholder URL: ${synopsisFileUrl}`);
   }
-
+  
   const rawData = Object.fromEntries(formData.entries());
 
   const processedData = {
       ...rawData,
-      // Ensure empty strings for optional fields become undefined so Zod can validate correctly
       topic: rawData.topic || undefined,
       courseLevel: rawData.courseLevel || undefined,
       deadline: rawData.deadline || undefined,
       referencingStyle: rawData.referencingStyle || undefined,
       language: rawData.language || undefined,
       publishWhere: rawData.publishWhere || undefined,
-      // Coerce numbers, handling empty strings
       pageCount: rawData.pageCount ? Number(rawData.pageCount) : undefined,
       wordCount: rawData.wordCount ? Number(rawData.wordCount) : undefined,
-      // Handle checkbox
       wantToPublish: rawData.wantToPublish === 'on',
-      // Handle file URL
       synopsisFileUrl: synopsisFileUrl,
   };
+
 
   const validatedFields = projectFormSchema.safeParse(processedData);
   
   if (!validatedFields.success) {
+    console.log(validatedFields.error.flatten());
     return {
       message: 'Error: Please correct the errors in the form.',
       errors: validatedFields.error.flatten().fieldErrors,
@@ -126,12 +124,13 @@ export async function createProject(
 
   const projectsRef = firestore.collection('projects');
   
-  const projectData = {
-    ...validatedFields.data,
-    // Filter out undefined values before sending to Firestore
-    ...Object.fromEntries(Object.entries(validatedFields.data).filter(([, v]) => v !== undefined)),
-  };
-
+  // Explicitly remove undefined values before sending to Firestore Admin SDK
+  const projectData: { [key: string]: any } = {};
+  for (const [key, value] of Object.entries(validatedFields.data)) {
+    if (value !== undefined) {
+      projectData[key] = value;
+    }
+  }
 
   try {
     await projectsRef.add({
