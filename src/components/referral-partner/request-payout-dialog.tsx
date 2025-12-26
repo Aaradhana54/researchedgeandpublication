@@ -18,27 +18,55 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { LoaderCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
+import { useFirestore, useUser } from '@/firebase';
+import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 
 export function RequestPayoutDialog({ children, currentBalance }: { children: React.ReactNode, currentBalance: number }) {
     const [open, setOpen] = useState(false);
     const [loading, setLoading] = useState(false);
     const [amount, setAmount] = useState(currentBalance);
     const { toast } = useToast();
+    const firestore = useFirestore();
+    const { user } = useUser();
 
     const handleSubmit = async (event: React.FormEvent) => {
         event.preventDefault();
+        if (!firestore || !user) {
+            toast({
+                variant: 'destructive',
+                title: 'Error',
+                description: 'You must be logged in to request a payout.',
+            });
+            return;
+        }
         setLoading(true);
 
-        // Simulate an API call
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        
-        toast({
-            title: 'Payout Requested',
-            description: `Your request for ${amount.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })} has been submitted.`,
-        });
+        try {
+            const payoutData = {
+                userId: user.uid,
+                amount,
+                status: 'pending',
+                requestDate: serverTimestamp(),
+                createdAt: serverTimestamp(),
+            };
+            await addDoc(collection(firestore, 'payouts'), payoutData);
 
-        setLoading(false);
-        setOpen(false);
+            toast({
+                title: 'Payout Requested',
+                description: `Your request for ${amount.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })} has been submitted for review.`,
+            });
+            setOpen(false);
+
+        } catch (error) {
+            console.error('Payout request failed:', error);
+            toast({
+                variant: 'destructive',
+                title: 'Request Failed',
+                description: 'Could not submit your payout request. Please try again.',
+            });
+        } finally {
+            setLoading(false);
+        }
     };
 
     const onOpenChange = (isOpen: boolean) => {
@@ -54,6 +82,7 @@ export function RequestPayoutDialog({ children, currentBalance }: { children: Re
             <DialogContent className="sm:max-w-md">
                 <DialogHeader>
                     <DialogTitle className="text-2xl font-bold">Request Payout</DialogTitle>
+
                     <DialogDescription>
                         Transfer your available commission to your bank account.
                     </DialogDescription>
@@ -93,7 +122,7 @@ export function RequestPayoutDialog({ children, currentBalance }: { children: Re
                         <DialogClose asChild>
                             <Button type="button" variant="secondary" disabled={loading}>Cancel</Button>
                         </DialogClose>
-                        <Button type="submit" disabled={loading || amount < 1000}>
+                        <Button type="submit" disabled={loading || amount < 1000 || amount > currentBalance}>
                             {loading && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />}
                             Submit Request
                         </Button>

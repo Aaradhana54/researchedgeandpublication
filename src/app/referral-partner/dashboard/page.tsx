@@ -1,13 +1,12 @@
-
 'use client';
 
 import { useMemo, useState } from 'react';
 import { useUser } from '@/firebase/auth/use-user';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { LoaderCircle, Copy, Users, CheckCircle, DollarSign, Download, Paintbrush, Share2, Wallet, Receipt, Banknote } from 'lucide-react';
+import { LoaderCircle, Copy, Users, CheckCircle, DollarSign, Wallet, Share2, Receipt, Banknote, PaintBrush } from 'lucide-react';
 import { useCollection, useFirestore } from '@/firebase';
 import { collection, query, where } from 'firebase/firestore';
-import type { UserProfile } from '@/lib/types';
+import type { UserProfile, Payout } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -38,14 +37,6 @@ function StatCard({ title, value, icon }: { title: string, value: string | numbe
   );
 }
 
-// Dummy data for payout history
-const dummyPayouts = [
-    { id: 'PAY-2024015', date: '2024-05-15', amount: '₹12,500', status: 'paid' },
-    { id: 'PAY-2024014', date: '2024-04-15', amount: '₹8,200', status: 'paid' },
-    { id: 'PAY-2024013', date: '2024-03-15', amount: '₹15,000', status: 'paid' },
-] as const;
-
-
 export default function ReferralDashboardPage() {
   const { user, loading: userLoading } = useUser();
   const firestore = useFirestore();
@@ -56,9 +47,15 @@ export default function ReferralDashboardPage() {
     return query(collection(firestore, 'users'), where('referredBy', '==', user.referralCode));
   }, [user, firestore]);
 
-  const { data: referredUsers, loading: referralsLoading } = useCollection<UserProfile>(referredUsersQuery);
+  const payoutsQuery = useMemo(() => {
+    if (!user || !firestore) return null;
+    return query(collection(firestore, 'payouts'), where('userId', '==', user.uid));
+  }, [user, firestore]);
 
-  const loading = userLoading || referralsLoading;
+  const { data: referredUsers, loading: referralsLoading } = useCollection<UserProfile>(referredUsersQuery);
+  const { data: payouts, loading: payoutsLoading } = useCollection<Payout>(payoutsQuery);
+
+  const loading = userLoading || referralsLoading || payoutsLoading;
 
   const referralLink = useMemo(() => {
     if (typeof window === 'undefined' || !user?.referralCode) return '';
@@ -74,12 +71,11 @@ export default function ReferralDashboardPage() {
     });
   };
   
-  // Dummy data for now
   const totalLeads = referredUsers?.length ?? 0;
   const convertedLeads = referredUsers?.filter(u => u.role === 'client' /* and has made a purchase, etc. */).length ?? 0; // This logic would need to be more complex
-  const commissionRate = 0.10; // 10%
-  const pendingCommission = (convertedLeads * 50); // Assuming avg. project value for demo
-  const totalCommission = (12500 + 8200 + 15000 + pendingCommission);
+  
+  const pendingCommission = (convertedLeads * 50); // Dummy calculation for demo
+  const totalEarnings = payouts?.filter(p => p.status === 'paid').reduce((acc, p) => acc + p.amount, 0) ?? 0;
 
   if (loading || !user) {
     return (
@@ -121,7 +117,7 @@ export default function ReferralDashboardPage() {
         <StatCard title="Total Leads" value={totalLeads} icon={<Users className="h-4 w-4 text-muted-foreground" />} />
         <StatCard title="Converted Leads" value={convertedLeads} icon={<CheckCircle className="h-4 w-4 text-muted-foreground" />} />
         <StatCard title="Pending Commission" value={pendingCommission.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })} icon={<Wallet className="h-4 w-4 text-muted-foreground" />} />
-        <StatCard title="Total Earnings" value={totalCommission.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })} icon={<DollarSign className="h-4 w-4 text-muted-foreground" />} />
+        <StatCard title="Total Earnings" value={totalEarnings.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })} icon={<DollarSign className="h-4 w-4 text-muted-foreground" />} />
       </div>
 
       <div className="grid gap-8 lg:grid-cols-2">
@@ -169,7 +165,7 @@ export default function ReferralDashboardPage() {
                             <CardDescription>A record of your past commission payouts.</CardDescription>
                         </div>
                         <RequestPayoutDialog currentBalance={pendingCommission}>
-                           <Button variant="outline" size="sm">
+                           <Button variant="outline" size="sm" disabled={pendingCommission < 1000}>
                                <Banknote className="mr-2 h-4 w-4" />
                                Request Payout
                            </Button>
@@ -177,7 +173,7 @@ export default function ReferralDashboardPage() {
                     </div>
                 </CardHeader>
                 <CardContent>
-                    {dummyPayouts.length > 0 ? (
+                    {payouts && payouts.length > 0 ? (
                         <Table>
                             <TableHeader>
                                 <TableRow>
@@ -187,12 +183,14 @@ export default function ReferralDashboardPage() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {dummyPayouts.map(payout => (
+                                {payouts.map(payout => (
                                     <TableRow key={payout.id}>
-                                        <TableCell className="font-medium">{payout.date}</TableCell>
-                                        <TableCell>{payout.amount}</TableCell>
+                                        <TableCell className="font-medium">{format(payout.requestDate.toDate(), 'PPP')}</TableCell>
+                                        <TableCell>{payout.amount.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}</TableCell>
                                         <TableCell className="text-right">
-                                            <Badge variant={payout.status === 'paid' ? 'default' : 'secondary'} className="capitalize bg-green-100 text-green-800">
+                                            <Badge 
+                                              variant={payout.status === 'paid' ? 'default' : 'secondary'} 
+                                              className={payout.status === 'paid' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'}>
                                                 {payout.status}
                                             </Badge>
                                         </TableCell>
@@ -216,7 +214,7 @@ export default function ReferralDashboardPage() {
                 </CardHeader>
                 <CardContent>
                     <MarketingKitDialog>
-                        <Button><Paintbrush className="mr-2"/> Access Materials</Button>
+                        <Button><PaintBrush className="mr-2"/> Access Materials</Button>
                     </MarketingKitDialog>
                 </CardContent>
             </Card>

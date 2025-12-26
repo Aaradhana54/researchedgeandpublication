@@ -28,7 +28,9 @@ service cloud.firestore {
       allow create: if isAllowedToCreateOwnProfile() || isAdmin();
       // Users can read their own profile. Admins can read any profile and list all users.
       // Referral partners can list clients they have referred.
-      allow read, list: if isOwner(userId) || isAdmin() || (isReferralPartner() && resource.data.referredBy == request.auth.uid);
+      allow read: if isOwner(userId) || isAdmin();
+      allow list: if isAdmin() || isReferralPartner();
+
       // Users can update their own profile, but cannot change their role. 
       // Admins can update any profile, but also cannot change roles for security.
       allow update: if (isOwner(userId) || isAdmin()) && request.resource.data.role == resource.data.role;
@@ -68,6 +70,15 @@ service cloud.firestore {
         allow read, list: if (isReferralPartner() && resource.data.partnerId == request.auth.uid) || isAdmin();
         allow update, delete: if isAdmin();
     }
+
+    match /payouts/{payoutId} {
+      // Partners can create their own payout requests.
+      allow create: if isReferralPartner() && request.resource.data.userId == request.auth.uid;
+      // Partners can read their own payout history. Admins can manage all.
+      allow read, list: if (isReferralPartner() && resource.data.userId == request.auth.uid) || isAdmin();
+      // Only Admins can update (e.g. to 'paid') or delete payouts.
+      allow update, delete: if isAdmin();
+    }
     
     // --- Admin-only Collections ---
 
@@ -76,10 +87,6 @@ service cloud.firestore {
     }
 
     match /book_sales/{saleId} {
-      allow read, write, create, list, update, delete: if isAdmin();
-    }
-
-    match /payouts/{payoutId} {
       allow read, write, create, list, update, delete: if isAdmin();
     }
 
