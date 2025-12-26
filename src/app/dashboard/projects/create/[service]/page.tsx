@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, use } from 'react';
 import { useActionState } from 'react';
 import { useParams, useRouter, notFound } from 'next/navigation';
 import Link from 'next/link';
@@ -263,6 +263,68 @@ export default function CreateProjectPage() {
      </>
   );
 
+  const renderBookWritingForm = () => (
+    <>
+      <div className="space-y-2">
+        <Label htmlFor="topic">Topic *</Label>
+        <Input id="topic" name="topic" placeholder="e.g., A History of Ancient Rome" required />
+        {state.errors?.topic && <p className="text-sm text-destructive">{state.errors.topic[0]}</p>}
+      </div>
+
+      <div className="grid md:grid-cols-2 gap-6">
+        <div className="space-y-2">
+          <Label htmlFor="pageCount">Page Count</Label>
+          <Input id="pageCount" name="pageCount" type="number" placeholder="e.g., 300" />
+          {state.errors?.pageCount && <p className="text-sm text-destructive">{state.errors.pageCount[0]}</p>}
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="language">Language (Mode)</Label>
+          <Input id="language" name="language" placeholder="e.g., English" defaultValue="English" />
+          {state.errors?.language && <p className="text-sm text-destructive">{state.errors.language[0]}</p>}
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="deadline">Deadline</Label>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant={"outline"} className={cn("w-full justify-start text-left font-normal", !deadline && "text-muted-foreground")}>
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {deadline ? format(deadline, "PPP") : <span>Pick a date</span>}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0">
+            <Calendar mode="single" selected={deadline} onSelect={setDeadline} initialFocus />
+          </PopoverContent>
+        </Popover>
+        <Input type="hidden" name="deadline" value={deadline?.toISOString()} />
+        {state.errors?.deadline && <p className="text-sm text-destructive">{state.errors.deadline[0]}</p>}
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="synopsisFile">Manuscript/Synopsis (Optional)</Label>
+        <Input id="synopsisFile" name="synopsisFile" type="file" />
+        {state.errors?.synopsisFileUrl && <p className="text-sm text-destructive">{state.errors.synopsisFileUrl[0]}</p>}
+      </div>
+
+      <div className="space-y-4">
+        <div className="flex items-center space-x-2">
+          <Checkbox id="wantToPublish" name="wantToPublish" checked={wantToPublish} onCheckedChange={(checked) => setWantToPublish(checked as boolean)} />
+          <Label htmlFor="wantToPublish" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+            Want to publish with us?
+          </Label>
+        </div>
+        {wantToPublish && (
+          <div className="space-y-2">
+            <Label htmlFor="publishWhere">Where? (e.g., Amazon, B&N, IngramSpark)</Label>
+            <Input id="publishWhere" name="publishWhere" placeholder="Let us know your preferred platforms" />
+            {state.errors?.publishWhere && <p className="text-sm text-destructive">{state.errors.publishWhere[0]}</p>}
+          </div>
+        )}
+      </div>
+    </>
+  );
+
   return (
     <div className="p-4 sm:p-6 lg:p-8">
         <div className="mb-8">
@@ -294,16 +356,17 @@ export default function CreateProjectPage() {
 
                     {service === 'thesis-dissertation' && renderThesisForm()}
                     {(service === 'research-paper' || service === 'review-paper') && renderPaperForm()}
+                    {service === 'book-writing' && renderBookWritingForm()}
 
                     {/* Placeholder for other service forms */}
-                    {(service === 'book-writing' || service === 'research-publication' || service === 'book-publishing') && (
+                    {(service === 'research-publication' || service === 'book-publishing') && (
                         <p className="text-center text-muted-foreground py-8">This form is under construction. Please check back later.</p>
                     )}
 
 
                     <div className="flex justify-end pt-4">
                        {/* Only show submit button if form is implemented */}
-                       {(service === 'thesis-dissertation' || service === 'research-paper' || service === 'review-paper') && (
+                       {(service === 'thesis-dissertation' || service === 'research-paper' || service === 'review-paper' || service === 'book-writing') && (
                            <SubmitButton />
                        )}
                     </div>
