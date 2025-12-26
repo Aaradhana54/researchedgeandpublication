@@ -48,7 +48,11 @@ service cloud.firestore {
       // Owners or admins can manage projects.
       // Referral partners can read projects of users they referred to calculate conversions.
       allow read: if isOwner(resource.data.userId) || isAdmin() || (isReferralPartner() && get(/databases/$(database)/documents/users/$(resource.data.userId)).data.referredBy == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.referralCode);
-      allow update, delete: if isOwner(resource.data.userId) || isAdmin();
+      
+      // Admins can update any project. Owners can update their own.
+      allow update: if isOwner(resource.data.userId) || isAdmin();
+      
+      allow delete: if isOwner(resource.data.userId) || isAdmin();
       
       // Authenticated users (clients, admins, partners) can list projects.
       allow list: if request.auth != null;

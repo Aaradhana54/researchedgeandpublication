@@ -2,8 +2,8 @@
 'use client';
 
 import { useMemo } from 'react';
-import { useParams, notFound } from 'next/navigation';
-import { doc } from 'firebase/firestore';
+import { useParams, notFound, useRouter } from 'next/navigation';
+import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { useDoc, useFirestore } from '@/firebase';
 import type { Project, UserProfile, ProjectStatus } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,7 +12,6 @@ import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { updateProjectStatus } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 
 function DetailItem({ label, value, isBadge = false, badgeVariant }: { label: string; value?: string | number | boolean | null; isBadge?: boolean; badgeVariant?: 'default' | 'secondary' | 'destructive' | 'outline' }) {
@@ -41,6 +40,7 @@ export default function ProjectDetailPage() {
     const projectId = params.id as string;
     const firestore = useFirestore();
     const { toast } = useToast();
+    const router = useRouter();
 
     const projectRef = useMemo(() => {
         if (!firestore || !projectId) return null;
@@ -59,18 +59,26 @@ export default function ProjectDetailPage() {
     const loading = loadingProject || loadingUser;
 
     const handleStatusUpdate = async (status: ProjectStatus) => {
+        if (!firestore) return;
         try {
-            await updateProjectStatus(projectId, status);
+            const projectDocRef = doc(firestore, 'projects', projectId);
+            await updateDoc(projectDocRef, {
+                status: status,
+                updatedAt: serverTimestamp(),
+            });
+
             toast({
                 title: 'Status Updated',
                 description: `Project has been marked as ${status}.`
             });
+            router.refresh();
         } catch (error: any) {
             toast({
                 variant: 'destructive',
                 title: 'Update Failed',
                 description: error.message
             });
+            console.error("Failed to update project status:", error);
         }
     };
     

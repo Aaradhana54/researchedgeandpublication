@@ -73,26 +73,3 @@ export async function createUserAsAdmin(formData: FormData) {
     throw new Error(errorMessage);
   }
 }
-
-export async function updateProjectStatus(projectId: string, status: ProjectStatus) {
-    if (!projectId || !status) {
-        throw new Error('Project ID and status are required.');
-    }
-
-    try {
-        const projectRef = adminFirestore.collection('projects').doc(projectId);
-        
-        await projectRef.update({
-            status: status,
-            updatedAt: admin.firestore.Timestamp.now(),
-        });
-
-        revalidatePath('/admin/projects');
-        revalidatePath(`/admin/projects/${projectId}`);
-        
-        return { success: true, message: `Project status updated to ${status}.` };
-    } catch (error: any) {
-        console.error('Error updating project status:', error);
-        throw new Error(error.message || 'An unknown error occurred while updating project status.');
-    }
-}

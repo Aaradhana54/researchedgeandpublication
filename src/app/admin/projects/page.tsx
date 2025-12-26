@@ -2,7 +2,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { collection, query, orderBy } from 'firebase/firestore';
+import { collection, query, orderBy, doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { useCollection, useFirestore } from '@/firebase';
 import type { Project, UserProfile, ProjectStatus } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -19,13 +19,14 @@ import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { updateProjectStatus } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 export default function AdminProjectsPage() {
   const firestore = useFirestore();
   const { toast } = useToast();
+  const router = useRouter();
 
   const projectsQuery = useMemo(() => {
     if (!firestore) return null;
@@ -48,18 +49,25 @@ export default function AdminProjectsPage() {
   }, [users]);
 
   const handleStatusUpdate = async (projectId: string, status: ProjectStatus) => {
+    if (!firestore) return;
     try {
-        await updateProjectStatus(projectId, status);
+        const projectDocRef = doc(firestore, 'projects', projectId);
+        await updateDoc(projectDocRef, {
+            status: status,
+            updatedAt: serverTimestamp(),
+        });
         toast({
             title: 'Status Updated',
             description: `Project has been marked as ${status}.`
         });
+        router.refresh();
     } catch (error: any) {
          toast({
             variant: 'destructive',
             title: 'Update Failed',
             description: error.message
         });
+        console.error("Failed to update project status:", error);
     }
   }
   
