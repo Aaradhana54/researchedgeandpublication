@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useMemo, useState } from 'react';
@@ -51,7 +52,7 @@ export default function ReferralDashboardPage() {
   const { toast } = useToast();
 
   const referredUsersQuery = useMemo(() => {
-    if (!user || !firestore) return null;
+    if (!user || !firestore || !user.referralCode) return null;
     return query(collection(firestore, 'users'), where('referredBy', '==', user.referralCode));
   }, [user, firestore]);
 
