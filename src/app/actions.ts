@@ -1,6 +1,4 @@
-
-
-'use client';
+'use server';
 
 import { z } from 'zod';
 import { addDoc, collection, serverTimestamp, Timestamp } from 'firebase/firestore';
