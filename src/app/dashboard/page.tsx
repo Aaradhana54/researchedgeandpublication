@@ -71,9 +71,17 @@ export default function DashboardPage() {
                     <h2 className="text-2xl font-bold tracking-tight">Recent Projects</h2>
                      <p className="text-muted-foreground">Here are your most recent projects.</p>
                 </div>
-                <Button asChild>
-                    <Link href="/dashboard/projects">View All Projects</Link>
-                </Button>
+                <div className="flex items-center gap-2">
+                    <SelectProjectTypeDialog>
+                        <Button variant="outline">
+                            <FilePlus className="mr-2" />
+                            New Project
+                        </Button>
+                    </SelectProjectTypeDialog>
+                    <Button asChild>
+                        <Link href="/dashboard/projects">View All Projects</Link>
+                    </Button>
+                </div>
              </div>
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {projects.slice(0, 3).map((project) => (
