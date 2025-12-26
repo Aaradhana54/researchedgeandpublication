@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useUser } from '@/firebase/auth/use-user';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoaderCircle, Copy, Users, CheckCircle, DollarSign, Download, Paintbrush, Share2 } from 'lucide-react';
@@ -19,7 +19,8 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { format } from 'date-fns';
-import { Badge } from '@/components/ui/badge';
+import { MarketingKitDialog } from '@/components/referral-partner/marketing-kit-dialog';
+
 
 function StatCard({ title, value, icon }: { title: string, value: string | number, icon: React.ReactNode }) {
   return (
@@ -51,11 +52,12 @@ export default function ReferralDashboardPage() {
   const loading = userLoading || referralsLoading;
 
   const referralLink = useMemo(() => {
-    if (!user?.referralCode) return '';
+    if (typeof window === 'undefined' || !user?.referralCode) return '';
     return `${window.location.origin}/signup?ref=${user.referralCode}`;
   }, [user?.referralCode]);
 
   const handleCopyLink = () => {
+    if (!referralLink) return;
     navigator.clipboard.writeText(referralLink);
     toast({
       title: 'Copied to Clipboard',
@@ -98,7 +100,7 @@ export default function ReferralDashboardPage() {
         </CardHeader>
         <CardContent className="flex flex-col sm:flex-row items-center gap-4">
             <pre className="flex-1 p-3 bg-muted rounded-md overflow-x-auto text-sm text-muted-foreground">{referralLink}</pre>
-            <Button onClick={handleCopyLink} className="w-full sm:w-auto">
+            <Button onClick={handleCopyLink} className="w-full sm:w-auto" disabled={!referralLink}>
                 <Copy className="mr-2 h-4 w-4" />
                 Copy Link
             </Button>
@@ -160,10 +162,12 @@ export default function ReferralDashboardPage() {
              <Card>
                 <CardHeader>
                     <CardTitle>Marketing Kit</CardTitle>
-                    <CardDescription>This section is under construction.</CardDescription>
+                    <CardDescription>Download logos, creatives, and templates to help you promote our services.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                     <Button disabled><Paintbrush className="mr-2"/> Access Materials</Button>
+                    <MarketingKitDialog>
+                        <Button><Paintbrush className="mr-2"/> Access Materials</Button>
+                    </MarketingKitDialog>
                 </CardContent>
             </Card>
         </div>
