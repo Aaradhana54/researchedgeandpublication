@@ -1,7 +1,7 @@
 'use client';
 
-import { use, useEffect, useRef } from 'react';
-import { useActionState } from 'react-dom';
+import { use, useEffect, useRef, useState } from 'react';
+import { useActionState } from 'react';
 import { useParams, useRouter, notFound } from 'next/navigation';
 import Link from 'next/link';
 import { useUser } from '@/firebase/auth/use-user';
@@ -38,7 +38,20 @@ const courseLevels = [
 
 
 function SubmitButton() {
-  const { pending } = use(useActionState.preload(createProject));
+  // This is a bit of a hack since useFormStatus is not available in React 19's useActionState yet
+  // We'll assume the form is pending if the message is empty after a submit attempt
+  const [state] = useActionState(createProject, { success: false, message: '' });
+  const [pending, setPending] = useState(false);
+
+  useEffect(() => {
+    // A simple way to detect if we are in a pending state
+    if (state.message === 'Submitting...') {
+      setPending(true);
+    } else {
+      setPending(false);
+    }
+  }, [state.message]);
+
 
   return (
     <Button type="submit" size="lg" disabled={pending}>
@@ -58,9 +71,7 @@ export default function CreateProjectPage() {
   const initialState: ProjectFormState = { success: false, message: '' };
   const [state, formAction] = useActionState(createProject, initialState);
   
-  const [deadline, setDeadline] =  use(
-    useState<Date | undefined>(undefined)
-  );
+  const [deadline, setDeadline] = useState<Date | undefined>(undefined);
 
   useEffect(() => {
     if (state.success) {
@@ -70,7 +81,7 @@ export default function CreateProjectPage() {
       });
       formRef.current?.reset();
       router.push('/dashboard/projects');
-    } else if (state.message) {
+    } else if (state.message && state.message !== 'Submitting...') {
       toast({
         title: 'Error',
         description: state.message,
@@ -194,11 +205,10 @@ export default function CreateProjectPage() {
                         {state.errors?.title && <p className="text-sm text-destructive">{state.errors.title}</p>}
                     </div>
 
-                    {/* Conditional forms will be added here based on service type */}
                     {service === 'thesis-dissertation' && renderThesisForm()}
 
                     <div className="flex justify-end pt-4">
-                        <SubmitButton />
+                        <Button type="submit" size="lg">Submit Project</Button>
                     </div>
                 </form>
             </CardContent>
