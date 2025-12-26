@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { FilePlus, LoaderCircle } from 'lucide-react';
 import { SelectProjectTypeDialog } from '@/components/dashboard/select-project-type-dialog';
 import { useCollection, useFirestore } from '@/firebase';
-import { collection, query, where, orderBy, limit } from 'firebase/firestore';
+import { collection, query, where, orderBy } from 'firebase/firestore';
 import { useMemo } from 'react';
 import type { Project } from '@/lib/types';
 import Link from 'next/link';
@@ -16,30 +16,21 @@ import { Badge } from '@/components/ui/badge';
 export default function DashboardPage() {
   const { user } = useUser();
   const firestore = useFirestore();
-
-  const projectsQuery = useMemo(() => {
-    if (!user || !firestore) return null;
-    // Order by 'asc' and then reverse on the client to avoid needing a composite index
-    return query(
-      collection(firestore, 'projects'), 
-      where('userId', '==', user.uid),
-      orderBy('createdAt', 'asc'),
-      limit(3)
-    );
-  }, [user, firestore]);
   
   const allProjectsQuery = useMemo(() => {
      if (!user || !firestore) return null;
      return query(collection(firestore, 'projects'), where('userId', '==', user.uid));
   }, [user, firestore]);
 
-  const { data: recentProjects, loading: loadingRecent } = useCollection<Project>(projectsQuery);
-  const { data: allProjects, loading: loadingAll } = useCollection<Project>(allProjectsQuery);
+  const { data: allProjects, loading } = useCollection<Project>(allProjectsQuery);
   
-  const loading = loadingRecent || loadingAll;
-
-  // Reverse the array to show the most recent projects first
-  const displayedProjects = useMemo(() => recentProjects?.reverse() ?? [], [recentProjects]);
+  // Sort and limit projects on the client to avoid composite index
+  const displayedProjects = useMemo(() => {
+    if (!allProjects) return [];
+    return allProjects
+      .sort((a, b) => b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime())
+      .slice(0, 3);
+  }, [allProjects]);
 
   if (!user || loading) {
     return (
