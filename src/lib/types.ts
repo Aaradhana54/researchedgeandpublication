@@ -13,7 +13,15 @@ export type Service = {
 };
 
 // --- Firestore Data Types ---
-export type UserRole = 'client' | 'admin' | 'author' | 'team-member' | 'referral-partner';
+export type UserRole =
+  | 'client'
+  | 'admin'
+  | 'author'
+  | 'referral-partner'
+  | 'writing-team'
+  | 'sales-team'
+  | 'publication-team'
+  | 'accounts-team';
 
 export type UserProfile = {
   uid: string;

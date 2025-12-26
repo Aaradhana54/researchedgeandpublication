@@ -21,7 +21,16 @@ import { LoaderCircle } from 'lucide-react';
 import { getFirebaseErrorMessage } from '@/firebase/errors';
 import type { UserRole } from '@/lib/types';
 
-const roles: UserRole[] = ['client', 'admin', 'author', 'team-member', 'referral-partner'];
+const roles: UserRole[] = [
+  'client',
+  'admin',
+  'author',
+  'referral-partner',
+  'writing-team',
+  'sales-team',
+  'publication-team',
+  'accounts-team',
+];
 
 export function CreateUserDialog({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);

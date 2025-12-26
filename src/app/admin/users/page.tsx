@@ -25,8 +25,11 @@ const roleVariantMap: { [key: string]: 'default' | 'secondary' | 'destructive' |
   admin: 'destructive',
   client: 'default',
   author: 'secondary',
-  'team-member': 'secondary',
   'referral-partner': 'outline',
+  'writing-team': 'secondary',
+  'sales-team': 'secondary',
+  'publication-team': 'secondary',
+  'accounts-team': 'secondary',
 };
 
 function UserTable({ users }: { users: UserProfile[] }) {
@@ -64,6 +67,14 @@ function UserTable({ users }: { users: UserProfile[] }) {
     );
 }
 
+const teamRoles: UserRole[] = [
+  'admin',
+  'writing-team',
+  'sales-team',
+  'publication-team',
+  'accounts-team',
+];
+
 export default function UserManagementPage() {
   const usersQuery = useMemo(() => {
     if (!firestore) return null;
@@ -84,7 +95,7 @@ export default function UserManagementPage() {
     return {
       clients: users.filter(u => u.role === 'client'),
       authors: users.filter(u => u.role === 'author'),
-      team: users.filter(u => u.role === 'team-member' || u.role === 'admin'),
+      team: users.filter(u => teamRoles.includes(u.role)),
       partners: users.filter(u => u.role === 'referral-partner'),
     };
   }, [users]);
