@@ -1,9 +1,10 @@
+
 'use client';
 
 import { useMemo, useState } from 'react';
 import { useUser } from '@/firebase/auth/use-user';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { LoaderCircle, Copy, Users, CheckCircle, DollarSign, Wallet, Share2, Receipt, Banknote, PaintBrush } from 'lucide-react';
+import { LoaderCircle, Copy, Users, CheckCircle, DollarSign, Wallet, Share2, Receipt, Banknote, Paintbrush } from 'lucide-react';
 import { useCollection, useFirestore } from '@/firebase';
 import { collection, query, where } from 'firebase/firestore';
 import type { UserProfile, Payout } from '@/lib/types';
@@ -214,7 +215,7 @@ export default function ReferralDashboardPage() {
                 </CardHeader>
                 <CardContent>
                     <MarketingKitDialog>
-                        <Button><PaintBrush className="mr-2"/> Access Materials</Button>
+                        <Button><Paintbrush className="mr-2"/> Access Materials</Button>
                     </MarketingKitDialog>
                 </CardContent>
             </Card>
