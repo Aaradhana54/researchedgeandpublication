@@ -85,6 +85,13 @@ service cloud.firestore {
       // Only Admins can update (e.g. to 'paid') or delete payouts.
       allow update, delete: if isAdmin();
     }
+
+    match /marketing_assets/{assetId} {
+        // Only admins can create, update, or delete marketing assets.
+        allow create, update, delete: if isAdmin();
+        // All authenticated users (including referral partners) can read and list the assets.
+        allow read, list: if request.auth != null;
+    }
     
     // --- Admin-only Collections ---
 

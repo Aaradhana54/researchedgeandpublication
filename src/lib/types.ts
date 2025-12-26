@@ -122,3 +122,13 @@ export interface Referral {
     status: 'pending' | 'converted';
     createdAt: Timestamp;
 }
+
+export interface MarketingAsset {
+    id?: string;
+    title: string;
+    description: string;
+    fileName: string;
+    downloadUrl: string;
+    fileType: string;
+    createdAt: Timestamp;
+}

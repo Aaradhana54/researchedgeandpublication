@@ -132,6 +132,20 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["partnerId", "referredUserId", "status", "createdAt"]
+    },
+    "MarketingAsset": {
+      "title": "Marketing Asset",
+      "description": "A file or asset for marketing purposes, available to partners.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "description": "The display name of the asset." },
+        "description": { "type": "string", "description": "A brief description of the asset." },
+        "fileName": { "type": "string", "description": "The name of the uploaded file." },
+        "downloadUrl": { "type": "string", "description": "The public URL to download the file from Firebase Storage." },
+        "fileType": { "type": "string", "description": "The MIME type of the file." },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "fileName", "downloadUrl", "fileType", "createdAt"]
     }
   },
   "auth": {
@@ -169,6 +183,10 @@
     "/referrals/{referralId}": {
       "schema": { "$ref": "#/entities/Referral" },
       "description": "Collection for tracking referrals made by partners."
+    },
+    "/marketing_assets/{assetId}": {
+      "schema": { "$ref": "#/entities/MarketingAsset" },
+      "description": "Collection for storing marketing materials accessible by referral partners."
     }
   }
 }

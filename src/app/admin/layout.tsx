@@ -16,6 +16,7 @@ import {
   TrendingUp,
   BookCheck,
   Banknote,
+  Paintbrush
 } from 'lucide-react';
 import React from 'react';
 import { useEffect } from 'react';
@@ -61,6 +62,7 @@ const adminNavItems = [
   { href: '/admin/payouts', label: 'Payouts', icon: <ClipboardCheck /> },
   { href: '/admin/invoices', label: 'Invoices', icon: <CreditCard /> },
   { href: '/admin/notifications', label: 'Notifications', icon: <Bell /> },
+  { href: '/admin/marketing', label: 'Marketing Kit', icon: <Paintbrush /> },
 ];
 
 function AdminSidebar() {
