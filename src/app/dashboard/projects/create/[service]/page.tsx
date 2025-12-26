@@ -74,7 +74,6 @@ export default function CreateProjectPage() {
   const [wantToPublish, setWantToPublish] = useState(false);
 
   useEffect(() => {
-    // This effect runs when the server action returns a new state.
     if (state.success) {
       toast({
         title: 'Project Submitted!',
@@ -88,7 +87,10 @@ export default function CreateProjectPage() {
         router.push('/dashboard/projects');
       }, 1500);
       return () => clearTimeout(timer); // Cleanup timer on unmount
-    } else if (state.message && !state.errors) {
+    } else if (state.message && state.errors) {
+      // This case handles form validation errors. No toast is needed,
+      // as the errors will be displayed inline.
+    } else if (state.message && !state.success) {
       // This handles non-validation server errors (e.g., database connection)
       toast({
         title: 'Submission Failed',
