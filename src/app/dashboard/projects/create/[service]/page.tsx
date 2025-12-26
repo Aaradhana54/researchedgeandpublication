@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useParams, useRouter, notFound } from 'next/navigation';
+import { useState } from 'react';
+import { useParams, notFound } from 'next/navigation';
 import Link from 'next/link';
 import { useUser } from '@/firebase/auth/use-user';
 import { Button } from '@/components/ui/button';
@@ -285,7 +285,7 @@ export default function CreateProjectPage() {
                     {(service === 'research-publication' || service === 'book-publishing') && renderPaperForm()}
 
                     <div className="flex justify-end pt-4">
-                        <Button size="lg" type="submit" disabled={true} className="w-full sm:w-auto">
+                       <Button size="lg" type="button" className="w-full sm:w-auto">
                             Submit Project
                         </Button>
                     </div>
