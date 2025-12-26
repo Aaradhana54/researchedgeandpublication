@@ -7,7 +7,7 @@ import { doc } from 'firebase/firestore';
 import { useDoc, useFirestore } from '@/firebase';
 import type { Project, UserProfile, ProjectStatus } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { LoaderCircle, ArrowLeft, CheckCircle, XCircle } from 'lucide-react';
+import { LoaderCircle, ArrowLeft, CheckCircle, XCircle, FileText } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
@@ -30,7 +30,7 @@ function DetailItem({ label, value, isBadge = false, badgeVariant }: { label: st
     
     return (
         <div className="grid grid-cols-3 gap-2 py-2 border-b">
-            <p className="font-semibold text-muted-foreground">{label}</p>
+            <div className="font-semibold text-muted-foreground">{label}</div>
             <div className="col-span-2">{displayValue}</div>
         </div>
     );
@@ -176,6 +176,21 @@ export default function ProjectDetailPage() {
                             ) : <p>User not found.</p>}
                         </CardContent>
                     </Card>
+                    {project.synopsisFileUrl && (
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Attachment</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <Button asChild variant="outline" className="w-full">
+                                    <a href={project.synopsisFileUrl} target="_blank" rel="noopener noreferrer">
+                                        <FileText className="mr-2 h-4 w-4" />
+                                        Download Synopsis
+                                    </a>
+                                </Button>
+                            </CardContent>
+                        </Card>
+                    )}
                 </div>
             </div>
         </div>

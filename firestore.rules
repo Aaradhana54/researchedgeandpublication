@@ -112,5 +112,3 @@ service cloud.firestore {
     }
   }
 }
-
-    

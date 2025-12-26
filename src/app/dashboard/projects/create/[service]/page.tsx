@@ -2,7 +2,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, ChangeEvent } from 'react';
 import { useParams, notFound, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useUser } from '@/firebase/auth/use-user';
@@ -11,7 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, LoaderCircle } from 'lucide-react';
+import { ArrowLeft, LoaderCircle, Upload } from 'lucide-react';
 import type { ProjectServiceType, CourseLevel } from '@/lib/types';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
@@ -19,7 +19,9 @@ import { useToast } from '@/hooks/use-toast';
 import { FormMessage } from '@/components/ui/form';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { addDoc, collection, serverTimestamp, Timestamp } from 'firebase/firestore';
-import { useFirestore } from '@/firebase';
+import { useFirestore, useStorage } from '@/firebase';
+import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
+import { Progress } from '@/components/ui/progress';
 
 
 const serviceDisplayNames: Record<ProjectServiceType, string> = {
@@ -45,11 +47,23 @@ export default function CreateProjectPage() {
   const router = useRouter();
   const { toast } = useToast();
   const firestore = useFirestore();
+  const storage = useStorage();
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
   const [formKey, setFormKey] = useState(Date.now()); // Used to reset the form
+
+  const [file, setFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+
+  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files?.[0]) {
+      setFile(e.target.files[0]);
+    }
+  };
+
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -69,6 +83,43 @@ export default function CreateProjectPage() {
         setLoading(false);
         return;
     }
+    
+    let synopsisFileUrl = '';
+    
+    // --- File Upload Logic ---
+    if (file && storage) {
+      setUploading(true);
+      const storageRef = ref(storage, `projects/${user.uid}/${Date.now()}-${file.name}`);
+      const uploadTask = uploadBytesResumable(storageRef, file);
+
+      try {
+        await new Promise<void>((resolve, reject) => {
+          uploadTask.on(
+            'state_changed',
+            (snapshot) => {
+              const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+              setUploadProgress(progress);
+            },
+            (error) => {
+              console.error("Upload failed:", error);
+              reject(`File upload failed: ${error.message}`);
+            },
+            async () => {
+              synopsisFileUrl = await getDownloadURL(uploadTask.snapshot.ref);
+              resolve();
+            }
+          );
+        });
+      } catch (uploadError: any) {
+        setError(uploadError);
+        setLoading(false);
+        setUploading(false);
+        return;
+      }
+      setUploading(false);
+    }
+    // --- End File Upload Logic ---
+
 
     const dataToSave: any = {
       userId: user.uid,
@@ -78,6 +129,7 @@ export default function CreateProjectPage() {
       status: 'pending',
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
+      synopsisFileUrl: synopsisFileUrl,
     };
     
     // Add optional fields only if they have a value
@@ -86,6 +138,8 @@ export default function CreateProjectPage() {
     if (rawFormData.referencingStyle) dataToSave.referencingStyle = rawFormData.referencingStyle;
     if (rawFormData.language) dataToSave.language = rawFormData.language;
     if (rawFormData.publishWhere) dataToSave.publishWhere = rawFormData.publishWhere;
+    else if (rawFormData.wantToPublish === 'on') dataToSave.publishWhere = '';
+
 
     if (rawFormData.deadline) {
       dataToSave.deadline = Timestamp.fromDate(new Date(rawFormData.deadline as string));
@@ -141,18 +195,35 @@ export default function CreateProjectPage() {
   }
   
   const pageTitle = serviceDisplayNames[service];
+  
+  const commonFileUpload = () => (
+     <div className="space-y-2">
+        <Label htmlFor="synopsisFile">Synopsis/Assignment File (Optional)</Label>
+        <Input 
+          id="synopsisFile" 
+          name="synopsisFile" 
+          type="file" 
+          onChange={handleFileChange}
+          disabled={loading}
+          accept=".doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.pdf"
+        />
+        {uploading && <Progress value={uploadProgress} className="w-full" />}
+        {file && !loading && <p className="text-xs text-muted-foreground">Selected file: {file.name}</p>}
+      </div>
+  );
+
 
   const renderThesisForm = () => (
     <>
       <div className="space-y-2">
         <Label htmlFor="topic">Topic *</Label>
-        <Input id="topic" name="topic" placeholder="e.g., The Impact of AI on Modern Literature" required/>
+        <Input id="topic" name="topic" placeholder="e.g., The Impact of AI on Modern Literature" required disabled={loading}/>
       </div>
 
       <div className="grid md:grid-cols-2 gap-6">
         <div className="space-y-2">
           <Label htmlFor="courseLevel">Course Level *</Label>
-          <Select name="courseLevel" required>
+          <Select name="courseLevel" required disabled={loading}>
             <SelectTrigger id="courseLevel">
               <SelectValue placeholder="Select course level" />
             </SelectTrigger>
@@ -166,28 +237,24 @@ export default function CreateProjectPage() {
 
         <div className="space-y-2">
           <Label htmlFor="deadline">Deadline</Label>
-          <Input id="deadline" name="deadline" type="date" />
+          <Input id="deadline" name="deadline" type="date" disabled={loading}/>
         </div>
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="synopsisFile">Synopsis/Assignment File (Optional)</Label>
-        <Input id="synopsisFile" name="synopsisFile" type="file" disabled />
-        <p className="text-xs text-muted-foreground">File uploads are under construction.</p>
-      </div>
+      {commonFileUpload()}
 
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
         <div className="space-y-2">
           <Label htmlFor="referencingStyle">Referencing Style *</Label>
-          <Input id="referencingStyle" name="referencingStyle" placeholder="e.g., APA, MLA, Chicago" required/>
+          <Input id="referencingStyle" name="referencingStyle" placeholder="e.g., APA, MLA, Chicago" required disabled={loading}/>
         </div>
         <div className="space-y-2">
           <Label htmlFor="pageCount">Page Count</Label>
-          <Input id="pageCount" name="pageCount" type="number" placeholder="e.g., 100" />
+          <Input id="pageCount" name="pageCount" type="number" placeholder="e.g., 100" disabled={loading}/>
         </div>
         <div className="space-y-2">
           <Label htmlFor="language">Language *</Label>
-          <Input id="language" name="language" placeholder="e.g., English, Spanish" defaultValue="English" required/>
+          <Input id="language" name="language" placeholder="e.g., English, Spanish" defaultValue="English" required disabled={loading}/>
         </div>
       </div>
     </>
@@ -197,24 +264,24 @@ export default function CreateProjectPage() {
     <>
       <div className="space-y-2">
         <Label htmlFor="topic">Topic</Label>
-        <Input id="topic" name="topic" placeholder="e.g., Quantum Computing in Cybersecurity" />
+        <Input id="topic" name="topic" placeholder="e.g., Quantum Computing in Cybersecurity" disabled={loading}/>
       </div>
 
       <div className="grid md:grid-cols-2 gap-6">
         <div className="space-y-2">
           <Label htmlFor="wordCount">Word Count</Label>
-          <Input id="wordCount" name="wordCount" type="number" placeholder="e.g., 5000" />
+          <Input id="wordCount" name="wordCount" type="number" placeholder="e.g., 5000" disabled={loading}/>
         </div>
         <div className="space-y-2">
           <Label htmlFor="language">Language</Label>
-          <Input id="language" name="language" placeholder="e.g., English" defaultValue="English" />
+          <Input id="language" name="language" placeholder="e.g., English" defaultValue="English" disabled={loading}/>
         </div>
       </div>
 
       <div className="grid md:grid-cols-2 gap-6">
         <div className="space-y-2">
           <Label htmlFor="courseLevel">Course Level</Label>
-          <Select name="courseLevel">
+          <Select name="courseLevel" disabled={loading}>
             <SelectTrigger id="courseLevel">
               <SelectValue placeholder="Select course level" />
             </SelectTrigger>
@@ -228,19 +295,15 @@ export default function CreateProjectPage() {
 
         <div className="space-y-2">
           <Label htmlFor="deadline">Deadline</Label>
-          <Input id="deadline" name="deadline" type="date" />
+          <Input id="deadline" name="deadline" type="date" disabled={loading}/>
         </div>
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="synopsisFile">Supporting File (Optional)</Label>
-        <Input id="synopsisFile" name="synopsisFile" type="file" disabled />
-        <p className="text-xs text-muted-foreground">File uploads are under construction.</p>
-      </div>
+      {commonFileUpload()}
 
       <div className="space-y-4">
         <div className="flex items-center space-x-2">
-          <Checkbox id="wantToPublish" name="wantToPublish" />
+          <Checkbox id="wantToPublish" name="wantToPublish" disabled={loading}/>
           <Label htmlFor="wantToPublish" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
             Do you want to publish this paper?
           </Label>
@@ -248,7 +311,7 @@ export default function CreateProjectPage() {
         
         <div data-testid="publish-where-container" className="space-y-2">
           <Label htmlFor="publishWhere">Where do you want to publish it? (e.g., Scopus, SCI, specific journal name)</Label>
-          <Textarea id="publishWhere" name="publishWhere" placeholder="Let us know your target journal or index..." />
+          <Textarea id="publishWhere" name="publishWhere" placeholder="Let us know your target journal or index..." disabled={loading}/>
         </div>
 
       </div>
@@ -259,34 +322,30 @@ export default function CreateProjectPage() {
     <>
       <div className="space-y-2">
         <Label htmlFor="topic">Topic</Label>
-        <Input id="topic" name="topic" placeholder="e.g., A History of Ancient Rome" />
+        <Input id="topic" name="topic" placeholder="e.g., A History of Ancient Rome" disabled={loading}/>
       </div>
 
       <div className="grid md:grid-cols-2 gap-6">
         <div className="space-y-2">
           <Label htmlFor="pageCount">Page Count</Label>
-          <Input id="pageCount" name="pageCount" type="number" placeholder="e.g., 300" />
+          <Input id="pageCount" name="pageCount" type="number" placeholder="e.g., 300" disabled={loading}/>
         </div>
         <div className="space-y-2">
           <Label htmlFor="language">Language (Mode)</Label>
-          <Input id="language" name="language" placeholder="e.g., English" defaultValue="English" />
+          <Input id="language" name="language" placeholder="e.g., English" defaultValue="English" disabled={loading}/>
         </div>
       </div>
 
       <div className="space-y-2">
         <Label htmlFor="deadline">Deadline</Label>
-        <Input id="deadline" name="deadline" type="date" />
+        <Input id="deadline" name="deadline" type="date" disabled={loading}/>
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="manuscriptFile">Manuscript/Synopsis (Optional)</Label>
-        <Input id="manuscriptFile" name="manuscriptFile" type="file" disabled />
-        <p className="text-xs text-muted-foreground">File uploads are under construction.</p>
-      </div>
+      {commonFileUpload()}
 
       <div className="space-y-4">
         <div className="flex items-center space-x-2">
-          <Checkbox id="wantToPublish" name="wantToPublish" />
+          <Checkbox id="wantToPublish" name="wantToPublish" disabled={loading}/>
           <Label htmlFor="wantToPublish" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
             Want to publish with us?
           </Label>
@@ -294,7 +353,7 @@ export default function CreateProjectPage() {
         
         <div className="space-y-2">
           <Label htmlFor="publishWhere">Where? (e.g., Amazon, B&N, IngramSpark)</Label>
-          <Input id="publishWhere" name="publishWhere" placeholder="Let us know your preferred platforms" />
+          <Input id="publishWhere" name="publishWhere" placeholder="Let us know your preferred platforms" disabled={loading}/>
         </div>
         
       </div>
@@ -329,7 +388,7 @@ export default function CreateProjectPage() {
              )}
             <div className="space-y-2">
               <Label htmlFor="title">Project Title *</Label>
-              <Input id="title" name="title" placeholder="A concise title for your project" required/>
+              <Input id="title" name="title" placeholder="A concise title for your project" required disabled={loading}/>
             </div>
 
             {service === 'thesis-dissertation' && renderThesisForm()}
