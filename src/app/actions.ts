@@ -1,8 +1,8 @@
 'use server';
 
 import { z } from 'zod';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { firestore } from '@/firebase/server';
+import { FieldValue } from 'firebase-admin/firestore';
+import { firestore } from '@/firebase/server'; // Use server-side admin firestore
 
 const contactFormSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters.'),
@@ -14,13 +14,7 @@ const contactFormSchema = z.object({
 
 export type ContactFormState = {
   message: string;
-  errors?: {
-    name?: string[];
-    email?: string[];
-    phone?: string[];
-    message?: string[];
-    serviceType?: string[];
-  };
+  errors?: z.inferFlattenedErrors<typeof contactFormSchema>['fieldErrors'];
 };
 
 export async function submitContactForm(
@@ -37,23 +31,23 @@ export async function submitContactForm(
 
   if (!validatedFields.success) {
     return {
-      message: 'Error: Please check your input.',
+      message: 'Error: Please correct the errors in the form.',
       errors: validatedFields.error.flatten().fieldErrors,
     };
   }
 
-  const leadsRef = collection(firestore, 'contact_leads');
+  const leadsRef = firestore.collection('contact_leads');
   const leadData = {
     ...validatedFields.data,
-    createdAt: serverTimestamp(),
+    createdAt: FieldValue.serverTimestamp(),
   };
 
   try {
-    await addDoc(leadsRef, leadData);
+    await leadsRef.add(leadData);
     return { message: 'Success: Your message has been sent!' };
   } catch (e: any) {
     console.error('Contact form submission error:', e);
-    return { message: 'Error: Could not submit the form.' };
+    return { message: `Error: Could not submit the form. Reason: ${e.message}` };
   }
 }
 
@@ -64,12 +58,12 @@ const projectFormSchema = z.object({
   topic: z.string().min(1, 'Topic is required.').optional(),
   courseLevel: z.enum(['ug', 'pg', 'phd']).optional(),
   deadline: z.coerce.date().optional(),
-  synopsisFileUrl: z.string().optional(),
+  synopsisFileUrl: z.string().url().optional(),
   referencingStyle: z.string().optional(),
   pageCount: z.coerce.number().int().positive().optional(),
   wordCount: z.coerce.number().int().positive().optional(),
   language: z.string().optional(),
-  wantToPublish: z.preprocess((val) => val === 'on', z.boolean()).optional(),
+  wantToPublish: z.boolean().optional(),
   publishWhere: z.string().optional(),
   userId: z.string(), // This will be passed programmatically
 });
@@ -88,58 +82,63 @@ export async function createProject(
 ): Promise<ProjectFormState> {
 
   const synopsisFile = formData.get('synopsisFile') as File | null;
+  // In a real app, you would upload this file to Firebase Storage and get the URL.
+  // For now, we'll just simulate a URL if a file is present.
   let synopsisFileUrl: string | undefined = undefined;
   if (synopsisFile && synopsisFile.size > 0) {
       synopsisFileUrl = `/uploads/placeholder/${synopsisFile.name}`;
-      console.log(`File "${synopsisFile.name}" would be uploaded. URL: ${synopsisFileUrl}`);
+      console.log(`File "${synopsisFile.name}" would be uploaded. Using placeholder URL: ${synopsisFileUrl}`);
   }
 
   const rawData = Object.fromEntries(formData.entries());
 
   const processedData = {
       ...rawData,
-      title: rawData.title,
-      serviceType: rawData.serviceType,
-      userId: rawData.userId,
-      synopsisFileUrl: synopsisFileUrl,
+      // Ensure empty strings for optional fields become undefined so Zod can validate correctly
       topic: rawData.topic || undefined,
       courseLevel: rawData.courseLevel || undefined,
       deadline: rawData.deadline || undefined,
       referencingStyle: rawData.referencingStyle || undefined,
       language: rawData.language || undefined,
       publishWhere: rawData.publishWhere || undefined,
+      // Coerce numbers, handling empty strings
       pageCount: rawData.pageCount ? Number(rawData.pageCount) : undefined,
       wordCount: rawData.wordCount ? Number(rawData.wordCount) : undefined,
+      // Handle checkbox
       wantToPublish: rawData.wantToPublish === 'on',
+      // Handle file URL
+      synopsisFileUrl: synopsisFileUrl,
   };
 
   const validatedFields = projectFormSchema.safeParse(processedData);
   
   if (!validatedFields.success) {
-      console.log("Validation Errors:", validatedFields.error.flatten().fieldErrors);
     return {
-      message: 'Error: Please check your input.',
+      message: 'Error: Please correct the errors in the form.',
       errors: validatedFields.error.flatten().fieldErrors,
       success: false,
     };
   }
   
   if (!validatedFields.data.userId) {
-      return { message: 'Error: You must be logged in to create a project.', success: false };
+      return { message: 'Error: You must be logged in to create a project.', success: false, errors: undefined };
   }
 
-  const projectsRef = collection(firestore, 'projects');
+  const projectsRef = firestore.collection('projects');
   
-  const projectData = Object.fromEntries(
-      Object.entries(validatedFields.data).filter(([, value]) => value !== undefined && value !== null && value !== '' && value !== false)
-  );
+  const projectData = {
+    ...validatedFields.data,
+    // Filter out undefined values before sending to Firestore
+    ...Object.fromEntries(Object.entries(validatedFields.data).filter(([, v]) => v !== undefined)),
+  };
+
 
   try {
-    const docRef = await addDoc(projectsRef, {
+    await projectsRef.add({
         ...projectData,
         status: 'pending',
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
+        createdAt: FieldValue.serverTimestamp(),
+        updatedAt: FieldValue.serverTimestamp(),
     });
     return { message: `Success: Project "${projectData.title}" created!`, success: true, errors: undefined };
   } catch (e: any) {
