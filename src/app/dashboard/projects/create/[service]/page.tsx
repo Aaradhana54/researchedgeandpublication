@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
 import { useParams, useRouter, notFound } from 'next/navigation';
 import Link from 'next/link';
 import { useUser } from '@/firebase/auth/use-user';
@@ -40,20 +41,7 @@ const courseLevels = [
 
 
 function SubmitButton() {
-  // This is a bit of a hack since useFormStatus is not available in React 19's useActionState yet
-  // We'll assume the form is pending if the message is empty after a submit attempt
-  const [state] = useActionState(createProject, { success: false, message: '' });
-  const [pending, setPending] = useState(false);
-
-  useEffect(() => {
-    // A simple way to detect if we are in a pending state
-    if (state.message === 'Submitting...') {
-      setPending(true);
-    } else {
-      setPending(false);
-    }
-  }, [state.message]);
-
+  const { pending } = useFormStatus();
 
   return (
     <Button type="submit" size="lg" disabled={pending}>
@@ -86,16 +74,10 @@ export default function CreateProjectPage() {
       setDeadline(undefined);
       setWantToPublish(false);
       router.push('/dashboard/projects');
-    } else if (state.message.startsWith('Error:')) {
+    } else if (state.message && state.message.startsWith('Error:')) {
       toast({
-        title: 'Validation Error',
-        description: "Please correct the errors in the form.",
-        variant: 'destructive',
-      });
-    } else if (state.message && state.message !== 'Submitting...') {
-       toast({
-        title: 'Error',
-        description: state.message,
+        title: 'Error Submitting Project',
+        description: state.message.includes('check your input') ? 'Please correct the errors in the form.' : state.message,
         variant: 'destructive',
       });
     }
@@ -113,7 +95,7 @@ export default function CreateProjectPage() {
         <div className="space-y-2">
             <Label htmlFor="topic">Topic *</Label>
             <Input id="topic" name="topic" placeholder="e.g., The Impact of AI on Modern Literature" required defaultValue="" />
-            {state.errors?.topic && <p className="text-sm text-destructive">{state.errors.topic[0]}</p>}
+            {state.errors?.topic && <p className="text-sm text-destructive pt-1">{state.errors.topic[0]}</p>}
         </div>
 
         <div className="grid md:grid-cols-2 gap-6">
@@ -129,7 +111,7 @@ export default function CreateProjectPage() {
                         ))}
                     </SelectContent>
                 </Select>
-                {state.errors?.courseLevel && <p className="text-sm text-destructive">{state.errors.courseLevel[0]}</p>}
+                {state.errors?.courseLevel && <p className="text-sm text-destructive pt-1">{state.errors.courseLevel[0]}</p>}
             </div>
 
             <div className="space-y-2">
@@ -157,31 +139,31 @@ export default function CreateProjectPage() {
                     </PopoverContent>
                 </Popover>
                 <Input type="hidden" name="deadline" value={deadline?.toISOString() || ''} />
-                 {state.errors?.deadline && <p className="text-sm text-destructive">{state.errors.deadline[0]}</p>}
+                 {state.errors?.deadline && <p className="text-sm text-destructive pt-1">{state.errors.deadline[0]}</p>}
             </div>
         </div>
 
         <div className="space-y-2">
             <Label htmlFor="synopsisFile">Synopsis/Assignment File (Optional)</Label>
             <Input id="synopsisFile" name="synopsisFile" type="file" />
-            {state.errors?.synopsisFileUrl && <p className="text-sm text-destructive">{state.errors.synopsisFileUrl[0]}</p>}
+            {state.errors?.synopsisFileUrl && <p className="text-sm text-destructive pt-1">{state.errors.synopsisFileUrl[0]}</p>}
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
              <div className="space-y-2">
                 <Label htmlFor="referencingStyle">Referencing Style</Label>
                 <Input id="referencingStyle" name="referencingStyle" placeholder="e.g., APA, MLA, Chicago" defaultValue="" />
-                {state.errors?.referencingStyle && <p className="text-sm text-destructive">{state.errors.referencingStyle[0]}</p>}
+                {state.errors?.referencingStyle && <p className="text-sm text-destructive pt-1">{state.errors.referencingStyle[0]}</p>}
             </div>
              <div className="space-y-2">
                 <Label htmlFor="pageCount">Page Count</Label>
                 <Input id="pageCount" name="pageCount" type="number" placeholder="e.g., 100" defaultValue="" />
-                {state.errors?.pageCount && <p className="text-sm text-destructive">{state.errors.pageCount[0]}</p>}
+                {state.errors?.pageCount && <p className="text-sm text-destructive pt-1">{state.errors.pageCount[0]}</p>}
             </div>
              <div className="space-y-2">
                 <Label htmlFor="language">Language</Label>
                 <Input id="language" name="language" placeholder="e.g., English, Spanish" defaultValue="English" />
-                {state.errors?.language && <p className="text-sm text-destructive">{state.errors.language[0]}</p>}
+                {state.errors?.language && <p className="text-sm text-destructive pt-1">{state.errors.language[0]}</p>}
             </div>
         </div>
     </>
@@ -192,19 +174,19 @@ export default function CreateProjectPage() {
         <div className="space-y-2">
             <Label htmlFor="topic">Topic *</Label>
             <Input id="topic" name="topic" placeholder="e.g., Quantum Computing in Cybersecurity" required defaultValue="" />
-            {state.errors?.topic && <p className="text-sm text-destructive">{state.errors.topic[0]}</p>}
+            {state.errors?.topic && <p className="text-sm text-destructive pt-1">{state.errors.topic[0]}</p>}
         </div>
 
         <div className="grid md:grid-cols-2 gap-6">
             <div className="space-y-2">
                 <Label htmlFor="wordCount">Word Count</Label>
                 <Input id="wordCount" name="wordCount" type="number" placeholder="e.g., 5000" defaultValue="" />
-                {state.errors?.wordCount && <p className="text-sm text-destructive">{state.errors.wordCount[0]}</p>}
+                {state.errors?.wordCount && <p className="text-sm text-destructive pt-1">{state.errors.wordCount[0]}</p>}
             </div>
             <div className="space-y-2">
                 <Label htmlFor="language">Language</Label>
                 <Input id="language" name="language" placeholder="e.g., English" defaultValue="English" />
-                {state.errors?.language && <p className="text-sm text-destructive">{state.errors.language[0]}</p>}
+                {state.errors?.language && <p className="text-sm text-destructive pt-1">{state.errors.language[0]}</p>}
             </div>
         </div>
         
@@ -221,7 +203,7 @@ export default function CreateProjectPage() {
                         ))}
                     </SelectContent>
                 </Select>
-                {state.errors?.courseLevel && <p className="text-sm text-destructive">{state.errors.courseLevel[0]}</p>}
+                {state.errors?.courseLevel && <p className="text-sm text-destructive pt-1">{state.errors.courseLevel[0]}</p>}
             </div>
 
             <div className="space-y-2">
@@ -241,14 +223,14 @@ export default function CreateProjectPage() {
                     </PopoverContent>
                 </Popover>
                 <Input type="hidden" name="deadline" value={deadline?.toISOString() || ''} />
-                 {state.errors?.deadline && <p className="text-sm text-destructive">{state.errors.deadline[0]}</p>}
+                 {state.errors?.deadline && <p className="text-sm text-destructive pt-1">{state.errors.deadline[0]}</p>}
             </div>
         </div>
 
         <div className="space-y-2">
             <Label htmlFor="synopsisFile">Supporting File (Optional)</Label>
             <Input id="synopsisFile" name="synopsisFile" type="file" />
-            {state.errors?.synopsisFileUrl && <p className="text-sm text-destructive">{state.errors.synopsisFileUrl[0]}</p>}
+            {state.errors?.synopsisFileUrl && <p className="text-sm text-destructive pt-1">{state.errors.synopsisFileUrl[0]}</p>}
         </div>
 
         <div className="space-y-4">
@@ -262,7 +244,7 @@ export default function CreateProjectPage() {
                  <div className="space-y-2">
                     <Label htmlFor="publishWhere">Where do you want to publish it? (e.g., Scopus, SCI, specific journal name)</Label>
                     <Textarea id="publishWhere" name="publishWhere" placeholder="Let us know your target journal or index..." />
-                    {state.errors?.publishWhere && <p className="text-sm text-destructive">{state.errors.publishWhere[0]}</p>}
+                    {state.errors?.publishWhere && <p className="text-sm text-destructive pt-1">{state.errors.publishWhere[0]}</p>}
                 </div>
             )}
         </div>
@@ -274,19 +256,19 @@ export default function CreateProjectPage() {
       <div className="space-y-2">
         <Label htmlFor="topic">Topic *</Label>
         <Input id="topic" name="topic" placeholder="e.g., A History of Ancient Rome" required defaultValue="" />
-        {state.errors?.topic && <p className="text-sm text-destructive">{state.errors.topic[0]}</p>}
+        {state.errors?.topic && <p className="text-sm text-destructive pt-1">{state.errors.topic[0]}</p>}
       </div>
 
       <div className="grid md:grid-cols-2 gap-6">
         <div className="space-y-2">
           <Label htmlFor="pageCount">Page Count</Label>
           <Input id="pageCount" name="pageCount" type="number" placeholder="e.g., 300" defaultValue="" />
-          {state.errors?.pageCount && <p className="text-sm text-destructive">{state.errors.pageCount[0]}</p>}
+          {state.errors?.pageCount && <p className="text-sm text-destructive pt-1">{state.errors.pageCount[0]}</p>}
         </div>
         <div className="space-y-2">
           <Label htmlFor="language">Language (Mode)</Label>
           <Input id="language" name="language" placeholder="e.g., English" defaultValue="English" />
-          {state.errors?.language && <p className="text-sm text-destructive">{state.errors.language[0]}</p>}
+          {state.errors?.language && <p className="text-sm text-destructive pt-1">{state.errors.language[0]}</p>}
         </div>
       </div>
 
@@ -304,13 +286,13 @@ export default function CreateProjectPage() {
           </PopoverContent>
         </Popover>
         <Input type="hidden" name="deadline" value={deadline?.toISOString() || ''} />
-        {state.errors?.deadline && <p className="text-sm text-destructive">{state.errors.deadline[0]}</p>}
+        {state.errors?.deadline && <p className="text-sm text-destructive pt-1">{state.errors.deadline[0]}</p>}
       </div>
 
       <div className="space-y-2">
         <Label htmlFor="synopsisFile">Manuscript/Synopsis (Optional)</Label>
         <Input id="synopsisFile" name="synopsisFile" type="file" />
-        {state.errors?.synopsisFileUrl && <p className="text-sm text-destructive">{state.errors.synopsisFileUrl[0]}</p>}
+        {state.errors?.synopsisFileUrl && <p className="text-sm text-destructive pt-1">{state.errors.synopsisFileUrl[0]}</p>}
       </div>
 
       <div className="space-y-4">
@@ -324,7 +306,7 @@ export default function CreateProjectPage() {
           <div className="space-y-2">
             <Label htmlFor="publishWhere">Where? (e.g., Amazon, B&N, IngramSpark)</Label>
             <Input id="publishWhere" name="publishWhere" placeholder="Let us know your preferred platforms" />
-            {state.errors?.publishWhere && <p className="text-sm text-destructive">{state.errors.publishWhere[0]}</p>}
+            {state.errors?.publishWhere && <p className="text-sm text-destructive pt-1">{state.errors.publishWhere[0]}</p>}
           </div>
         )}
       </div>
@@ -357,7 +339,7 @@ export default function CreateProjectPage() {
                     <div className="space-y-2">
                         <Label htmlFor="title">Project Title *</Label>
                         <Input id="title" name="title" placeholder="A concise title for your project" required />
-                        {state.errors?.title && <p className="text-sm text-destructive">{state.errors.title[0]}</p>}
+                        {state.errors?.title && <p className="text-sm text-destructive pt-1">{state.errors.title[0]}</p>}
                     </div>
 
                     {service === 'thesis-dissertation' && renderThesisForm()}
@@ -382,3 +364,5 @@ export default function CreateProjectPage() {
     </div>
   );
 }
+
+    
