@@ -12,7 +12,6 @@ import {
   Upload,
   LoaderCircle,
   File as FileIcon,
-  X,
   Trash2,
   Image as ImageIcon,
   FileText,
@@ -155,7 +154,7 @@ export default function MarketingAdminPage() {
 
       <div className="grid md:grid-cols-3 gap-8">
         <div className="md:col-span-1">
-          <Card>
+          <Card className="shadow-soft">
             <CardHeader>
               <CardTitle>Upload New Asset</CardTitle>
               <CardDescription>Add a new file to the marketing kit.</CardDescription>
@@ -204,7 +203,7 @@ export default function MarketingAdminPage() {
         </div>
 
         <div className="md:col-span-2">
-            <Card>
+            <Card className="shadow-soft">
                 <CardHeader>
                     <CardTitle>Uploaded Assets</CardTitle>
                     <CardDescription>The following assets are available to all referral partners.</CardDescription>
@@ -215,15 +214,15 @@ export default function MarketingAdminPage() {
                     ) : assets && assets.length > 0 ? (
                         <ul className="space-y-4">
                             {assets.map(asset => (
-                                <li key={asset.id} className="flex items-center gap-4 p-3 border rounded-md bg-secondary/50">
+                                <li key={asset.id} className="flex items-center gap-4 p-3 border rounded-md bg-background hover:bg-secondary/50 transition-colors">
                                     <AssetIcon fileType={asset.fileType} />
                                     <div className="flex-1">
                                         <p className="font-medium">{asset.title}</p>
-                                        <p className="text-sm text-muted-foreground">{asset.fileName} &bull; {format(asset.createdAt.toDate(), 'PPP')}</p>
+                                        <p className="text-sm text-muted-foreground">{asset.fileName} &bull; {asset.createdAt ? format(asset.createdAt.toDate(), 'PPP') : ''}</p>
                                     </div>
                                     <AlertDialog>
                                         <AlertDialogTrigger asChild>
-                                            <Button variant="ghost" size="icon" className="text-destructive hover:bg-destructive/10 hover:text-destructive">
+                                            <Button variant="ghost" size="icon" className="text-destructive hover:bg-destructive/10 hover:text-destructive shrink-0">
                                                 <Trash2 className="w-4 h-4"/>
                                             </Button>
                                         </AlertDialogTrigger>
@@ -236,16 +235,15 @@ export default function MarketingAdminPage() {
                                             </AlertDialogHeader>
                                             <AlertDialogFooter>
                                                 <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                <AlertDialogAction onClick={() => handleDelete(asset)}>Delete</AlertDialogAction>
+                                                <AlertDialogAction onClick={() => handleDelete(asset)} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
                                             </AlertDialogFooter>
                                         </AlertDialogContent>
                                     </AlertDialog>
-
                                 </li>
                             ))}
                         </ul>
                     ) : (
-                        <div className="text-center p-12 text-muted-foreground">
+                        <div className="text-center p-12 text-muted-foreground border-2 border-dashed rounded-lg">
                             <FileIcon className="mx-auto w-12 h-12 mb-4" />
                             <h3 className="text-lg font-semibold">No Assets Uploaded</h3>
                             <p>Use the form on the left to upload your first marketing asset.</p>
