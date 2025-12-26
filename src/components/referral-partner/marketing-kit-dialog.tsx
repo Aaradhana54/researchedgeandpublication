@@ -114,5 +114,3 @@ export function MarketingKitDialog({ children }: { children: React.ReactNode }) 
         </Dialog>
     );
 }
-
-    
