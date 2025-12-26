@@ -87,12 +87,9 @@ export async function createProject(
   formData: FormData
 ): Promise<ProjectFormState> {
 
-  // Note: File handling would happen here. For now, we just pass a placeholder.
-  // In a real app, you'd upload the file to Firebase Storage and get a URL.
   const synopsisFile = formData.get('synopsisFile') as File | null;
   let synopsisFileUrl: string | undefined = undefined;
   if (synopsisFile && synopsisFile.size > 0) {
-      // Placeholder for file upload logic
       synopsisFileUrl = `/uploads/placeholder/${synopsisFile.name}`;
       console.log(`File "${synopsisFile.name}" would be uploaded. URL: ${synopsisFileUrl}`);
   }
@@ -105,19 +102,16 @@ export async function createProject(
       serviceType: rawData.serviceType,
       userId: rawData.userId,
       synopsisFileUrl: synopsisFileUrl,
-      // Convert empty strings to undefined for optional fields
       topic: rawData.topic || undefined,
       courseLevel: rawData.courseLevel || undefined,
       deadline: rawData.deadline || undefined,
       referencingStyle: rawData.referencingStyle || undefined,
       language: rawData.language || undefined,
       publishWhere: rawData.publishWhere || undefined,
-      // Coerce number fields, ensuring empty strings become undefined
       pageCount: rawData.pageCount ? Number(rawData.pageCount) : undefined,
       wordCount: rawData.wordCount ? Number(rawData.wordCount) : undefined,
       wantToPublish: rawData.wantToPublish === 'on',
   };
-
 
   const validatedFields = projectFormSchema.safeParse(processedData);
   
@@ -129,15 +123,13 @@ export async function createProject(
       success: false,
     };
   }
-
-  // Double-check user authentication on the server
+  
   if (!validatedFields.data.userId) {
       return { message: 'Error: You must be logged in to create a project.', success: false };
   }
 
   const projectsRef = collection(firestore, 'projects');
   
-  // Clean up undefined, null, or empty string values so they are not stored in Firestore
   const projectData = Object.fromEntries(
       Object.entries(validatedFields.data).filter(([, value]) => value !== undefined && value !== null && value !== '' && value !== false)
   );
@@ -152,6 +144,7 @@ export async function createProject(
     return { message: `Success: Project "${projectData.title}" created!`, success: true, errors: undefined };
   } catch (e: any) {
     console.error('Project creation error:', e);
-    return { message: 'Error: Could not save the project to the database.', success: false };
+    // Return the specific Firestore error message for better debugging
+    return { message: `Error: Could not save the project to the database. Reason: ${e.message}`, success: false };
   }
 }
