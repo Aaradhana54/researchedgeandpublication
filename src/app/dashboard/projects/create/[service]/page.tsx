@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -58,7 +59,7 @@ export default function CreateProjectPage() {
   const { toast } = useToast();
 
   const initialState: ProjectFormState = { message: '', errors: {}, success: false };
-  const [state, formAction] = useActionState(createProject.bind(null, user?.uid ?? ''), initialState);
+  const [state, formAction] = useActionState(createProject, initialState);
 
   const [formKey, setFormKey] = useState(Date.now()); // Used to reset the form
 
@@ -281,6 +282,7 @@ export default function CreateProjectPage() {
         </CardHeader>
         <CardContent>
           <form key={formKey} action={formAction} className="space-y-6">
+             <input type="hidden" name="userId" value={user.uid} />
              <input type="hidden" name="serviceType" value={service} />
              {state.errors?._form && (
                 <Alert variant="destructive">
