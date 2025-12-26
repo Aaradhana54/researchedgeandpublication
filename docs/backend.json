@@ -46,7 +46,11 @@
         "publishWhere": { "type": "string", "description": "Specifies where the client wants to publish." },
         "createdAt": { "type": "string", "format": "date-time" },
         "updatedAt": { "type": "string", "format": "date-time" },
-        "status": { "type": "string", "description": "The current status of the project."}
+        "status": {
+          "type": "string",
+          "enum": ["pending", "approved", "rejected", "in-progress", "completed"],
+          "description": "The current status of the project."
+        }
       },
       "required": ["userId", "title", "serviceType", "createdAt"]
     },

@@ -44,6 +44,7 @@ export type ProjectServiceType =
   | 'book-publishing';
 
 export type CourseLevel = 'ug' | 'pg' | 'phd';
+export type ProjectStatus = 'pending' | 'approved' | 'rejected' | 'in-progress' | 'completed';
 
 export interface Project {
   id?: string;
@@ -60,7 +61,7 @@ export interface Project {
   language?: string;
   wantToPublish?: boolean;
   publishWhere?: string;
-  status?: string;
+  status?: ProjectStatus;
   createdAt: Timestamp;
   updatedAt: Timestamp;
 }

@@ -1,11 +1,12 @@
+
 'use client';
 
 import { useMemo } from 'react';
 import { collection, query, orderBy } from 'firebase/firestore';
 import { useCollection, useFirestore } from '@/firebase';
-import type { Project, UserProfile } from '@/lib/types';
+import type { Project, UserProfile, ProjectStatus } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { LoaderCircle, FolderKanban } from 'lucide-react';
+import { LoaderCircle, FolderKanban, MoreHorizontal, CheckCircle, XCircle } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -16,9 +17,14 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
+import { Button } from '@/components/ui/button';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { updateProjectStatus } from '@/app/actions';
+import { useToast } from '@/hooks/use-toast';
 
 export default function AdminProjectsPage() {
   const firestore = useFirestore();
+  const { toast } = useToast();
 
   const projectsQuery = useMemo(() => {
     if (!firestore) return null;
@@ -39,13 +45,33 @@ export default function AdminProjectsPage() {
     if (!users) return new Map();
     return new Map(users.map((user) => [user.uid, user]));
   }, [users]);
+
+  const handleStatusUpdate = async (projectId: string, status: ProjectStatus) => {
+    try {
+        await updateProjectStatus(projectId, status);
+        toast({
+            title: 'Status Updated',
+            description: `Project has been marked as ${status}.`
+        });
+    } catch (error: any) {
+         toast({
+            variant: 'destructive',
+            title: 'Update Failed',
+            description: error.message
+        });
+    }
+  }
   
   const getProjectStatusVariant = (status?: string): 'default' | 'secondary' | 'destructive' | 'outline' => {
       switch (status) {
+          case 'approved':
+              return 'default';
           case 'in-progress':
               return 'secondary';
           case 'completed':
               return 'default';
+          case 'rejected':
+              return 'destructive';
           case 'pending':
               return 'outline';
           default:
@@ -78,10 +104,12 @@ export default function AdminProjectsPage() {
                   <TableHead>Service</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Submitted On</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {projects.map((project) => {
+                  if (!project.id) return null;
                   const client = usersMap.get(project.userId);
                   return (
                     <TableRow key={project.id}>
@@ -102,6 +130,25 @@ export default function AdminProjectsPage() {
                        </TableCell>
                       <TableCell>
                         {project.createdAt ? format(project.createdAt.toDate(), 'PPP') : 'N/A'}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon">
+                                    <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => handleStatusUpdate(project.id!, 'approved')}>
+                                    <CheckCircle className="mr-2 h-4 w-4 text-green-500" />
+                                    <span>Approve</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleStatusUpdate(project.id!, 'rejected')}>
+                                    <XCircle className="mr-2 h-4 w-4 text-red-500" />
+                                    <span>Reject</span>
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                       </TableCell>
                     </TableRow>
                   )

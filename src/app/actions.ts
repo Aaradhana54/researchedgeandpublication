@@ -3,7 +3,7 @@
 
 import { z } from 'zod';
 import { revalidatePath } from 'next/cache';
-import type { UserRole } from '@/lib/types';
+import type { UserRole, ProjectStatus } from '@/lib/types';
 import { firestore, auth as adminAuth, admin } from '@/firebase/server';
 
 
@@ -69,4 +69,24 @@ export async function createUserAsAdmin(formData: FormData) {
     console.error('Error creating user as admin:', error);
     throw new Error(errorMessage);
   }
+}
+
+export async function updateProjectStatus(projectId: string, status: ProjectStatus) {
+    if (!projectId || !status) {
+        throw new Error('Project ID and status are required.');
+    }
+
+    try {
+        const projectRef = firestore.collection('projects').doc(projectId);
+        await projectRef.update({
+            status: status,
+            updatedAt: admin.firestore.Timestamp.now(),
+        });
+
+        revalidatePath('/admin/projects');
+        return { success: true, message: `Project status updated to ${status}.` };
+    } catch (error: any) {
+        console.error('Error updating project status:', error);
+        throw new Error(error.message || 'An unknown error occurred while updating project status.');
+    }
 }
