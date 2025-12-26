@@ -1,3 +1,4 @@
+
 import * as admin from 'firebase-admin';
 import { firebaseConfig } from './config';
 
@@ -5,33 +6,21 @@ import { firebaseConfig } from './config';
 
 if (!admin.apps.length) {
   try {
-    // When running in a Google Cloud environment, the SDK will automatically
-    // find the service account credentials.
-    admin.initializeApp({
-      credential: admin.credential.applicationDefault(),
-      databaseURL: `https://${firebaseConfig.projectId}.firebaseio.com`,
-      storageBucket: firebaseConfig.storageBucket,
-    });
+    // In many environments, this simple initialization is sufficient
+    // and will automatically use configured service accounts.
+    admin.initializeApp();
   } catch (error) {
-    console.error('Firebase Admin initialization error', error);
-    // For local development outside of a Google environment, you might need
-    // to manually set up a service account.
-    // Download a service account key JSON file from your Firebase project settings,
-    // then set the GOOGLE_APPLICATION_CREDENTIALS environment variable.
-    // e.g., `export GOOGLE_APPLICATION_CREDENTIALS="/path/to/your/service-account-file.json"`
-    // Or, you can initialize with the service account object directly:
-    /*
+    console.error('Firebase Admin initialization error:', error);
+    // Fallback for environments that require explicit config
     try {
-        const serviceAccount = require('/path/to/your/service-account-file.json');
         admin.initializeApp({
-            credential: admin.credential.cert(serviceAccount),
+            credential: admin.credential.applicationDefault(),
             databaseURL: `https://${firebaseConfig.projectId}.firebaseio.com`,
             storageBucket: firebaseConfig.storageBucket,
         });
-    } catch (e) {
-        console.error('Secondary Firebase Admin initialization attempt failed', e)
+    } catch(e) {
+         console.error('Secondary Firebase Admin initialization attempt failed', e)
     }
-    */
   }
 }
 
