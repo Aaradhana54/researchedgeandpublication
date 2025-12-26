@@ -66,8 +66,8 @@ const projectFormSchema = z.object({
   deadline: z.coerce.date().optional(),
   synopsisFileUrl: z.string().optional(),
   referencingStyle: z.string().optional(),
-  pageCount: z.coerce.number().int().positive().optional(),
-  wordCount: z.coerce.number().int().positive().optional(),
+  pageCount: z.coerce.number().int().positive().optional().or(z.literal('')),
+  wordCount: z.coerce.number().int().positive().optional().or(z.literal('')),
   language: z.string().optional(),
   wantToPublish: z.preprocess((val) => val === 'on', z.boolean()).optional(),
   publishWhere: z.string().optional(),
@@ -105,12 +105,12 @@ export async function createProject(
   const rawFormData = {
     title: formData.get('title'),
     serviceType: formData.get('serviceType'),
-    topic: formData.get('topic'),
+    topic: formData.get('topic') || undefined,
     courseLevel: formData.get('courseLevel') || undefined,
     deadline: formData.get('deadline') || undefined,
     referencingStyle: formData.get('referencingStyle') || undefined,
-    pageCount: formData.get('pageCount') ? Number(formData.get('pageCount')) : undefined,
-    wordCount: formData.get('wordCount') ? Number(formData.get('wordCount')) : undefined,
+    pageCount: formData.get('pageCount'),
+    wordCount: formData.get('wordCount'),
     language: formData.get('language') || undefined,
     wantToPublish: formData.get('wantToPublish'),
     publishWhere: formData.get('publishWhere') || undefined,
@@ -137,9 +137,9 @@ export async function createProject(
 
   const projectsRef = collection(firestore, 'projects');
   
-  // Clean up undefined values so they are not stored in Firestore
+  // Clean up undefined, null, or empty string values so they are not stored in Firestore
   const projectData = Object.fromEntries(
-      Object.entries(validatedFields.data).filter(([, value]) => value !== undefined)
+      Object.entries(validatedFields.data).filter(([, value]) => value !== undefined && value !== null && value !== '')
   );
 
   try {

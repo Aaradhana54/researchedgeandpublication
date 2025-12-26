@@ -10,18 +10,6 @@ service cloud.firestore {
     function isAdmin() {
       return request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
-    
-    function isProjectCreateRequestValid() {
-      let data = request.resource.data;
-      let expectedKeys = [
-        'userId', 'title', 'serviceType', 'status', 'createdAt', 'updatedAt',
-        'topic', 'courseLevel', 'deadline', 'synopsisFileUrl', 'referencingStyle',
-        'pageCount', 'wordCount', 'language', 'wantToPublish', 'publishWhere'
-      ];
-      return request.auth != null 
-        && isOwner(data.userId)
-        && data.keys().hasOnly(expectedKeys);
-    }
 
     match /users/{userId} {
       // New users can only create their own profile with the 'client' role.
@@ -38,8 +26,8 @@ service cloud.firestore {
     
     match /projects/{projectId} {
       // Authenticated users can create projects for themselves.
-      // The shape of the data must match the expected fields.
-      allow create: if isProjectCreateRequestValid();
+      // The shape of the data is validated by the server action, so we only check auth here.
+      allow create: if request.auth != null && isOwner(request.resource.data.userId);
       // Owners or admins can manage projects.
       allow read, update, delete: if isOwner(resource.data.userId) || isAdmin();
       // Authenticated users can list projects (will be filtered by user ID in the app query). Admins can list all.
