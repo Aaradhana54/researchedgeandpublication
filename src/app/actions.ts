@@ -2,11 +2,10 @@
 'use server';
 
 import { z } from 'zod';
-import { addDoc, collection, serverTimestamp, Timestamp } from 'firebase/firestore';
+import { serverTimestamp } from 'firebase/firestore';
 import { revalidatePath } from 'next/cache';
 import type { UserRole } from '@/lib/types';
-import { firestore } from '@/firebase/server';
-import { auth as adminAuth } from '@/firebase/server';
+import { firestore, auth as adminAuth, admin } from '@/firebase/server';
 
 
 export type ProjectFormState = {
@@ -32,7 +31,7 @@ const ProjectSchema = z.object({
   courseLevel: z.string().min(1, 'Course level is required.').optional(),
   deadline: z.preprocess(
     (val) => (typeof val === 'string' && val !== '' ? new Date(val) : undefined),
-    z.date().optional()
+    z.date({ invalid_type_error: "Invalid date format for deadline." }).optional()
   ),
   referencingStyle: z.string().min(1, 'Referencing style is required.').optional(),
   pageCount: z.preprocess(
@@ -64,7 +63,6 @@ export async function createProject(
     };
   }
 
-
   const rawFormData = {
     title: formData.get('title'),
     serviceType: formData.get('serviceType'),
@@ -94,9 +92,9 @@ export async function createProject(
   // Copy validated data
   Object.assign(dataToSave, validatedFields.data);
 
-  // Explicitly handle date conversion to Firestore Timestamp
+  // Explicitly handle date conversion to Firestore Timestamp using the ADMIN SDK
   if (validatedFields.data.deadline) {
-    dataToSave.deadline = Timestamp.fromDate(validatedFields.data.deadline);
+    dataToSave.deadline = admin.firestore.Timestamp.fromDate(validatedFields.data.deadline);
   } else {
     delete dataToSave.deadline; // Ensure undefined dates are not sent
   }
@@ -115,8 +113,8 @@ export async function createProject(
       ...dataToSave,
       userId: userId,
       status: 'pending',
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
     });
 
     revalidatePath('/dashboard/projects');
@@ -171,7 +169,7 @@ export async function createUserAsAdmin(formData: FormData) {
       name,
       email,
       role,
-      createdAt: Timestamp.now(),
+      createdAt: admin.firestore.Timestamp.now(),
     };
     
     // Use the admin firestore instance
