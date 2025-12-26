@@ -49,7 +49,7 @@ export interface Project {
   topic?: string;
   courseLevel?: CourseLevel;
   deadline?: Timestamp;
-  synopsisFileUrl?: string; // Optional file upload
+  synopsisFileUrl?: string;
   referencingStyle?: string;
   pageCount?: number;
   wordCount?: number;

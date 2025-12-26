@@ -3,7 +3,6 @@
 import { z } from 'zod';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { firestore } from '@/firebase/server';
-import { auth } from 'firebase/server'; // Assumes you have a way to get current user on server
 
 const contactFormSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters.'),
@@ -62,7 +61,7 @@ export async function submitContactForm(
 const projectFormSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters.'),
   serviceType: z.string().min(1, 'Please select a service type.'),
-  topic: z.string().optional(),
+  topic: z.string().min(1, 'Topic is required.').optional(),
   courseLevel: z.enum(['ug', 'pg', 'phd']).optional(),
   deadline: z.coerce.date().optional(),
   synopsisFileUrl: z.string().optional(),
@@ -78,7 +77,7 @@ const projectFormSchema = z.object({
 
 export type ProjectFormState = {
     message: string;
-    errors?: Zod.ZodError<any>['formErrors']['fieldErrors'];
+    errors?: Zod.ZodError<z.infer<typeof projectFormSchema>>['formErrors']['fieldErrors'];
     success: boolean;
 };
 
@@ -87,6 +86,11 @@ export async function createProject(
   prevState: ProjectFormState,
   formData: FormData
 ): Promise<ProjectFormState> {
+    
+  // A bit of a hack to show pending state with useActionState in React 19
+  if (prevState.message === '') {
+      // return { success: false, message: 'Submitting...' };
+  }
 
   // Note: File handling would happen here. For now, we just pass a placeholder.
   // In a real app, you'd upload the file to Firebase Storage and get a URL.
@@ -98,25 +102,27 @@ export async function createProject(
       console.log(`File "${synopsisFile.name}" would be uploaded. URL: ${synopsisFileUrl}`);
   }
 
-
-  const validatedFields = projectFormSchema.safeParse({
+  const rawFormData = {
     title: formData.get('title'),
     serviceType: formData.get('serviceType'),
     topic: formData.get('topic'),
-    courseLevel: formData.get('courseLevel'),
-    deadline: formData.get('deadline'),
-    referencingStyle: formData.get('referencingStyle'),
-    pageCount: formData.get('pageCount'),
-    wordCount: formData.get('wordCount'),
-    language: formData.get('language'),
+    courseLevel: formData.get('courseLevel') || undefined,
+    deadline: formData.get('deadline') || undefined,
+    referencingStyle: formData.get('referencingStyle') || undefined,
+    pageCount: formData.get('pageCount') ? Number(formData.get('pageCount')) : undefined,
+    wordCount: formData.get('wordCount') ? Number(formData.get('wordCount')) : undefined,
+    language: formData.get('language') || undefined,
     wantToPublish: formData.get('wantToPublish'),
-    publishWhere: formData.get('publishWhere'),
+    publishWhere: formData.get('publishWhere') || undefined,
     userId: formData.get('userId'),
     synopsisFileUrl: synopsisFileUrl,
-  });
+  };
+
+
+  const validatedFields = projectFormSchema.safeParse(rawFormData);
   
   if (!validatedFields.success) {
-      console.log(validatedFields.error.flatten().fieldErrors);
+      console.log("Validation Errors:", validatedFields.error.flatten().fieldErrors);
     return {
       message: 'Error: Please check your input.',
       errors: validatedFields.error.flatten().fieldErrors,
@@ -130,15 +136,20 @@ export async function createProject(
   }
 
   const projectsRef = collection(firestore, 'projects');
-  const projectData = {
-    ...validatedFields.data,
-    createdAt: serverTimestamp(),
-    updatedAt: serverTimestamp(),
-  };
+  
+  // Clean up undefined values so they are not stored in Firestore
+  const projectData = Object.fromEntries(
+      Object.entries(validatedFields.data).filter(([, value]) => value !== undefined)
+  );
 
   try {
-    const docRef = await addDoc(projectsRef, projectData);
-    return { message: `Success: Project "${projectData.title}" created with ID: ${docRef.id}`, success: true };
+    const docRef = await addDoc(projectsRef, {
+        ...projectData,
+        status: 'pending',
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+    });
+    return { message: `Success: Project "${projectData.title}" created!`, success: true };
   } catch (e: any) {
     console.error('Project creation error:', e);
     return { message: 'Error: Could not save the project to the database.', success: false };
