@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useActionState } from 'react';
 import { useParams, notFound, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useFormState, useFormStatus } from 'react-dom';
+import { useFormStatus } from 'react-dom';
 import { useUser } from '@/firebase/auth/use-user';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -64,7 +64,7 @@ export default function CreateProjectPage() {
   const [wantToPublish, setWantToPublish] = useState(false);
 
   const initialState: ProjectFormState = { message: '', errors: {}, success: false };
-  const [state, formAction] = useFormState(createProject, initialState);
+  const [state, formAction] = useActionState(createProject, initialState);
 
   useEffect(() => {
     if (state.success) {
