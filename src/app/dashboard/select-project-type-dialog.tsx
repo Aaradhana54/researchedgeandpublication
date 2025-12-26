@@ -86,7 +86,7 @@ export function SelectProjectTypeDialog({ children }: { children: React.ReactNod
                     {view === 'writing' && (
                         <div className="flex flex-col gap-2">
                             {writingServices.map((service) => (
-                                <Button key={service.value} variant="ghost" className="w-full justify-start" onClick={() => service.value === 'thesis-dissertation' ? handleServiceSelect(service.value) : undefined}>
+                                <Button key={service.value} variant="ghost" className="w-full justify-start" onClick={() => handleServiceSelect(service.value)}>
                                     {service.name}
                                 </Button>
                             ))}
@@ -96,7 +96,7 @@ export function SelectProjectTypeDialog({ children }: { children: React.ReactNod
                      {view === 'publication' && (
                         <div className="flex flex-col gap-2">
                            {publicationServices.map((service) => (
-                                <Button key={service.value} variant="ghost" className="w-full justify-start" onClick={() => undefined}>
+                                <Button key={service.value} variant="ghost" className="w-full justify-start" onClick={() => handleServiceSelect(service.value)}>
                                     {service.name}
                                 </Button>
                             ))}

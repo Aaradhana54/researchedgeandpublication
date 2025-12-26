@@ -82,16 +82,13 @@ export default function CreateProjectPage() {
       formRef.current?.reset();
       setDeadline(undefined);
       setWantToPublish(false);
-      // Redirect after a short delay to allow toast to be seen
+      
       const timer = setTimeout(() => {
         router.push('/dashboard/projects');
-      }, 1500);
-      return () => clearTimeout(timer); // Cleanup timer on unmount
-    } else if (state.message && state.errors) {
-      // This case handles form validation errors. No toast is needed,
-      // as the errors will be displayed inline.
-    } else if (state.message && !state.success) {
-      // This handles non-validation server errors (e.g., database connection)
+      }, 1000);
+      
+      return () => clearTimeout(timer);
+    } else if (state.message && !state.success && !state.errors) {
       toast({
         title: 'Submission Failed',
         description: state.message,
@@ -351,20 +348,11 @@ export default function CreateProjectPage() {
                     </div>
 
                     {service === 'thesis-dissertation' && renderThesisForm()}
-                    {(service === 'research-paper' || service === 'review-paper') && renderPaperForm()}
-                    {service === 'book-writing' && renderBookWritingForm()}
-
-                    {/* Placeholder for other service forms */}
-                    {(service === 'research-publication' || service === 'book-publishing') && (
-                        <p className="text-center text-muted-foreground py-8">This form is under construction. Please check back later.</p>
-                    )}
-
+                    {(service === 'research-paper' || service === 'review-paper' || service === 'research-publication') && renderPaperForm()}
+                    {(service === 'book-writing' || service === 'book-publishing') && renderBookWritingForm()}
 
                     <div className="flex justify-end pt-4">
-                       {/* Only show submit button if form is implemented */}
-                       {(service === 'thesis-dissertation' || service === 'research-paper' || service === 'review-paper' || service === 'book-writing') && (
-                           <SubmitButton />
-                       )}
+                       <SubmitButton />
                     </div>
                 </form>
             </CardContent>
