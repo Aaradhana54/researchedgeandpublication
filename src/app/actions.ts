@@ -66,7 +66,7 @@ const projectFormSchema = z.object({
   deadline: z.coerce.date().optional(),
   synopsisFileUrl: z.string().optional(),
   referencingStyle: z.string().optional(),
-  pageCount: z.coerce.number().int().positive().optional().or(z.literal('')),
+  pageCount: z.coerce.number().int().positive().optional(),
   wordCount: z.coerce.number().int().positive().optional().or(z.literal('')),
   language: z.string().optional(),
   wantToPublish: z.preprocess((val) => val === 'on', z.boolean()).optional(),
@@ -86,11 +86,6 @@ export async function createProject(
   prevState: ProjectFormState,
   formData: FormData
 ): Promise<ProjectFormState> {
-    
-  // A bit of a hack to show pending state with useActionState in React 19
-  if (prevState.message === '') {
-      // return { success: false, message: 'Submitting...' };
-  }
 
   // Note: File handling would happen here. For now, we just pass a placeholder.
   // In a real app, you'd upload the file to Firebase Storage and get a URL.
