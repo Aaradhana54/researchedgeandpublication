@@ -3,9 +3,9 @@ import * as admin from 'firebase-admin';
 
 // --- SERVER-SIDE ADMIN SDK INITIALIZATION ---
 
-// This simplified initialization is more reliable in various hosting environments.
-// It relies on the environment to provide the necessary service account credentials,
-// which is standard for Firebase App Hosting and other Google Cloud environments.
+// This simplified initialization is the standard and most reliable method.
+// It relies on the hosting environment (like Firebase App Hosting) to automatically 
+// provide the necessary service account credentials.
 if (!admin.apps.length) {
   admin.initializeApp();
 }
