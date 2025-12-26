@@ -1,10 +1,10 @@
+
 'use server';
 
 import { z } from 'zod';
 import { FieldValue } from 'firebase-admin/firestore';
 import { firestore } from '@/firebase/server';
 import { revalidatePath } from 'next/cache';
-import type { ProjectServiceType, CourseLevel } from '@/lib/types';
 
 // Zod schema for validation, now with transformations to handle optional fields
 const projectFormSchema = z.object({
@@ -64,11 +64,11 @@ export async function createProject(
 
   try {
     // Prepare the data for Firestore, removing any keys with undefined values
-    const dataToSave = { ...validatedFields.data };
+    const dataToSave: { [key: string]: any } = { ...validatedFields.data };
     
     Object.keys(dataToSave).forEach(key => {
-      if ((dataToSave as any)[key] === undefined) {
-          delete (dataToSave as any)[key];
+      if (dataToSave[key] === undefined || dataToSave[key] === null) {
+          delete dataToSave[key];
       }
     });
 
