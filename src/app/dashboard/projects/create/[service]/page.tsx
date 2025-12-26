@@ -2,7 +2,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useActionState } from 'react';
 import { useParams, notFound, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useUser } from '@/firebase/auth/use-user';
@@ -23,7 +23,7 @@ import { useToast } from '@/hooks/use-toast';
 import { createProject, type ProjectFormState } from '@/app/actions';
 import { FormMessage } from '@/components/ui/form';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { useFormState, useFormStatus } from 'react-dom';
+import { useFormStatus } from 'react-dom';
 
 
 const serviceDisplayNames: Record<ProjectServiceType, string> = {
@@ -60,7 +60,7 @@ export default function CreateProjectPage() {
   const { toast } = useToast();
 
   const initialState: ProjectFormState = { message: '', errors: {}, success: false };
-  const [state, formAction] = useFormState(createProject, initialState);
+  const [state, formAction] = useActionState(createProject, initialState);
 
   const [formKey, setFormKey] = useState(Date.now()); // Used to reset the form
 
