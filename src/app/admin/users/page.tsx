@@ -67,14 +67,6 @@ function UserTable({ users }: { users: UserProfile[] }) {
     );
 }
 
-const teamRoles: UserRole[] = [
-  'admin',
-  'writing-team',
-  'sales-team',
-  'publication-team',
-  'accounts-team',
-];
-
 export default function UserManagementPage() {
   const usersQuery = useMemo(() => {
     if (!firestore) return null;
@@ -88,23 +80,35 @@ export default function UserManagementPage() {
       return {
         clients: [],
         authors: [],
-        team: [],
+        writingTeam: [],
+        salesTeam: [],
+        publicationTeam: [],
+        accountsTeam: [],
         partners: [],
+        admins: [],
       };
     }
     return {
       clients: users.filter(u => u.role === 'client'),
       authors: users.filter(u => u.role === 'author'),
-      team: users.filter(u => teamRoles.includes(u.role)),
+      writingTeam: users.filter(u => u.role === 'writing-team'),
+      salesTeam: users.filter(u => u.role === 'sales-team'),
+      publicationTeam: users.filter(u => u.role === 'publication-team'),
+      accountsTeam: users.filter(u => u.role === 'accounts-team'),
       partners: users.filter(u => u.role === 'referral-partner'),
+      admins: users.filter(u => u.role === 'admin'),
     };
   }, [users]);
   
   const tabs = [
     { value: 'clients', label: 'Research Clients', data: filteredUsers.clients },
     { value: 'authors', label: 'Authors', data: filteredUsers.authors },
-    { value: 'team', label: 'Team', data: filteredUsers.team },
+    { value: 'writing-team', label: 'Writing Team', data: filteredUsers.writingTeam },
+    { value: 'sales-team', label: 'Sales Team', data: filteredUsers.salesTeam },
+    { value: 'publication-team', label: 'Publication Team', data: filteredUsers.publicationTeam },
+    { value: 'accounts-team', label: 'Accounts Team', data: filteredUsers.accountsTeam },
     { value: 'partners', label: 'Referral Partners', data: filteredUsers.partners },
+    { value: 'admins', label: 'Admins', data: filteredUsers.admins },
   ];
 
   return (
@@ -129,9 +133,9 @@ export default function UserManagementPage() {
         </CardHeader>
         <CardContent>
             <Tabs defaultValue="clients">
-                <TabsList className="grid w-full grid-cols-2 sm:grid-cols-2 md:grid-cols-4 mb-6">
+                <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-8 mb-6 h-auto flex-wrap">
                    {tabs.map(tab => (
-                     <TabsTrigger key={tab.value} value={tab.value}>{tab.label}</TabsTrigger>
+                     <TabsTrigger key={tab.value} value={tab.value} className="flex-1">{tab.label}</TabsTrigger>
                    ))}
                 </TabsList>
                 
