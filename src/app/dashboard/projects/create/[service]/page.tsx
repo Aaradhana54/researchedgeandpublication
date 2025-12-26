@@ -90,32 +90,9 @@ export default function CreateProjectPage() {
             const storageRef = ref(storage, `projects/${user.uid}/${Date.now()}-${file.name}`);
             const uploadTask = uploadBytesResumable(storageRef, file);
 
-            // Wait for the upload to complete by listening to the 'state_changed' event
-            // and wrapping it in a promise.
-            await new Promise((resolve, reject) => {
-              uploadTask.on(
-                'state_changed',
-                (snapshot) => {
-                  const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                  setUploadProgress(progress);
-                },
-                (error) => {
-                  console.error('Upload failed:', error);
-                  reject(error);
-                },
-                async () => {
-                  // Upload completed successfully, now get the download URL
-                  try {
-                    const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-                    synopsisFileUrl = downloadURL;
-                    resolve(downloadURL);
-                  } catch (urlError) {
-                    console.error('Failed to get download URL:', urlError);
-                    reject(urlError);
-                  }
-                }
-              );
-            });
+            await uploadTask;
+            synopsisFileUrl = await getDownloadURL(uploadTask.snapshot.ref);
+            
             setUploading(false);
         }
 
@@ -225,14 +202,14 @@ export default function CreateProjectPage() {
   const renderThesisForm = () => (
     <>
       <div className="space-y-2">
-        <Label htmlFor="topic">Topic *</Label>
-        <Input id="topic" name="topic" placeholder="e.g., The Impact of AI on Modern Literature" required disabled={loading}/>
+        <Label htmlFor="topic">Topic</Label>
+        <Input id="topic" name="topic" placeholder="e.g., The Impact of AI on Modern Literature" disabled={loading}/>
       </div>
 
       <div className="grid md:grid-cols-2 gap-6">
         <div className="space-y-2">
-          <Label htmlFor="courseLevel">Course Level *</Label>
-          <Select name="courseLevel" required disabled={loading}>
+          <Label htmlFor="courseLevel">Course Level</Label>
+          <Select name="courseLevel" disabled={loading}>
             <SelectTrigger id="courseLevel">
               <SelectValue placeholder="Select course level" />
             </SelectTrigger>
@@ -256,16 +233,16 @@ export default function CreateProjectPage() {
 
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
         <div className="space-y-2">
-          <Label htmlFor="referencingStyle">Referencing Style *</Label>
-          <Input id="referencingStyle" name="referencingStyle" placeholder="e.g., APA, MLA, Chicago" required disabled={loading}/>
+          <Label htmlFor="referencingStyle">Referencing Style</Label>
+          <Input id="referencingStyle" name="referencingStyle" placeholder="e.g., APA, MLA, Chicago" disabled={loading}/>
         </div>
         <div className="space-y-2">
           <Label htmlFor="pageCount">Page Count</Label>
           <Input id="pageCount" name="pageCount" type="number" placeholder="e.g., 100" disabled={loading}/>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="language">Language *</Label>
-          <Input id="language" name="language" placeholder="e.g., English, Spanish" defaultValue="English" required disabled={loading}/>
+          <Label htmlFor="language">Language</Label>
+          <Input id="language" name="language" placeholder="e.g., English, Spanish" defaultValue="English" disabled={loading}/>
         </div>
       </div>
     </>
@@ -420,3 +397,5 @@ export default function CreateProjectPage() {
     </div>
   );
 }
+
+    
