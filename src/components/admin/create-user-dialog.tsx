@@ -15,11 +15,10 @@ import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { createUser } from '@/firebase/auth'; // We'll create this function
 import { useToast } from '@/hooks/use-toast';
 import { LoaderCircle } from 'lucide-react';
-import { getFirebaseErrorMessage } from '@/firebase/errors';
 import type { UserRole } from '@/lib/types';
+import { createUserAsAdmin } from '@/app/actions';
 
 const roles: UserRole[] = [
   'client',
@@ -34,19 +33,15 @@ const roles: UserRole[] = [
 
 export function CreateUserDialog({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [role, setRole] = useState<UserRole>('client');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (formData: FormData) => {
     setLoading(true);
     setError(null);
 
+    const password = formData.get('password') as string;
     if (password.length < 6) {
         setError('Password must be at least 6 characters long.');
         setLoading(false);
@@ -54,49 +49,53 @@ export function CreateUserDialog({ children }: { children: React.ReactNode }) {
     }
 
     try {
-        await createUser(email, password, name, role);
+        const result = await createUserAsAdmin(formData);
         toast({
             title: 'User Created',
-            description: `An account for ${name} has been successfully created.`,
+            description: result.message,
         });
-        // Reset form and close dialog
-        setName('');
-        setEmail('');
-        setPassword('');
-        setRole('client');
-        setOpen(false);
+        setOpen(false); // Close dialog on success
     } catch (err: any) {
-        setError(getFirebaseErrorMessage(err.code));
+        setError(err.message || 'An unexpected error occurred.');
     } finally {
         setLoading(false);
     }
   };
+
+  // Reset state when dialog is closed
+  const onOpenChange = (isOpen: boolean) => {
+    if (!isOpen) {
+        setError(null);
+        setLoading(false);
+    }
+    setOpen(isOpen);
+  }
     
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogTrigger asChild>{children}</DialogTrigger>
         <DialogContent className="sm:max-w-md">
             <DialogHeader>
                 <DialogTitle>Create New User</DialogTitle>
                 <DialogDescription>Fill in the details to create a new user account.</DialogDescription>
             </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form action={handleSubmit} className="space-y-4">
                  {error && <p className="text-sm text-destructive bg-destructive/10 p-3 rounded-md">{error}</p>}
                 <div className="space-y-2">
                     <Label htmlFor="name">Full Name</Label>
-                    <Input id="name" value={name} onChange={(e) => setName(e.target.value)} required />
+                    <Input id="name" name="name" required />
                 </div>
                  <div className="space-y-2">
                     <Label htmlFor="email">Email</Label>
-                    <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                    <Input id="email" type="email" name="email" required />
                 </div>
                  <div className="space-y-2">
                     <Label htmlFor="password">Password</Label>
-                    <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+                    <Input id="password" type="password" name="password" required />
                 </div>
                  <div className="space-y-2">
                     <Label htmlFor="role">Role</Label>
-                    <Select value={role} onValueChange={(value) => setRole(value as UserRole)}>
+                    <Select name="role" defaultValue="client">
                         <SelectTrigger id="role">
                             <SelectValue placeholder="Select a role" />
                         </SelectTrigger>
