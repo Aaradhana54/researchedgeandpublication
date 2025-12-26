@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useEffect, ChangeEvent } from 'react';
@@ -77,7 +76,6 @@ export default function CreateProjectPage() {
     const formData = new FormData(event.currentTarget);
     const rawFormData = Object.fromEntries(formData.entries());
 
-    // Basic validation
     if (!rawFormData.title) {
         setError("Project Title is required.");
         setLoading(false);
@@ -86,90 +84,84 @@ export default function CreateProjectPage() {
     
     let synopsisFileUrl = '';
     
-    // --- File Upload Logic ---
-    if (file && storage) {
-      setUploading(true);
-      const storageRef = ref(storage, `projects/${user.uid}/${Date.now()}-${file.name}`);
-      const uploadTask = uploadBytesResumable(storageRef, file);
-
-      try {
-        await new Promise<void>((resolve, reject) => {
-          uploadTask.on(
-            'state_changed',
-            (snapshot) => {
-              const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-              setUploadProgress(progress);
-            },
-            (error) => {
-              console.error("Upload failed:", error);
-              reject(`File upload failed: ${error.message}`);
-            },
-            async () => {
-              synopsisFileUrl = await getDownloadURL(uploadTask.snapshot.ref);
-              resolve();
-            }
-          );
-        });
-      } catch (uploadError: any) {
-        setError(uploadError);
-        setLoading(false);
-        setUploading(false);
-        return;
-      }
-      setUploading(false);
-    }
-    // --- End File Upload Logic ---
-
-
-    const dataToSave: any = {
-      userId: user.uid,
-      serviceType: service,
-      title: rawFormData.title,
-      wantToPublish: rawFormData.wantToPublish === 'on',
-      status: 'pending',
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-      synopsisFileUrl: synopsisFileUrl,
-    };
-    
-    // Add optional fields only if they have a value
-    if (rawFormData.topic) dataToSave.topic = rawFormData.topic;
-    if (rawFormData.courseLevel) dataToSave.courseLevel = rawFormData.courseLevel;
-    if (rawFormData.referencingStyle) dataToSave.referencingStyle = rawFormData.referencingStyle;
-    if (rawFormData.language) dataToSave.language = rawFormData.language;
-    if (rawFormData.publishWhere) dataToSave.publishWhere = rawFormData.publishWhere;
-    else if (rawFormData.wantToPublish === 'on') dataToSave.publishWhere = '';
-
-
-    if (rawFormData.deadline) {
-      dataToSave.deadline = Timestamp.fromDate(new Date(rawFormData.deadline as string));
-    }
-    if (rawFormData.pageCount) {
-      dataToSave.pageCount = Number(rawFormData.pageCount);
-    }
-    if (rawFormData.wordCount) {
-        dataToSave.wordCount = Number(rawFormData.wordCount);
-    }
-
-
     try {
-      const projectsCollection = collection(firestore, 'projects');
-      await addDoc(projectsCollection, dataToSave);
+        if (file && storage) {
+            setUploading(true);
+            const storageRef = ref(storage, `projects/${user.uid}/${Date.now()}-${file.name}`);
+            const uploadTask = uploadBytesResumable(storageRef, file);
 
-      toast({
-        title: 'Project Submitted!',
-        description: 'Your project has been successfully submitted for review.',
-      });
-      setFormKey(Date.now()); // Reset form by changing key
-      router.push('/dashboard/projects');
+            await new Promise<void>((resolve, reject) => {
+                uploadTask.on(
+                    'state_changed',
+                    (snapshot) => {
+                        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                        setUploadProgress(progress);
+                    },
+                    (error) => {
+                        console.error("Upload failed:", error);
+                        reject(new Error(`File upload failed: ${error.message}`));
+                    },
+                    async () => {
+                        try {
+                            const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+                            synopsisFileUrl = downloadURL;
+                            resolve();
+                        } catch (getUrlError) {
+                             console.error("Failed to get download URL:", getUrlError);
+                            reject(new Error(`File upload failed: Could not get download URL.`));
+                        }
+                    }
+                );
+            });
+            setUploading(false);
+        }
+
+        const dataToSave: any = {
+          userId: user.uid,
+          serviceType: service,
+          title: rawFormData.title,
+          wantToPublish: rawFormData.wantToPublish === 'on',
+          status: 'pending',
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+          synopsisFileUrl: synopsisFileUrl,
+        };
+        
+        if (rawFormData.topic) dataToSave.topic = rawFormData.topic;
+        if (rawFormData.courseLevel) dataToSave.courseLevel = rawFormData.courseLevel;
+        if (rawFormData.referencingStyle) dataToSave.referencingStyle = rawFormData.referencingStyle;
+        if (rawFormData.language) dataToSave.language = rawFormData.language;
+        if (rawFormData.publishWhere) {
+          dataToSave.publishWhere = rawFormData.publishWhere;
+        }
+
+        if (rawFormData.deadline) {
+          dataToSave.deadline = Timestamp.fromDate(new Date(rawFormData.deadline as string));
+        }
+        if (rawFormData.pageCount) {
+          dataToSave.pageCount = Number(rawFormData.pageCount);
+        }
+        if (rawFormData.wordCount) {
+            dataToSave.wordCount = Number(rawFormData.wordCount);
+        }
+
+        const projectsCollection = collection(firestore, 'projects');
+        await addDoc(projectsCollection, dataToSave);
+
+        toast({
+            title: 'Project Submitted!',
+            description: 'Your project has been successfully submitted for review.',
+        });
+        setFormKey(Date.now()); 
+        router.push('/dashboard/projects');
 
     } catch (err: any) {
       console.error(err);
       setError(err.message || 'An unknown error occurred while creating the project.');
     } finally {
       setLoading(false);
+      setUploading(false);
     }
-
   }
 
 
@@ -182,7 +174,6 @@ export default function CreateProjectPage() {
   }
 
   if (!user) {
-    // This should ideally not happen due to the layout, but as a safeguard:
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
         <p>You need to be logged in to create a project.</p>
@@ -407,3 +398,5 @@ export default function CreateProjectPage() {
     </div>
   );
 }
+
+    
