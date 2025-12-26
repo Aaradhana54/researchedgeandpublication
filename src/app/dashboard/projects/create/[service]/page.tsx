@@ -63,20 +63,29 @@ export default function CreateProjectPage() {
     const formData = new FormData(event.currentTarget);
     const rawFormData = Object.fromEntries(formData.entries());
 
+    // Basic validation
+    if (!rawFormData.title) {
+        setError("Project Title is required.");
+        setLoading(false);
+        return;
+    }
+
     const dataToSave: any = {
       userId: user.uid,
       serviceType: service,
       title: rawFormData.title,
-      topic: rawFormData.topic,
-      courseLevel: rawFormData.courseLevel,
-      referencingStyle: rawFormData.referencingStyle || '',
-      language: rawFormData.language,
       wantToPublish: rawFormData.wantToPublish === 'on',
-      publishWhere: rawFormData.publishWhere || '',
       status: 'pending',
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     };
+    
+    // Add optional fields only if they have a value
+    if (rawFormData.topic) dataToSave.topic = rawFormData.topic;
+    if (rawFormData.courseLevel) dataToSave.courseLevel = rawFormData.courseLevel;
+    if (rawFormData.referencingStyle) dataToSave.referencingStyle = rawFormData.referencingStyle;
+    if (rawFormData.language) dataToSave.language = rawFormData.language;
+    if (rawFormData.publishWhere) dataToSave.publishWhere = rawFormData.publishWhere;
 
     if (rawFormData.deadline) {
       dataToSave.deadline = Timestamp.fromDate(new Date(rawFormData.deadline as string));
@@ -88,12 +97,6 @@ export default function CreateProjectPage() {
         dataToSave.wordCount = Number(rawFormData.wordCount);
     }
 
-    // Basic validation
-    if (!dataToSave.title) {
-        setError("Project Title is required.");
-        setLoading(false);
-        return;
-    }
 
     try {
       const projectsCollection = collection(firestore, 'projects');
