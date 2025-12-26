@@ -2,7 +2,7 @@
 'use server';
 
 import { z } from 'zod';
-import { FieldValue }from 'firebase-admin/firestore';
+import { FieldValue, Timestamp }from 'firebase-admin/firestore';
 import { firestore } from '@/firebase/server';
 import { revalidatePath } from 'next/cache';
 import type { ProjectServiceType, CourseLevel } from '@/lib/types';
@@ -87,14 +87,17 @@ export async function createProject(
     };
   }
 
-  // Filter out undefined values before saving
   const dataToSave: any = {};
-  Object.keys(validatedFields.data).forEach(key => {
-      const value = (validatedFields.data as any)[key];
-      if (value !== undefined) {
-          dataToSave[key] = value;
+  for (const [key, value] of Object.entries(validatedFields.data)) {
+    if (value !== undefined) {
+      if (value instanceof Date) {
+        // Convert Date objects to Firestore Timestamps
+        dataToSave[key] = Timestamp.fromDate(value);
+      } else {
+        dataToSave[key] = value;
       }
-  });
+    }
+  }
 
 
   try {
