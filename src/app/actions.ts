@@ -4,16 +4,7 @@
 import { z } from 'zod';
 import { revalidatePath } from 'next/cache';
 import type { UserRole, ProjectStatus } from '@/lib/types';
-import * as admin from 'firebase-admin';
-
-// Re-initialize admin within the action to ensure context
-if (!admin.apps.length) {
-  admin.initializeApp();
-}
-
-const firestore = admin.firestore();
-const adminAuth = admin.auth();
-
+import { admin, firestore as adminFirestore, auth as adminAuth } from '@/firebase/server';
 
 const CreateUserSchema = z.object({
   name: z.string().min(1, { message: 'Name is required' }),
@@ -61,7 +52,7 @@ export async function createUserAsAdmin(formData: FormData) {
     }
 
     // Use the admin firestore instance
-    await firestore.collection('users').doc(userRecord.uid).set(userProfile);
+    await adminFirestore.collection('users').doc(userRecord.uid).set(userProfile);
 
     // 3. Revalidate paths to update the user lists in the admin panel
     revalidatePath('/admin/users');
@@ -89,12 +80,7 @@ export async function updateProjectStatus(projectId: string, status: ProjectStat
     }
 
     try {
-        // This initialization is now self-contained within the action.
-        if (!admin.apps.length) {
-            admin.initializeApp();
-        }
-        const db = admin.firestore();
-        const projectRef = db.collection('projects').doc(projectId);
+        const projectRef = adminFirestore.collection('projects').doc(projectId);
         
         await projectRef.update({
             status: status,
