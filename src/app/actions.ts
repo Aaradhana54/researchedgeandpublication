@@ -97,37 +97,29 @@ export async function createProject(
       console.log(`File "${synopsisFile.name}" would be uploaded. URL: ${synopsisFileUrl}`);
   }
 
-  const rawFormData = {
-    title: formData.get('title'),
-    serviceType: formData.get('serviceType'),
-    topic: formData.get('topic'),
-    courseLevel: formData.get('courseLevel'),
-    deadline: formData.get('deadline'),
-    referencingStyle: formData.get('referencingStyle'),
-    pageCount: formData.get('pageCount'),
-    wordCount: formData.get('wordCount'),
-    language: formData.get('language'),
-    wantToPublish: formData.get('wantToPublish'),
-    publishWhere: formData.get('publishWhere'),
-    userId: formData.get('userId'),
-    synopsisFileUrl: synopsisFileUrl,
+  const rawData = Object.fromEntries(formData.entries());
+
+  const processedData = {
+      ...rawData,
+      title: rawData.title,
+      serviceType: rawData.serviceType,
+      userId: rawData.userId,
+      synopsisFileUrl: synopsisFileUrl,
+      // Convert empty strings to undefined for optional fields
+      topic: rawData.topic || undefined,
+      courseLevel: rawData.courseLevel || undefined,
+      deadline: rawData.deadline || undefined,
+      referencingStyle: rawData.referencingStyle || undefined,
+      language: rawData.language || undefined,
+      publishWhere: rawData.publishWhere || undefined,
+      // Coerce number fields, ensuring empty strings become undefined
+      pageCount: rawData.pageCount ? Number(rawData.pageCount) : undefined,
+      wordCount: rawData.wordCount ? Number(rawData.wordCount) : undefined,
+      wantToPublish: rawData.wantToPublish === 'on',
   };
 
-  // Convert empty strings for optional fields to undefined before validation
-   const processedFormData = {
-        ...rawFormData,
-        topic: rawFormData.topic === '' ? undefined : rawFormData.topic,
-        courseLevel: rawFormData.courseLevel === '' ? undefined : rawFormData.courseLevel,
-        deadline: rawFormData.deadline === '' ? undefined : rawFormData.deadline,
-        referencingStyle: rawFormData.referencingStyle === '' ? undefined : rawFormData.referencingStyle,
-        pageCount: rawFormData.pageCount === '' || rawFormData.pageCount === null ? undefined : rawFormData.pageCount,
-        wordCount: rawFormData.wordCount === '' || rawFormData.wordCount === null ? undefined : rawFormData.wordCount,
-        language: rawFormData.language === '' ? undefined : rawFormData.language,
-        publishWhere: rawFormData.publishWhere === '' ? undefined : rawFormData.publishWhere,
-    };
 
-
-  const validatedFields = projectFormSchema.safeParse(processedFormData);
+  const validatedFields = projectFormSchema.safeParse(processedData);
   
   if (!validatedFields.success) {
       console.log("Validation Errors:", validatedFields.error.flatten().fieldErrors);
@@ -147,7 +139,7 @@ export async function createProject(
   
   // Clean up undefined, null, or empty string values so they are not stored in Firestore
   const projectData = Object.fromEntries(
-      Object.entries(validatedFields.data).filter(([, value]) => value !== undefined && value !== null && value !== '')
+      Object.entries(validatedFields.data).filter(([, value]) => value !== undefined && value !== null && value !== '' && value !== false)
   );
 
   try {
@@ -157,7 +149,7 @@ export async function createProject(
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
     });
-    return { message: `Success: Project "${projectData.title}" created!`, success: true };
+    return { message: `Success: Project "${projectData.title}" created!`, success: true, errors: undefined };
   } catch (e: any) {
     console.error('Project creation error:', e);
     return { message: 'Error: Could not save the project to the database.', success: false };
