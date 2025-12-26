@@ -2,7 +2,7 @@
 
 'use client';
 
-import { useState, useEffect, useActionState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, notFound, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useUser } from '@/firebase/auth/use-user';
@@ -11,19 +11,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon, ArrowLeft, LoaderCircle } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { format } from 'date-fns';
+import { ArrowLeft, LoaderCircle } from 'lucide-react';
 import type { ProjectServiceType, CourseLevel } from '@/lib/types';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { createProject, type ProjectFormState } from '@/app/actions';
 import { FormMessage } from '@/components/ui/form';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { useFormStatus } from 'react-dom';
+import { addDoc, collection, serverTimestamp, Timestamp } from 'firebase/firestore';
+import { useFirestore } from '@/firebase';
 
 
 const serviceDisplayNames: Record<ProjectServiceType, string> = {
@@ -41,16 +37,6 @@ const courseLevels: { label: string, value: CourseLevel }[] = [
   { label: 'Doctorate (PhD)', value: 'phd' },
 ];
 
-function SubmitButton() {
-  const { pending } = useFormStatus();
-
-  return (
-    <Button size="lg" type="submit" className="w-full sm:w-auto" disabled={pending}>
-       {pending && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />}
-      Submit Project
-    </Button>
-  );
-}
 
 export default function CreateProjectPage() {
   const params = useParams();
@@ -58,24 +44,79 @@ export default function CreateProjectPage() {
   const { user, loading: userLoading } = useUser();
   const router = useRouter();
   const { toast } = useToast();
+  const firestore = useFirestore();
 
-  const initialState: ProjectFormState = { message: '', errors: {}, success: false };
-  const [state, formAction] = useActionState(createProject, initialState);
-
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  
   const [formKey, setFormKey] = useState(Date.now()); // Used to reset the form
 
-  useEffect(() => {
-    if (state.success) {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!firestore || !user) {
+      setError("User not authenticated or Firestore not available.");
+      return;
+    }
+    setLoading(true);
+    setError(null);
+
+    const formData = new FormData(event.currentTarget);
+    const rawFormData = Object.fromEntries(formData.entries());
+
+    const dataToSave: any = {
+      userId: user.uid,
+      serviceType: service,
+      title: rawFormData.title,
+      topic: rawFormData.topic,
+      courseLevel: rawFormData.courseLevel,
+      referencingStyle: rawFormData.referencingStyle,
+      language: rawFormData.language,
+      wantToPublish: rawFormData.wantToPublish === 'on',
+      publishWhere: rawFormData.publishWhere,
+      status: 'pending',
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    };
+
+    if (rawFormData.deadline) {
+      dataToSave.deadline = Timestamp.fromDate(new Date(rawFormData.deadline as string));
+    }
+    if (rawFormData.pageCount) {
+      dataToSave.pageCount = Number(rawFormData.pageCount);
+    }
+    if (rawFormData.wordCount) {
+        dataToSave.wordCount = Number(rawFormData.wordCount);
+    }
+
+    // Basic validation
+    if (!dataToSave.title) {
+        setError("Project Title is required.");
+        setLoading(false);
+        return;
+    }
+
+    try {
+      const projectsCollection = collection(firestore, 'projects');
+      await addDoc(projectsCollection, dataToSave);
+
       toast({
         title: 'Project Submitted!',
         description: 'Your project has been successfully submitted for review.',
       });
       setFormKey(Date.now()); // Reset form by changing key
       router.push('/dashboard/projects');
-    }
-  }, [state, toast, router]);
 
-  if (userLoading) {
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message || 'An unknown error occurred while creating the project.');
+    } finally {
+      setLoading(false);
+    }
+
+  }
+
+
+  if (userLoading || !firestore) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
         <LoaderCircle className="h-10 w-10 animate-spin text-primary" />
@@ -102,14 +143,13 @@ export default function CreateProjectPage() {
     <>
       <div className="space-y-2">
         <Label htmlFor="topic">Topic *</Label>
-        <Input id="topic" name="topic" placeholder="e.g., The Impact of AI on Modern Literature" />
-        {state.errors?.topic && <FormMessage>{state.errors.topic[0]}</FormMessage>}
+        <Input id="topic" name="topic" placeholder="e.g., The Impact of AI on Modern Literature" required/>
       </div>
 
       <div className="grid md:grid-cols-2 gap-6">
         <div className="space-y-2">
           <Label htmlFor="courseLevel">Course Level *</Label>
-          <Select name="courseLevel">
+          <Select name="courseLevel" required>
             <SelectTrigger id="courseLevel">
               <SelectValue placeholder="Select course level" />
             </SelectTrigger>
@@ -119,13 +159,11 @@ export default function CreateProjectPage() {
               ))}
             </SelectContent>
           </Select>
-           {state.errors?.courseLevel && <FormMessage>{state.errors.courseLevel[0]}</FormMessage>}
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="deadline">Deadline</Label>
           <Input id="deadline" name="deadline" type="date" />
-           {state.errors?.deadline && <FormMessage>{state.errors.deadline[0]}</FormMessage>}
         </div>
       </div>
 
@@ -138,18 +176,15 @@ export default function CreateProjectPage() {
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
         <div className="space-y-2">
           <Label htmlFor="referencingStyle">Referencing Style *</Label>
-          <Input id="referencingStyle" name="referencingStyle" placeholder="e.g., APA, MLA, Chicago" />
-          {state.errors?.referencingStyle && <FormMessage>{state.errors.referencingStyle[0]}</FormMessage>}
+          <Input id="referencingStyle" name="referencingStyle" placeholder="e.g., APA, MLA, Chicago" required/>
         </div>
         <div className="space-y-2">
           <Label htmlFor="pageCount">Page Count</Label>
           <Input id="pageCount" name="pageCount" type="number" placeholder="e.g., 100" />
-           {state.errors?.pageCount && <FormMessage>{state.errors.pageCount[0]}</FormMessage>}
         </div>
         <div className="space-y-2">
           <Label htmlFor="language">Language *</Label>
-          <Input id="language" name="language" placeholder="e.g., English, Spanish" defaultValue="English" />
-           {state.errors?.language && <FormMessage>{state.errors.language[0]}</FormMessage>}
+          <Input id="language" name="language" placeholder="e.g., English, Spanish" defaultValue="English" required/>
         </div>
       </div>
     </>
@@ -282,19 +317,16 @@ export default function CreateProjectPage() {
           <CardDescription>Fields marked with * are required.</CardDescription>
         </CardHeader>
         <CardContent>
-          <form key={formKey} action={formAction} className="space-y-6">
-             <input type="hidden" name="userId" value={user.uid} />
-             <input type="hidden" name="serviceType" value={service} />
-             {state.errors?._form && (
+          <form key={formKey} onSubmit={handleSubmit} className="space-y-6">
+             {error && (
                 <Alert variant="destructive">
                     <AlertTitle>Error</AlertTitle>
-                    <AlertDescription>{state.errors._form.join(', ')}</AlertDescription>
+                    <AlertDescription>{error}</AlertDescription>
                 </Alert>
              )}
             <div className="space-y-2">
               <Label htmlFor="title">Project Title *</Label>
-              <Input id="title" name="title" placeholder="A concise title for your project" />
-              {state.errors?.title && <FormMessage>{state.errors.title[0]}</FormMessage>}
+              <Input id="title" name="title" placeholder="A concise title for your project" required/>
             </div>
 
             {service === 'thesis-dissertation' && renderThesisForm()}
@@ -302,7 +334,10 @@ export default function CreateProjectPage() {
             {(service === 'book-writing' || service === 'book-publishing') && renderBookWritingForm()}
 
             <div className="flex justify-end pt-4">
-               <SubmitButton />
+               <Button size="lg" type="submit" className="w-full sm:w-auto" disabled={loading}>
+                {loading && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />}
+                Submit Project
+              </Button>
             </div>
           </form>
         </CardContent>
