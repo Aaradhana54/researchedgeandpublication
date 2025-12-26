@@ -118,11 +118,12 @@ export async function createProject(
     revalidatePath('/dashboard/projects');
     return { message: 'Project created successfully!', errors: {}, success: true };
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error creating project in Firestore:', error);
+    const errorMessage = error.message || 'An unknown database error occurred.';
     return {
-      message: 'An unexpected error occurred while saving the project. Please try again.',
-      errors: { _form: ['Database error.'] },
+      message: `Failed to create project: ${errorMessage}`,
+      errors: { _form: [errorMessage] },
       success: false,
     };
   }
