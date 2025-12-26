@@ -5,20 +5,20 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { FilePlus, LoaderCircle } from 'lucide-react';
 import { SelectProjectTypeDialog } from '@/components/dashboard/select-project-type-dialog';
-import { useCollection } from '@/firebase';
+import { useCollection, useFirestore } from '@/firebase';
 import { collection, query, where } from 'firebase/firestore';
-import { firestore } from '@/firebase/client';
 import { useMemo } from 'react';
 import type { Project } from '@/lib/types';
 import Link from 'next/link';
 
 export default function DashboardPage() {
   const { user } = useUser();
+  const firestore = useFirestore();
 
   const projectsQuery = useMemo(() => {
-    if (!user) return null;
+    if (!user || !firestore) return null;
     return query(collection(firestore, 'projects'), where('userId', '==', user.uid));
-  }, [user]);
+  }, [user, firestore]);
 
   const { data: projects, loading } = useCollection<Project>(projectsQuery);
 

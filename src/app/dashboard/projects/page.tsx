@@ -1,9 +1,8 @@
 'use client';
 
 import { useUser } from '@/firebase/auth/use-user';
-import { useCollection } from '@/firebase';
+import { useCollection, useFirestore } from '@/firebase';
 import { collection, query, where } from 'firebase/firestore';
-import { firestore } from '@/firebase/client';
 import { useMemo } from 'react';
 import type { Project } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,11 +13,12 @@ import { SelectProjectTypeDialog } from '@/components/dashboard/select-project-t
 
 export default function MyProjectsPage() {
     const { user } = useUser();
+    const firestore = useFirestore();
 
     const projectsQuery = useMemo(() => {
-        if (!user) return null;
+        if (!user || !firestore) return null;
         return query(collection(firestore, 'projects'), where('userId', '==', user.uid));
-    }, [user]);
+    }, [user, firestore]);
 
     const { data: projects, loading } = useCollection<Project>(projectsQuery);
 

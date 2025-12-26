@@ -24,8 +24,7 @@ import {
 } from 'recharts';
 import { collection, query } from 'firebase/firestore';
 
-import { useCollection } from '@/firebase';
-import { firestore } from '@/firebase/client';
+import { useCollection, useFirestore } from '@/firebase';
 import type { UserProfile, Project, BookSale, Payout, Invoice, Task } from '@/lib/types';
 import {
   Card,
@@ -80,12 +79,14 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 export default function AdminDashboardPage() {
-  const usersQuery = useMemo(() => query(collection(firestore, 'users')), []);
-  const projectsQuery = useMemo(() => query(collection(firestore, 'projects')), []);
-  const salesQuery = useMemo(() => query(collection(firestore, 'book_sales')), []);
-  const payoutsQuery = useMemo(() => query(collection(firestore, 'payouts')), []);
-  const invoicesQuery = useMemo(() => query(collection(firestore, 'invoices')), []);
-  const tasksQuery = useMemo(() => query(collection(firestore, 'tasks')), []);
+  const firestore = useFirestore();
+
+  const usersQuery = useMemo(() => firestore ? query(collection(firestore, 'users')) : null, [firestore]);
+  const projectsQuery = useMemo(() => firestore ? query(collection(firestore, 'projects')) : null, [firestore]);
+  const salesQuery = useMemo(() => firestore ? query(collection(firestore, 'book_sales')) : null, [firestore]);
+  const payoutsQuery = useMemo(() => firestore ? query(collection(firestore, 'payouts')) : null, [firestore]);
+  const invoicesQuery = useMemo(() => firestore ? query(collection(firestore, 'invoices')) : null, [firestore]);
+  const tasksQuery = useMemo(() => firestore ? query(collection(firestore, 'tasks')) : null, [firestore]);
 
   const { data: users, loading: loadingUsers } = useCollection<UserProfile>(usersQuery);
   const { data: projects, loading: loadingProjects } = useCollection<Project>(projectsQuery);

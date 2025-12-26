@@ -2,8 +2,7 @@
 
 import { useMemo } from 'react';
 import { collection, query, orderBy } from 'firebase/firestore';
-import { useCollection } from '@/firebase';
-import { firestore } from '@/firebase/client';
+import { useCollection, useFirestore } from '@/firebase';
 import type { Project, UserProfile } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoaderCircle, FolderKanban } from 'lucide-react';
@@ -19,15 +18,17 @@ import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 
 export default function AdminProjectsPage() {
+  const firestore = useFirestore();
+
   const projectsQuery = useMemo(() => {
     if (!firestore) return null;
     return query(collection(firestore, 'projects'), orderBy('createdAt', 'desc'));
-  }, []);
+  }, [firestore]);
 
   const usersQuery = useMemo(() => {
     if (!firestore) return null;
     return query(collection(firestore, 'users'));
-  }, []);
+  }, [firestore]);
 
   const { data: projects, loading: loadingProjects } = useCollection<Project>(projectsQuery);
   const { data: users, loading: loadingUsers } = useCollection<UserProfile>(usersQuery);

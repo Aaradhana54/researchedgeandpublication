@@ -7,24 +7,29 @@ import {
   signOut,
   type Auth,
 } from 'firebase/auth';
-import { doc, setDoc, serverTimestamp, getDoc } from 'firebase/firestore';
+import { doc, setDoc, serverTimestamp, getDoc, getFirestore } from 'firebase/firestore';
 import { auth, firestore } from './client';
 import type { UserProfile, UserRole } from '@/lib/types';
 import { errorEmitter } from './error-emitter';
 import { FirestorePermissionError } from './errors';
+import { getApp } from 'firebase/app';
 
 // --- Login with Role Check ---
 export async function loginWithRole(email: string, password: string, requiredRole: UserRole | UserRole[]) {
-  const userCredential = await signInWithEmailAndPassword(auth, email, password);
+  const app = getApp();
+  const authInstance = getAuth(app);
+  const firestoreInstance = getFirestore(app);
+
+  const userCredential = await signInWithEmailAndPassword(authInstance, email, password);
   const user = userCredential.user;
 
   // After successful authentication, check the user's role from Firestore.
-  const userDocRef = doc(firestore, 'users', user.uid);
+  const userDocRef = doc(firestoreInstance, 'users', user.uid);
   const userDocSnap = await getDoc(userDocRef);
 
   if (!userDocSnap.exists()) {
     // If the user document doesn't exist, they can't have the required role.
-    await signOut(auth); // Sign out the user
+    await signOut(authInstance); // Sign out the user
     throw new Error('User profile not found.');
   }
 
@@ -33,7 +38,7 @@ export async function loginWithRole(email: string, password: string, requiredRol
 
   if (!rolesToCheck.includes(userProfile.role)) {
     // If the role doesn't match, sign them out and throw an error.
-    await signOut(auth);
+    await signOut(authInstance);
     throw new Error(`Access denied. You do not have the required permissions for this portal.`);
   }
 
@@ -53,8 +58,7 @@ export async function signup(email: string, password: string, name: string, role
   const userCredential = await createUserWithEmailAndPassword(auth, email, password);
   const user = userCredential.user;
 
-  const userProfile: Omit<UserProfile, 'createdAt'> = {
-    uid: user.uid,
+  const userProfile: Omit<UserProfile, 'createdAt' | 'uid'> = {
     name,
     email,
     role: role,
@@ -62,14 +66,18 @@ export async function signup(email: string, password: string, name: string, role
 
   const userDocRef = doc(firestore, 'users', user.uid);
 
-  setDoc(userDocRef, {
-    ...userProfile,
-    createdAt: serverTimestamp(),
-  }).catch((error) => {
+  // Firestore rules should allow the user to create their own profile document
+  const dataToSet = {
+      ...userProfile,
+      uid: user.uid, // Add UID to the document data
+      createdAt: serverTimestamp(),
+  };
+
+  setDoc(userDocRef, dataToSet).catch((error) => {
     const permissionError = new FirestorePermissionError({
       path: userDocRef.path,
       operation: 'create',
-      requestResourceData: userProfile,
+      requestResourceData: dataToSet,
     }, error);
     errorEmitter.emit('permission-error', permissionError);
     console.error("Failed to create user profile, but user was created in Auth.", error);

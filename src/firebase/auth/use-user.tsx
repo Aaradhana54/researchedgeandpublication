@@ -2,9 +2,10 @@
 
 import { useEffect, useState, createContext, useContext } from 'react';
 import { onAuthStateChanged, type User as FirebaseUser } from 'firebase/auth';
-import { doc, onSnapshot, type DocumentData } from 'firebase/firestore';
-import { auth, firestore } from '@/firebase/client';
+import { doc, onSnapshot, getFirestore } from 'firebase/firestore'; // Import getFirestore
+import { useFirebaseApp } from '../provider'; // Import useFirebaseApp
 import type { UserProfile } from '@/lib/types';
+import { getAuth } from 'firebase/auth';
 
 interface UserContextValue {
   user: UserProfile | null;
@@ -26,8 +27,13 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const app = useFirebaseApp(); // Get the initialized app instance
 
   useEffect(() => {
+    if (!app) return; // Wait for the app to be initialized
+
+    const auth = getAuth(app);
+    const firestore = getFirestore(app);
     let profileUnsubscribe: (() => void) | undefined;
 
     const authUnsubscribe = onAuthStateChanged(
@@ -46,12 +52,9 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
             profileRef,
             (docSnapshot) => {
               if (docSnapshot.exists()) {
-                setUser(docSnapshot.data() as UserProfile);
+                 const userProfileData = docSnapshot.data() as Omit<UserProfile, 'uid'>;
+                setUser({ ...userProfileData, uid: authUser.uid });
               } else {
-                // This case can happen briefly during signup or if profile creation fails.
-                // We shouldn't treat it as a hard error that blocks the UI.
-                // The user is authenticated but has no profile document.
-                // For this app's logic, we can treat them as logged out until the profile appears.
                 setUser(null);
               }
               setLoading(false);
@@ -84,7 +87,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         profileUnsubscribe();
       }
     };
-  }, []);
+  }, [app]); // Rerun effect if app instance changes
 
   const value = { user, loading, error };
 

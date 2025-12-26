@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { addDoc, collection, serverTimestamp, Timestamp } from 'firebase/firestore';
 import { revalidatePath } from 'next/cache';
 import type { UserRole } from '@/lib/types';
-import { firestore } from '@/firebase/client';
+import { firestore } from '@/firebase/server';
 import { auth as adminAuth } from '@/firebase/server';
 
 
@@ -173,9 +173,8 @@ export async function createUserAsAdmin(formData: FormData) {
       createdAt: Timestamp.now(),
     };
     
-    const usersCollection = collection(firestore, 'users');
-    await addDoc(usersCollection, userProfile);
-
+    // Use the admin firestore instance
+    await firestore.collection('users').doc(userRecord.uid).set(userProfile);
 
     // 3. Revalidate paths to update the user lists in the admin panel
     revalidatePath('/admin/users');

@@ -2,8 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { collection, query } from 'firebase/firestore';
-import { useCollection } from '@/firebase';
-import { firestore } from '@/firebase/client';
+import { useCollection, useFirestore } from '@/firebase';
 import type { UserProfile, UserRole } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoaderCircle, UserPlus } from 'lucide-react';
@@ -68,10 +67,12 @@ function UserTable({ users }: { users: UserProfile[] }) {
 }
 
 export default function UserManagementPage() {
+  const firestore = useFirestore();
+
   const usersQuery = useMemo(() => {
     if (!firestore) return null;
     return query(collection(firestore, 'users'));
-  }, []);
+  }, [firestore]);
 
   const { data: users, loading } = useCollection<UserProfile>(usersQuery);
 
