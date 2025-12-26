@@ -94,7 +94,7 @@ export default function CreateProjectPage() {
   const renderThesisForm = () => (
     <>
       <div className="space-y-2">
-        <Label htmlFor="topic">Topic *</Label>
+        <Label htmlFor="topic">Topic</Label>
         <Input id="topic" name="topic" placeholder="e.g., The Impact of AI on Modern Literature" />
         <FormMessage>{state.errors?.topic}</FormMessage>
       </div>
@@ -173,7 +173,7 @@ export default function CreateProjectPage() {
   const renderPaperForm = () => (
     <>
       <div className="space-y-2">
-        <Label htmlFor="topic">Topic *</Label>
+        <Label htmlFor="topic">Topic</Label>
         <Input id="topic" name="topic" placeholder="e.g., Quantum Computing in Cybersecurity" />
         <FormMessage>{state.errors?.topic}</FormMessage>
       </div>
@@ -255,7 +255,7 @@ export default function CreateProjectPage() {
     const renderBookWritingForm = () => (
     <>
       <div className="space-y-2">
-        <Label htmlFor="topic">Topic *</Label>
+        <Label htmlFor="topic">Topic</Label>
         <Input id="topic" name="topic" placeholder="e.g., A History of Ancient Rome" />
         <FormMessage>{state.errors?.topic}</FormMessage>
       </div>
@@ -330,7 +330,7 @@ export default function CreateProjectPage() {
       <Card className="max-w-4xl">
         <CardHeader>
           <CardTitle>Project Details</CardTitle>
-          <CardDescription>All fields marked with an asterisk (*) are required.</CardDescription>
+          <CardDescription>Fields marked with * are required.</CardDescription>
         </CardHeader>
         <CardContent>
           <form ref={formRef} action={formAction} className="space-y-6">
