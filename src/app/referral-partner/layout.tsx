@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -42,9 +43,9 @@ import { useEffect } from 'react';
 
 const dashboardNavItems = [
   { href: '/referral-partner/dashboard', label: 'Overview', icon: <LayoutGrid /> },
-  { href: '/referral-partner/dashboard#referred-clients', label: 'Referred Clients', icon: <Users /> },
-  { href: '/referral-partner/dashboard#payout-history', label: 'Payouts', icon: <Receipt /> },
-  { href: '/referral-partner/dashboard#marketing-kit', label: 'Marketing Kit', icon: <Paintbrush /> },
+  { href: '/referral-partner/clients', label: 'Referred Clients', icon: <Users /> },
+  { href: '/referral-partner/payouts', label: 'Payouts', icon: <Receipt /> },
+  { href: '/referral-partner/marketing', label: 'Marketing Kit', icon: <Paintbrush /> },
 ];
 
 function PartnerSidebar() {

@@ -1,28 +1,15 @@
 
 'use client';
 
-import { useMemo, useState }from 'react';
+import { useMemo }from 'react';
 import { useUser } from '@/firebase/auth/use-user';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { LoaderCircle, Copy, Users, CheckCircle, DollarSign, Wallet, Share2, Receipt, Banknote, Paintbrush } from 'lucide-react';
+import { LoaderCircle, Copy, Users, CheckCircle, DollarSign, Wallet, Share2 } from 'lucide-react';
 import { useCollection, useFirestore } from '@/firebase';
-import { collection, query, where, documentId } from 'firebase/firestore';
+import { collection, query, where } from 'firebase/firestore';
 import type { UserProfile, Payout, Project } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import { format } from 'date-fns';
-import { MarketingKitDialog } from '@/components/referral-partner/marketing-kit-dialog';
-import { RequestPayoutDialog } from '@/components/referral-partner/request-payout-dialog';
-import { Badge } from '@/components/ui/badge';
-
 
 const COMMISSION_PER_PROJECT = 50; // Example commission amount
 
@@ -112,7 +99,7 @@ export default function ReferralDashboardPage() {
         <h1 className="text-3xl font-bold tracking-tight text-primary">
           Welcome, {user.name}!
         </h1>
-        <p className="text-lg text-muted-foreground">This is your Referral Partner Dashboard.</p>
+        <p className="text-lg text-muted-foreground">This is your Referral Partner Dashboard Overview.</p>
       </div>
 
       <Card className="shadow-lift">
@@ -140,109 +127,6 @@ export default function ReferralDashboardPage() {
         <StatCard title="Available Commission" value={pendingCommission.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })} icon={<Wallet className="h-4 w-4 text-muted-foreground" />} />
         <StatCard title="Total Earnings" value={totalCommissionEarned.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })} icon={<DollarSign className="h-4 w-4 text-muted-foreground" />} />
       </div>
-
-      <div className="grid gap-8 lg:grid-cols-2">
-        <Card id="referred-clients">
-            <CardHeader>
-                <CardTitle>Referred Clients</CardTitle>
-                <CardDescription>A list of clients you have referred.</CardDescription>
-            </CardHeader>
-            <CardContent>
-                {referredUsers && referredUsers.length > 0 ? (
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Name</TableHead>
-                                <TableHead>Email</TableHead>
-                                <TableHead>Date Joined</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {referredUsers.map(client => (
-                                <TableRow key={client.uid}>
-                                    <TableCell className="font-medium">{client.name}</TableCell>
-                                    <TableCell>{client.email}</TableCell>
-                                    <TableCell>{client.createdAt ? format(client.createdAt.toDate(), 'PPP') : 'N/A'}</TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                ) : (
-                     <div className="text-center p-8 text-muted-foreground">
-                        <Users className="mx-auto w-10 h-10 mb-4" />
-                        <h3 className="text-lg font-semibold">No Referrals Yet</h3>
-                        <p className="text-sm">Share your link to start earning!</p>
-                    </div>
-                )}
-            </CardContent>
-        </Card>
-
-        <div className="space-y-8">
-            <Card id="payout-history">
-                <CardHeader>
-                    <div className="flex justify-between items-center">
-                        <div>
-                            <CardTitle>Payout History</CardTitle>
-                            <CardDescription>A record of your past commission payouts.</CardDescription>
-                        </div>
-                        <RequestPayoutDialog currentBalance={pendingCommission}>
-                           <Button variant="outline" size="sm" disabled={pendingCommission < 1000}>
-                               <Banknote className="mr-2 h-4 w-4" />
-                               Request Payout
-                           </Button>
-                        </RequestPayoutDialog>
-                    </div>
-                </CardHeader>
-                <CardContent>
-                    {payouts && payouts.length > 0 ? (
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Date</TableHead>
-                                    <TableHead>Amount</TableHead>
-                                    <TableHead className="text-right">Status</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {payouts.map(payout => (
-                                    <TableRow key={payout.id}>
-                                        <TableCell className="font-medium">{format(payout.requestDate.toDate(), 'PPP')}</TableCell>
-                                        <TableCell>{payout.amount.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}</TableCell>
-                                        <TableCell className="text-right">
-                                            <Badge 
-                                              variant={payout.status === 'paid' ? 'default' : 'secondary'} 
-                                              className="capitalize"
-                                            >
-                                                {payout.status}
-                                            </Badge>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    ) : (
-                        <div className="text-center p-8 text-muted-foreground">
-                            <Receipt className="mx-auto w-10 h-10 mb-4" />
-                            <h3 className="text-lg font-semibold">No Payouts Yet</h3>
-                            <p className="text-sm">Your payout history will appear here once available.</p>
-                        </div>
-                    )}
-                </CardContent>
-            </Card>
-             <Card id="marketing-kit">
-                <CardHeader>
-                    <CardTitle>Marketing Kit</CardTitle>
-                    <CardDescription>Download logos, creatives, and templates to help you promote our services.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <MarketingKitDialog>
-                        <Button><Paintbrush className="mr-2"/> Access Materials</Button>
-                    </MarketingKitDialog>
-                </CardContent>
-            </Card>
-        </div>
-      </div>
-
     </div>
   );
 }
