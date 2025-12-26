@@ -51,97 +51,24 @@ export async function submitContactForm(
   }
 }
 
-// --- Project Creation (Rebuilt from Scratch) ---
-
-const projectFormSchema = z.object({
-  title: z.string().min(3, { message: 'Title must be at least 3 characters.' }),
-  serviceType: z.string().min(1, { message: 'Please select a service type.' }),
-  topic: z.string().min(1, { message: 'Topic is required.' }).optional().or(z.literal('')),
-  courseLevel: z.enum(['ug', 'pg', 'phd']).optional(),
-  deadline: z.coerce.date().optional(),
-  synopsisFileUrl: z.string().url().optional(),
-  referencingStyle: z.string().optional().or(z.literal('')),
-  pageCount: z.coerce.number({ invalid_type_error: 'Page count must be a number.' }).int().positive().optional(),
-  wordCount: z.coerce.number({ invalid_type_error: 'Word count must be a number.' }).int().positive().optional(),
-  language: z.string().optional().or(z.literal('')),
-  wantToPublish: z.boolean().optional().default(false),
-  publishWhere: z.string().optional().or(z.literal('')),
-  userId: z.string().min(1, { message: 'You must be logged in.' }),
-});
+// --- Project Creation (DISABLED) ---
 
 export type ProjectFormState = {
     message: string;
-    errors?: z.inferFlattenedErrors<typeof projectFormSchema>['fieldErrors'];
+    errors?: Record<string, string[]>;
     success: boolean;
 };
 
-const initialProjectFormState: ProjectFormState = {
-  message: '',
-  errors: undefined,
-  success: false,
-};
-
+// This function is currently disabled and will not be called from the frontend.
 export async function createProject(
   prevState: ProjectFormState,
   formData: FormData
 ): Promise<ProjectFormState> {
-
-  // 1. Sanitize and prepare data for validation
-  const rawData = Object.fromEntries(formData.entries());
-
-  // Convert empty strings and other falsy values from optional fields to undefined for Zod
-  const dataToValidate = {
-      ...rawData,
-      topic: rawData.topic || undefined,
-      courseLevel: rawData.courseLevel || undefined,
-      deadline: rawData.deadline || undefined,
-      referencingStyle: rawData.referencingStyle || undefined,
-      language: rawData.language || undefined,
-      publishWhere: rawData.publishWhere || undefined,
-      // Coerce number fields, ensuring empty strings become undefined
-      pageCount: rawData.pageCount ? Number(rawData.pageCount) : undefined,
-      wordCount: rawData.wordCount ? Number(rawData.wordCount) : undefined,
-      wantToPublish: rawData.wantToPublish === 'on',
-      // File handling is not implemented in this example
-      synopsisFileUrl: formData.get('synopsisFile') ? '/uploads/placeholder.txt' : undefined,
+  // The logic has been removed as per the request.
+  // The form on the client-side is disabled and will not trigger this action.
+  return {
+    message: 'Submission is currently disabled.',
+    errors: {},
+    success: false,
   };
-
-
-  // 2. Validate the data using Zod
-  const validatedFields = projectFormSchema.safeParse(dataToValidate);
-  
-  if (!validatedFields.success) {
-    return {
-      message: 'Validation Error: Please correct the errors in the form.',
-      errors: validatedFields.error.flatten().fieldErrors,
-      success: false,
-    };
-  }
-
-  // 3. Prepare a clean data object for Firestore (remove undefined values)
-  const firestoreData: { [key: string]: any } = {};
-  for (const [key, value] of Object.entries(validatedFields.data)) {
-    if (value !== undefined) {
-      firestoreData[key] = value;
-    }
-  }
-  
-  // 4. Add server-side fields and save to Firestore using Admin SDK
-  try {
-    const projectsRef = firestore.collection('projects');
-    await projectsRef.add({
-        ...firestoreData,
-        status: 'pending',
-        createdAt: FieldValue.serverTimestamp(),
-        updatedAt: FieldValue.serverTimestamp(),
-    });
-    
-    // 5. Return success response
-    return { message: `Success: Project "${firestoreData.title}" created!`, success: true };
-
-  } catch (e: any) {
-    console.error('Project creation error:', e);
-    // 6. Return specific database error
-    return { message: `Error: Could not save the project to the database. Reason: ${e.message}`, success: false };
-  }
 }
