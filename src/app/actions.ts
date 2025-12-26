@@ -1,3 +1,4 @@
+
 'use server';
 
 import { z } from 'zod';
@@ -109,8 +110,8 @@ export async function createProject(
 
 
   try {
-    const projectsCollection = collection(firestore, 'projects');
-    await addDoc(projectsCollection, {
+    const projectsCollection = firestore.collection('projects');
+    await projectsCollection.add({
       ...dataToSave,
       userId: userId,
       status: 'pending',
