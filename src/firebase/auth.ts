@@ -6,7 +6,6 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
-  type Auth,
 } from 'firebase/auth';
 import { doc, setDoc, serverTimestamp, getDoc, getFirestore } from 'firebase/firestore';
 import { auth, firestore } from './client';
@@ -55,7 +54,7 @@ export async function login(email: string, password: string) {
 }
 
 // --- Signup with specific role ---
-export async function signup(email: string, password: string, name: string, role: UserRole = 'client') {
+export async function signup(email: string, password: string, name: string, role: UserRole = 'client', referredByCode: string | null = null) {
   const userCredential = await createUserWithEmailAndPassword(auth, email, password);
   const user = userCredential.user;
 
@@ -70,6 +69,10 @@ export async function signup(email: string, password: string, name: string, role
   if (role === 'referral-partner') {
     // Generate a unique referral code for partners. For simplicity, we use part of the UID.
     dataToSet.referralCode = user.uid.substring(0, 8);
+  }
+  
+  if (role === 'client' && referredByCode) {
+      dataToSet.referredBy = referredByCode;
   }
 
   const userDocRef = doc(firestore, 'users', user.uid);

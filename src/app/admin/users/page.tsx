@@ -1,9 +1,10 @@
+
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { collection, query } from 'firebase/firestore';
 import { useCollection, useFirestore } from '@/firebase';
-import type { UserProfile, UserRole } from '@/lib/types';
+import type { UserProfile } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoaderCircle, UserPlus } from 'lucide-react';
 import {
@@ -65,6 +66,55 @@ function UserTable({ users }: { users: UserProfile[] }) {
         </Table>
     );
 }
+
+function ReferralPartnerTable({ partners, allUsers }: { partners: UserProfile[], allUsers: UserProfile[] }) {
+    if (!partners || partners.length === 0) {
+        return <p className="text-center text-muted-foreground py-12">No referral partners found.</p>;
+    }
+
+    const referralCounts = useMemo(() => {
+        const counts = new Map<string, number>();
+        if (!allUsers) return counts;
+
+        partners.forEach(partner => {
+            if(partner.referralCode) {
+                const count = allUsers.filter(u => u.referredBy === partner.referralCode).length;
+                counts.set(partner.uid, count);
+            }
+        });
+        return counts;
+    }, [partners, allUsers]);
+
+    return (
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Partner Name</TableHead>
+              <TableHead>Email</TableHead>
+              <TableHead>Referral Code</TableHead>
+              <TableHead>Referred Clients</TableHead>
+              <TableHead>Joined On</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {partners.map((partner) => (
+              <TableRow key={partner.uid}>
+                <TableCell className="font-medium">{partner.name}</TableCell>
+                <TableCell>{partner.email}</TableCell>
+                <TableCell>
+                  <Badge variant="outline">{partner.referralCode}</Badge>
+                </TableCell>
+                 <TableCell className="font-medium">{referralCounts.get(partner.uid) || 0}</TableCell>
+                <TableCell>
+                    {partner.createdAt ? format(partner.createdAt.toDate(), 'PPP') : 'N/A'}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+    );
+}
+
 
 export default function UserManagementPage() {
   const firestore = useFirestore();
@@ -134,11 +184,18 @@ export default function UserManagementPage() {
                     </div>
                 ) : (
                     <>
-                        {tabs.map(tab => (
-                            <TabsContent key={tab.value} value={tab.value}>
-                                <UserTable users={tab.data} />
-                            </TabsContent>
-                        ))}
+                        <TabsContent value="clients">
+                            <UserTable users={filteredUsers.clients} />
+                        </TabsContent>
+                         <TabsContent value="authors">
+                            <UserTable users={filteredUsers.authors} />
+                        </TabsContent>
+                         <TabsContent value="partners">
+                            <ReferralPartnerTable partners={filteredUsers.partners} allUsers={users || []} />
+                        </TabsContent>
+                         <TabsContent value="admins">
+                            <UserTable users={filteredUsers.admins} />
+                        </TabsContent>
                     </>
                 )}
             </Tabs>

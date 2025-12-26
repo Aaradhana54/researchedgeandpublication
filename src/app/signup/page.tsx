@@ -1,8 +1,9 @@
+
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { LoaderCircle, UserPlus } from 'lucide-react';
 
 import { signup } from '@/firebase/auth';
@@ -15,11 +16,20 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 export default function SignupPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [referralCode, setReferralCode] = useState<string | null>(null);
+
+  useEffect(() => {
+    const refCode = searchParams.get('ref');
+    if(refCode) {
+      setReferralCode(refCode);
+    }
+  }, [searchParams]);
 
   const handleSignup = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -33,7 +43,7 @@ export default function SignupPage() {
     }
 
     try {
-      await signup(email, password, name);
+      await signup(email, password, name, 'client', referralCode);
       router.push('/dashboard');
     } catch (err: any) {
       setError(getFirebaseErrorMessage(err.code));
@@ -56,6 +66,12 @@ export default function SignupPage() {
                 <AlertTitle>Signup Failed</AlertTitle>
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
+            )}
+            {referralCode && (
+                 <Alert variant='default'>
+                    <AlertTitle>Referred by a Partner</AlertTitle>
+                    <AlertDescription>You've been referred by a partner. Thanks for connecting with us!</AlertDescription>
+                </Alert>
             )}
             <div className="space-y-2">
               <Label htmlFor="name">Full Name</Label>
