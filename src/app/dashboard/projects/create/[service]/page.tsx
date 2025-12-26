@@ -106,18 +106,14 @@ export default function CreateProjectPage({ params }: { params: { service: strin
         <form ref={formRef} action={formAction} className="space-y-8">
            <input type="hidden" name="userId" value={user.uid} />
 
-           {/* --- Basic Information --- */}
+           {/* --- Service Selection --- */}
            <Card className="shadow-soft">
              <CardHeader>
-                <CardTitle>Basic Information</CardTitle>
+                <CardTitle>Service Selection</CardTitle>
+                <CardDescription>First, please choose the specific service you need for this project.</CardDescription>
              </CardHeader>
-             <CardContent className="space-y-6">
-                 <div className="space-y-2">
-                    <Label htmlFor="title">Project Title</Label>
-                    <Input id="title" name="title" placeholder="e.g., A Study on AI in Healthcare" required />
-                    {state.errors?.title && <p className="text-sm text-destructive">{state.errors.title[0]}</p>}
-                 </div>
-                 <div className="space-y-2">
+             <CardContent>
+                <div className="space-y-2">
                     <Label htmlFor="serviceType">Service Type</Label>
                     <Select name="serviceType" required defaultValue={selectedService} onValueChange={setSelectedService}>
                       <SelectTrigger id="serviceType">
@@ -131,12 +127,9 @@ export default function CreateProjectPage({ params }: { params: { service: strin
                     </Select>
                      {state.errors?.serviceType && <p className="text-sm text-destructive">{state.errors.serviceType[0]}</p>}
                  </div>
-                 <div className="space-y-2">
-                    <Label htmlFor="topic">Topic</Label>
-                    <Input id="topic" name="topic" placeholder="e.g., Diagnostic Algorithms" />
-                 </div>
              </CardContent>
            </Card>
+          
 
            {/* --- Dynamic Fields based on Service Selection --- */}
            {selectedService && (
@@ -145,6 +138,17 @@ export default function CreateProjectPage({ params }: { params: { service: strin
                 <Card className="shadow-soft">
                     <CardHeader><CardTitle>Project Details</CardTitle></CardHeader>
                     <CardContent className="space-y-6">
+                        <div className="space-y-2">
+                            <Label htmlFor="title">Project Title</Label>
+                            <Input id="title" name="title" placeholder="e.g., A Study on AI in Healthcare" required />
+                            {state.errors?.title && <p className="text-sm text-destructive">{state.errors.title[0]}</p>}
+                        </div>
+
+                       <div className="space-y-2">
+                          <Label htmlFor="topic">Topic</Label>
+                          <Input id="topic" name="topic" placeholder="e.g., Diagnostic Algorithms" />
+                       </div>
+
                        <div className="space-y-3">
                            <Label>Course Level</Label>
                            <RadioGroup name="courseLevel" className="flex gap-4">
@@ -181,7 +185,7 @@ export default function CreateProjectPage({ params }: { params: { service: strin
                                     <Input id="pageCount" name="pageCount" type="number" placeholder="e.g., 100" />
                                 </div>
                            )}
-                           {isResearchOrReview && (
+                           {(isResearchOrReview || isThesisDissertation) && (
                                 <div className="space-y-2">
                                     <Label htmlFor="wordCount">Estimated Word Count</Label>
                                     <Input id="wordCount" name="wordCount" type="number" placeholder="e.g., 25000" />
@@ -235,11 +239,10 @@ export default function CreateProjectPage({ params }: { params: { service: strin
                         )}
                     </CardContent>
                 </Card>
+                <SubmitButton />
              </>
            )}
 
-
-          <SubmitButton />
         </form>
     </div>
   );
