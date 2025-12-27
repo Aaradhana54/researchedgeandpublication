@@ -152,10 +152,6 @@ export default function AdminProjectsPage() {
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => handleStatusUpdate(project.id!, 'approved')}>
-                                    <CheckCircle className="mr-2 h-4 w-4 text-green-500" />
-                                    <span>Approve</span>
-                                </DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => handleStatusUpdate(project.id!, 'rejected')}>
                                     <XCircle className="mr-2 h-4 w-4 text-red-500" />
                                     <span>Reject</span>
