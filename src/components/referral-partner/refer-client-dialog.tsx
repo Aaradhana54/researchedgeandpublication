@@ -103,99 +103,101 @@ export function ReferClientDialog({ children }: { children: React.ReactNode }) {
                 <DialogTitle>Refer a New Client</DialogTitle>
                 <DialogDescription>Fill in the client's details. Our team will contact them shortly.</DialogDescription>
             </DialogHeader>
-             <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
-                    {error && (
-                        <Alert variant="destructive">
-                            <AlertTitle>Error</AlertTitle>
-                            <AlertDescription>{error}</AlertDescription>
-                        </Alert>
-                    )}
-                    <FormField
-                        control={form.control}
-                        name="name"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Client Full Name *</FormLabel>
-                                <FormControl>
-                                    <Input placeholder="John Doe" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
+            <div className="max-h-[70vh] overflow-y-auto pr-4">
+                 <Form {...form}>
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
+                        {error && (
+                            <Alert variant="destructive">
+                                <AlertTitle>Error</AlertTitle>
+                                <AlertDescription>{error}</AlertDescription>
+                            </Alert>
                         )}
-                    />
-                    <FormField
-                        control={form.control}
-                        name="email"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Client Email *</FormLabel>
-                                <FormControl>
-                                    <Input type="email" placeholder="client@example.com" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                    <FormField
-                        control={form.control}
-                        name="phone"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Client Phone *</FormLabel>
-                                <FormControl>
-                                    <Input type="tel" placeholder="9876543210" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                    <FormField
-                        control={form.control}
-                        name="serviceType"
-                        render={({ field }) => (
-                           <FormItem>
-                                <FormLabel>Service of Interest</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormField
+                            control={form.control}
+                            name="name"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Client Full Name *</FormLabel>
                                     <FormControl>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select a service" />
-                                    </SelectTrigger>
+                                        <Input placeholder="John Doe" {...field} />
                                     </FormControl>
-                                    <SelectContent>
-                                    {services.map(s => (
-                                        <SelectItem key={s} value={s}>{s}</SelectItem>
-                                    ))}
-                                    </SelectContent>
-                                </Select>
-                                <FormMessage />
-                          </FormItem>
-                        )}
-                    />
-                     <FormField
-                        control={form.control}
-                        name="message"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Notes</FormLabel>
-                                <FormControl>
-                                    <Textarea placeholder="Any additional details..." {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                    <DialogFooter>
-                        <DialogClose asChild>
-                            <Button type="button" variant="secondary" disabled={loading}>Cancel</Button>
-                        </DialogClose>
-                        <Button type="submit" disabled={loading}>
-                             {loading && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />}
-                            Submit Lead
-                        </Button>
-                    </DialogFooter>
-                </form>
-            </Form>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="email"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Client Email *</FormLabel>
+                                    <FormControl>
+                                        <Input type="email" placeholder="client@example.com" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="phone"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Client Phone *</FormLabel>
+                                    <FormControl>
+                                        <Input type="tel" placeholder="9876543210" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="serviceType"
+                            render={({ field }) => (
+                               <FormItem>
+                                    <FormLabel>Service of Interest</FormLabel>
+                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                        <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select a service" />
+                                        </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                        {services.map(s => (
+                                            <SelectItem key={s} value={s}>{s}</SelectItem>
+                                        ))}
+                                        </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                              </FormItem>
+                            )}
+                        />
+                         <FormField
+                            control={form.control}
+                            name="message"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Notes</FormLabel>
+                                    <FormControl>
+                                        <Textarea placeholder="Any additional details..." {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                         <DialogFooter className="sticky bottom-0 bg-background py-4 -mx-4 px-4 border-t">
+                            <DialogClose asChild>
+                                <Button type="button" variant="secondary" disabled={loading}>Cancel</Button>
+                            </DialogClose>
+                            <Button type="submit" disabled={loading}>
+                                 {loading && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />}
+                                Submit Lead
+                            </Button>
+                        </DialogFooter>
+                    </form>
+                </Form>
+            </div>
         </DialogContent>
     </Dialog>
   );
