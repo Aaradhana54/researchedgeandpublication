@@ -1,13 +1,67 @@
+
 'use client';
 
+import { useMemo } from 'react';
 import { useUser } from '@/firebase/auth/use-user';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { LoaderCircle } from 'lucide-react';
+import { LoaderCircle, Users, UserCheck, FolderKanban, UserCog } from 'lucide-react';
+import { useCollection, useFirestore } from '@/firebase';
+import { collection, query, where } from 'firebase/firestore';
+import type { Project, UserProfile } from '@/lib/types';
+
+
+function StatCard({ title, value, icon }: { title: string, value: string | number, icon: React.ReactNode }) {
+  return (
+    <Card className="shadow-soft">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-sm font-medium">{title}</CardTitle>
+        {icon}
+      </CardHeader>
+      <CardContent>
+        <div className="text-2xl font-bold">{value}</div>
+      </CardContent>
+    </Card>
+  );
+}
+
 
 export default function SalesDashboardPage() {
-  const { user } = useUser();
+  const { user, loading: userLoading } = useUser();
+  const firestore = useFirestore();
 
-  if (!user) {
+  const clientsQuery = useMemo(() => {
+    if (!firestore) return null;
+    return query(collection(firestore, 'users'), where('role', '==', 'client'));
+  }, [firestore]);
+
+  const projectsQuery = useMemo(() => {
+      if (!firestore) return null;
+      return query(collection(firestore, 'projects'));
+  }, [firestore]);
+
+  const { data: clients, loading: clientsLoading } = useCollection<UserProfile>(clientsQuery);
+  const { data: projects, loading: projectsLoading } = useCollection<Project>(projectsQuery);
+
+  const loading = userLoading || clientsLoading || projectsLoading;
+
+  const { totalLeads, convertedLeads, pendingLeads, totalProjects } = useMemo(() => {
+    if (!clients || !projects) {
+      return { totalLeads: 0, convertedLeads: 0, pendingLeads: 0, totalProjects: 0 };
+    }
+
+    const projectUserIds = new Set(projects.map(p => p.userId));
+    
+    const totalLeads = clients.length;
+    const convertedLeads = clients.filter(c => projectUserIds.has(c.uid)).length;
+    const pendingLeads = totalLeads - convertedLeads;
+    const totalProjects = projects.length;
+    
+    return { totalLeads, convertedLeads, pendingLeads, totalProjects };
+
+  }, [clients, projects]);
+
+
+  if (loading || !user) {
     return (
        <div className="flex h-[calc(100vh-5rem)] w-full items-center justify-center bg-background">
         <LoaderCircle className="h-10 w-10 animate-spin text-primary" />
@@ -22,21 +76,17 @@ export default function SalesDashboardPage() {
           Welcome, {user.name}!
         </h1>
         <p className="text-lg text-muted-foreground">
-          This is your Sales Dashboard.
+          This is your Sales Dashboard Overview.
         </p>
       </div>
+      
+       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <StatCard title="Total Leads" value={totalLeads} icon={<Users className="h-4 w-4 text-muted-foreground" />} />
+        <StatCard title="Converted Leads" value={convertedLeads} icon={<UserCheck className="h-4 w-4 text-muted-foreground" />} />
+        <StatCard title="Total Projects" value={totalProjects} icon={<FolderKanban className="h-4 w-4 text-muted-foreground" />} />
+        <StatCard title="Pending Leads" value={pendingLeads} icon={<UserCog className="h-4 w-4 text-muted-foreground" />} />
+      </div>
 
-      <Card className="w-full max-w-2xl shadow-soft">
-        <CardHeader>
-          <CardTitle>Sales Tools</CardTitle>
-          <CardDescription>
-            This section is under construction. Your leads, performance metrics, and tools will be available here soon.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <p>Thank you for driving our growth!</p>
-        </CardContent>
-      </Card>
     </div>
   );
 }
