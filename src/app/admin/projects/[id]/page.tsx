@@ -1,10 +1,10 @@
 
 'use client';
 
-import { useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, notFound, useRouter } from 'next/navigation';
-import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
-import { useDoc, useFirestore, useUser } from '@/firebase';
+import { doc, getDoc, updateDoc, serverTimestamp, getFirestore } from 'firebase/firestore';
+import { useFirebaseApp, useUser } from '@/firebase';
 import type { Project, UserProfile, ProjectStatus } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoaderCircle, ArrowLeft, CheckCircle, XCircle, FileText, Download, User as UserIcon } from 'lucide-react';
@@ -38,33 +38,64 @@ function DetailItem({ label, value, isBadge = false, badgeVariant, children }: {
 export default function ProjectDetailPage() {
     const params = useParams();
     const projectId = params.id as string;
-    const firestore = useFirestore();
+    const app = useFirebaseApp();
+    const firestore = getFirestore(app);
     const { toast } = useToast();
     const router = useRouter();
     const { user: loggedInUser } = useUser();
+    
+    const [project, setProject] = useState<Project | null>(null);
+    const [user, setUser] = useState<UserProfile | null>(null);
+    const [finalizerUser, setFinalizerUser] = useState<UserProfile | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
-    const projectRef = useMemo(() => {
-        if (!firestore || !projectId) return null;
-        return doc(firestore, 'projects', projectId)
+    useEffect(() => {
+        if (!firestore || !projectId) return;
+
+        const fetchProjectData = async () => {
+            setLoading(true);
+            setError(null);
+            try {
+                const projectDocRef = doc(firestore, 'projects', projectId);
+                const projectSnap = await getDoc(projectDocRef);
+
+                if (!projectSnap.exists()) {
+                    notFound();
+                    return;
+                }
+
+                const projectData = { ...projectSnap.data(), id: projectSnap.id } as Project;
+                setProject(projectData);
+
+                // Fetch related user data
+                if (projectData.userId) {
+                    const userDocRef = doc(firestore, 'users', projectData.userId);
+                    const userSnap = await getDoc(userDocRef);
+                    if (userSnap.exists()) {
+                        setUser(userSnap.data() as UserProfile);
+                    }
+                }
+
+                if (projectData.finalizedBy) {
+                    const finalizerDocRef = doc(firestore, 'users', projectData.finalizedBy);
+                    const finalizerSnap = await getDoc(finalizerDocRef);
+                    if (finalizerSnap.exists()) {
+                        setFinalizerUser(finalizerSnap.data() as UserProfile);
+                    }
+                }
+
+            } catch (err: any) {
+                console.error("Failed to fetch project details:", err);
+                setError("Could not load project data. You may not have permission to view it.");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchProjectData();
     }, [firestore, projectId]);
 
-    const { data: project, loading: loadingProject, error: projectError } = useDoc<Project>(projectRef);
-    
-    const userRef = useMemo(() => {
-        if (!firestore || !project?.userId) return null;
-        return doc(firestore, 'users', project.userId)
-    }, [firestore, project?.userId]);
-
-    const { data: user, loading: loadingUser } = useDoc<UserProfile>(userRef);
-
-    const finalizerUserRef = useMemo(() => {
-        if (!firestore || !project?.finalizedBy) return null;
-        return doc(firestore, 'users', project.finalizedBy);
-    }, [firestore, project?.finalizedBy]);
-    
-    const { data: finalizerUser, loading: loadingFinalizer } = useDoc<UserProfile>(finalizerUserRef);
-
-    const loading = loadingProject || loadingUser || loadingFinalizer;
 
     const handleStatusUpdate = async (status: ProjectStatus) => {
         if (!firestore) return;
@@ -75,11 +106,12 @@ export default function ProjectDetailPage() {
                 updatedAt: serverTimestamp(),
             });
 
+            setProject(prev => prev ? { ...prev, status } : null);
+
             toast({
                 title: 'Status Updated',
                 description: `Project has been marked as ${status}.`
             });
-            // The useDoc hook will automatically update the UI
         } catch (error: any) {
             toast({
                 variant: 'destructive',
@@ -115,7 +147,25 @@ export default function ProjectDetailPage() {
         );
     }
     
-    if (!project || projectError) {
+    if (error) {
+        return (
+             <div className="flex h-screen w-full items-center justify-center bg-background p-8">
+                <Card className="max-w-md text-center">
+                    <CardHeader>
+                        <CardTitle className="text-destructive">Loading Failed</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <p>{error}</p>
+                         <Button asChild variant="outline" className="mt-4">
+                            <Link href="/dashboard">Go to Dashboard</Link>
+                         </Button>
+                    </CardContent>
+                </Card>
+            </div>
+        );
+    }
+
+    if (!project) {
         notFound();
     }
     
@@ -214,14 +264,14 @@ export default function ProjectDetailPage() {
                             <CardTitle>Client Details</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            {loadingUser ? <LoaderCircle className="w-6 h-6 animate-spin" /> : user ? (
+                            {!user && !loading ? <p>User not found.</p> :
                                 <>
-                                    <DetailItem label="Name" value={user.name} />
-                                    <DetailItem label="Email" value={user.email} />
-                                    <DetailItem label="Profile Mobile No." value={user.mobile} />
-                                    <DetailItem label="Joined On" value={user.createdAt ? format(user.createdAt.toDate(), 'PPP') : 'N/A'} />
+                                    <DetailItem label="Name" value={user?.name} />
+                                    <DetailItem label="Email" value={user?.email} />
+                                    <DetailItem label="Profile Mobile No." value={user?.mobile} />
+                                    <DetailItem label="Joined On" value={user?.createdAt ? format(user.createdAt.toDate(), 'PPP') : 'N/A'} />
                                 </>
-                            ) : <p>User not found.</p>}
+                            }
                         </CardContent>
                     </Card>
                     {project.synopsisFileUrl && (
