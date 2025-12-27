@@ -50,13 +50,12 @@ service cloud.firestore {
       // Authenticated users can create projects for themselves.
       allow create: if request.auth != null && isOwner(request.resource.data.userId);
 
-      // Owners or admins can manage projects.
+      // Owners, admins, or sales team can manage projects.
       // Referral partners can read projects of users they referred to calculate conversions.
-      // Sales team can read projects to calculate conversions.
       allow read: if isOwner(resource.data.userId) || isAdmin() || isSalesTeam() || (isReferralPartner() && get(/databases/$(database)/documents/users/$(resource.data.userId)).data.referredBy == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.referralCode);
       
-      // Admins can update any project. Owners can update their own.
-      allow update: if isOwner(resource.data.userId) || isAdmin();
+      // Admins, sales team can update any project. Owners can update their own.
+      allow update: if isOwner(resource.data.userId) || isAdmin() || isSalesTeam();
       
       allow delete: if isOwner(resource.data.userId) || isAdmin();
       
@@ -65,10 +64,10 @@ service cloud.firestore {
     }
     
     match /contact_leads/{contactLeadId} {
-      // Anyone can submit the contact form.
-      allow create: if true;
-      // Only admins can read/list. No one can update/delete from the client.
-      allow read, list: if isAdmin();
+      // Referral partners can submit leads for their account.
+      allow create: if isReferralPartner() && request.resource.data.referredByPartnerId == request.auth.uid;
+      // Admins and Sales can read/list. No one can update/delete from the client.
+      allow read, list: if isAdmin() || isSalesTeam();
       allow update, delete: if false;
     }
 
@@ -122,3 +121,5 @@ service cloud.firestore {
     }
   }
 }
+
+    

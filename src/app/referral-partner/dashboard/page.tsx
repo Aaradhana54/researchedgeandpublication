@@ -10,16 +10,7 @@ import { collection, query, where } from 'firebase/firestore';
 import type { UserProfile, Payout, Project } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { ReferClientDialog } from '@/components/referral-partner/refer-client-dialog';
 
 const COMMISSION_PER_PROJECT = 50; // Example commission amount
 
@@ -112,49 +103,29 @@ export default function ReferralDashboardPage() {
         <p className="text-lg text-muted-foreground">This is your Referral Partner Dashboard Overview.</p>
       </div>
 
-       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-            <Card className="shadow-lift col-span-1 lg:col-span-2">
+       <div className="grid gap-6 md:grid-cols-2">
+            <Card className="shadow-lift">
                 <CardHeader>
                     <CardTitle className="flex items-center gap-3">
                         <Share2 className="w-6 h-6 text-primary"/>
                         Refer a Client
                     </CardTitle>
                     <CardDescription>
-                        Share your unique link to bring new clients and earn commissions on their projects.
+                       Know someone who needs our services? Fill out their details below to create a lead for our sales team.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <Dialog>
-                        <DialogTrigger asChild>
-                            <Button size="lg" className="w-full">Refer a Client</Button>
-                        </DialogTrigger>
-                        <DialogContent className="sm:max-w-md">
-                            <DialogHeader>
-                                <DialogTitle>Share Your Referral Link</DialogTitle>
-                                <DialogDescription>
-                                    Copy the link below and share it with potential clients. You'll earn a commission for every new client who signs up and starts a project.
-                                </DialogDescription>
-                            </DialogHeader>
-                            <div className="space-y-4 py-4">
-                                <div className="space-y-2">
-                                    <Label htmlFor="referral-link">Your Unique Link</Label>
-                                    <Input id="referral-link" value={referralLink} readOnly />
-                                </div>
-                                <Button onClick={handleCopyLink} className="w-full">
-                                    <Copy className="mr-2 h-4 w-4" />
-                                    Copy Link
-                                </Button>
-                            </div>
-                        </DialogContent>
-                    </Dialog>
+                    <ReferClientDialog>
+                        <Button size="lg" className="w-full">Refer a Client</Button>
+                    </ReferClientDialog>
                 </CardContent>
             </Card>
 
-             <Card className="col-span-1 lg:col-span-2">
+             <Card>
                 <CardHeader>
                     <CardTitle>Your Referral Link</CardTitle>
                     <CardDescription>
-                        This is your unique link for sharing.
+                        Alternatively, share your unique link for clients to sign up directly.
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="flex flex-col sm:flex-row items-center gap-4">
@@ -176,3 +147,5 @@ export default function ReferralDashboardPage() {
     </div>
   );
 }
+
+    

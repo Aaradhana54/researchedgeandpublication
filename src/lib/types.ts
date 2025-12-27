@@ -76,6 +76,18 @@ export interface Project {
   finalizedBy?: string; // UID of the sales person
 }
 
+export interface ContactLead {
+    id?: string;
+    name: string;
+    email: string;
+    phone: string;
+    serviceType: string;
+    message?: string;
+    referredByPartnerId: string;
+    status: 'new' | 'contacted' | 'converted';
+    createdAt: Timestamp;
+}
+
 export interface Task {
   id?: string;
   projectId: string;
@@ -147,3 +159,5 @@ export interface MarketingAsset {
     fileType: string;
     createdAt: Timestamp;
 }
+
+    

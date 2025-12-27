@@ -8,6 +8,7 @@ import {
   Users,
   FolderKanban,
   CheckCircle,
+  Briefcase,
 } from 'lucide-react';
 import React from 'react';
 import { usePathname, useRouter } from 'next/navigation';
@@ -44,7 +45,8 @@ import { useEffect } from 'react';
 const dashboardNavItems = [
   { href: '/sales/dashboard', label: 'Overview', icon: <LayoutGrid /> },
   { href: '/sales/clients', label: 'Clients', icon: <Users /> },
-  { href: '/sales/leads', label: 'Leads', icon: <FolderKanban /> },
+  { href: '/sales/leads', label: 'Leads', icon: <Briefcase /> },
+  { href: '/sales/projects', label: 'Projects', icon: <FolderKanban /> },
   { href: '/sales/approved-leads', label: 'Approved Leads', icon: <CheckCircle /> },
 ];
 
@@ -167,3 +169,5 @@ export default function SalesLayout({
     </SidebarProvider>
   );
 }
+
+    
