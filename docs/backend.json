@@ -77,7 +77,7 @@
         "status": { "type": "string", "enum": ["new", "contacted", "converted"], "description": "The lifecycle status of the lead." },
         "createdAt": { "type": "string", "format": "date-time" }
       },
-      "required": ["name", "email", "phone", "serviceType", "status", "createdAt"]
+      "required": ["name", "email", "phone", "status", "createdAt"]
     },
     "Task": {
       "title": "Task",
@@ -224,5 +224,3 @@
     }
   }
 }
-
-    

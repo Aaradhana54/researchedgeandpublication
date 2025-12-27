@@ -39,7 +39,7 @@ const ReferClientSchema = z.object({
   name: z.string().min(1, 'Client name is required'),
   email: z.string().email('Invalid email address'),
   phone: z.string().min(1, 'Phone number is required'),
-  serviceType: z.string().min(1, 'Service type is required'),
+  serviceType: z.string().optional(),
   message: z.string().optional(),
 });
 
@@ -155,7 +155,7 @@ export function ReferClientDialog({ children }: { children: React.ReactNode }) {
                         name="serviceType"
                         render={({ field }) => (
                            <FormItem>
-                                <FormLabel>Service of Interest</FormLabel>
+                                <FormLabel>Service of Interest (Optional)</FormLabel>
                                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                                     <FormControl>
                                     <SelectTrigger>
@@ -200,5 +200,3 @@ export function ReferClientDialog({ children }: { children: React.ReactNode }) {
     </Dialog>
   );
 }
-
-    
