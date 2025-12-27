@@ -58,6 +58,7 @@ export function FinalizePartnerLeadDialog({ children, lead }: { children: React.
     defaultValues: {
       dealAmount: 0,
       advanceReceived: 0,
+      finalDeadline: '',
       discussionNotes: '',
     }
   });
