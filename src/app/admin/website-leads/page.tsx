@@ -24,15 +24,20 @@ export default function AdminWebsiteLeadsPage() {
   const leadsQuery = useMemo(() => {
     if (!firestore) return null;
     // Query for leads where referredByPartnerId is null (or does not exist)
+    // Sorting is removed to prevent index error and will be handled client-side.
     return query(
         collection(firestore, 'contact_leads'), 
-        where('referredByPartnerId', '==', null),
-        orderBy('createdAt', 'desc')
+        where('referredByPartnerId', '==', null)
     );
   }, [firestore]);
   
 
   const { data: leads, loading: loadingLeads } = useCollection<ContactLead>(leadsQuery);
+
+  const sortedLeads = useMemo(() => {
+    if (!leads) return [];
+    return [...leads].sort((a, b) => b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime());
+  }, [leads]);
 
   return (
     <div className="p-4 sm:p-6 lg:p-8">
@@ -52,7 +57,7 @@ export default function AdminWebsiteLeadsPage() {
             <div className="flex justify-center items-center h-48">
               <LoaderCircle className="w-8 h-8 animate-spin text-primary" />
             </div>
-          ) : leads && leads.length > 0 ? (
+          ) : sortedLeads && sortedLeads.length > 0 ? (
             <Table>
               <TableHeader>
                 <TableRow>
@@ -64,7 +69,7 @@ export default function AdminWebsiteLeadsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {leads.map((lead) => {
+                {sortedLeads.map((lead) => {
                   if (!lead.id) return null;
                   return (
                     <TableRow key={lead.id}>
