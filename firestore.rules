@@ -47,8 +47,8 @@ service cloud.firestore {
     }
     
     match /projects/{projectId} {
-      // Authenticated users can create projects for themselves.
-      allow create: if request.auth != null && isOwner(request.resource.data.userId);
+      // Authenticated users can create projects for themselves. Sales team can also create projects.
+      allow create: if request.auth != null && (isOwner(request.resource.data.userId) || isSalesTeam());
 
       // Owners, admins, or sales team can manage projects.
       // Referral partners can read projects of users they referred to calculate conversions.
@@ -68,8 +68,9 @@ service cloud.firestore {
       allow create: if isReferralPartner() && request.resource.data.referredByPartnerId == request.auth.uid;
       // Admins, Sales, and the partner who created the lead can read/list.
       allow read, list: if isAdmin() || isSalesTeam() || (isReferralPartner() && resource.data.referredByPartnerId == request.auth.uid);
-      // No one can update/delete from the client.
-      allow update, delete: if false;
+      // Sales team can update status to converted.
+      allow update: if isSalesTeam();
+      allow delete: if false;
     }
 
     match /testimonials/{testimonialId} {
