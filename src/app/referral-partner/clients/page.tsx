@@ -6,8 +6,8 @@ import { useUser } from '@/firebase/auth/use-user';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoaderCircle, Users } from 'lucide-react';
 import { useCollection, useFirestore } from '@/firebase';
-import { collection, query, where } from 'firebase/firestore';
-import type { UserProfile } from '@/lib/types';
+import { collection, query, where, orderBy } from 'firebase/firestore';
+import type { ContactLead } from '@/lib/types';
 import {
   Table,
   TableBody,
@@ -17,19 +17,24 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { format } from 'date-fns';
+import { Badge } from '@/components/ui/badge';
 
 export default function ReferredClientsPage() {
   const { user, loading: userLoading } = useUser();
   const firestore = useFirestore();
 
-  const referredUsersQuery = useMemo(() => {
-    if (!user || !firestore || !user.referralCode) return null;
-    return query(collection(firestore, 'users'), where('referredBy', '==', user.referralCode));
+  const submittedLeadsQuery = useMemo(() => {
+    if (!user || !firestore) return null;
+    return query(
+        collection(firestore, 'contact_leads'), 
+        where('referredByPartnerId', '==', user.uid),
+        orderBy('createdAt', 'desc')
+    );
   }, [user, firestore]);
 
-  const { data: referredUsers, loading: referralsLoading } = useCollection<UserProfile>(referredUsersQuery);
+  const { data: submittedLeads, loading: leadsLoading } = useCollection<ContactLead>(submittedLeadsQuery);
   
-  const loading = userLoading || referralsLoading;
+  const loading = userLoading || leadsLoading;
 
   if (loading) {
     return (
@@ -43,30 +48,41 @@ export default function ReferredClientsPage() {
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight">Referred Clients</h1>
-        <p className="text-muted-foreground">A list of all clients you have referred.</p>
+        <h1 className="text-3xl font-bold tracking-tight">Submitted Leads</h1>
+        <p className="text-muted-foreground">A list of all leads you have submitted to the sales team.</p>
       </div>
        <Card>
             <CardHeader>
-                <CardTitle>All Referred Clients</CardTitle>
-                <CardDescription>This table shows every client who signed up using your referral link.</CardDescription>
+                <CardTitle>All Submitted Leads</CardTitle>
+                <CardDescription>This table shows every lead you have submitted.</CardDescription>
             </CardHeader>
             <CardContent>
-                {referredUsers && referredUsers.length > 0 ? (
+                {submittedLeads && submittedLeads.length > 0 ? (
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>Name</TableHead>
-                                <TableHead>Email</TableHead>
-                                <TableHead>Date Joined</TableHead>
+                                <TableHead>Client Name</TableHead>
+                                <TableHead>Contact</TableHead>
+                                <TableHead>Service</TableHead>
+                                <TableHead>Date Submitted</TableHead>
+                                <TableHead>Status</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {referredUsers.map(client => (
-                                <TableRow key={client.uid}>
-                                    <TableCell className="font-medium">{client.name}</TableCell>
-                                    <TableCell>{client.email}</TableCell>
-                                    <TableCell>{client.createdAt ? format(client.createdAt.toDate(), 'PPP') : 'N/A'}</TableCell>
+                            {submittedLeads.map(lead => (
+                                <TableRow key={lead.id}>
+                                    <TableCell className="font-medium">{lead.name}</TableCell>
+                                    <TableCell>
+                                        <div>{lead.email}</div>
+                                        <div className="text-sm text-muted-foreground">{lead.phone}</div>
+                                    </TableCell>
+                                    <TableCell>
+                                        <Badge variant="secondary">{lead.serviceType || 'Not specified'}</Badge>
+                                    </TableCell>
+                                    <TableCell>{lead.createdAt ? format(lead.createdAt.toDate(), 'PPP') : 'N/A'}</TableCell>
+                                     <TableCell>
+                                         <Badge variant="outline" className="capitalize">{lead.status}</Badge>
+                                     </TableCell>
                                 </TableRow>
                             ))}
                         </TableBody>
@@ -74,8 +90,8 @@ export default function ReferredClientsPage() {
                 ) : (
                      <div className="text-center p-12 text-muted-foreground">
                         <Users className="mx-auto w-10 h-10 mb-4" />
-                        <h3 className="text-lg font-semibold">No Referrals Yet</h3>
-                        <p className="text-sm">Share your link to start getting referrals!</p>
+                        <h3 className="text-lg font-semibold">No Leads Submitted Yet</h3>
+                        <p className="text-sm">Use the "Refer a Client" button on your dashboard to submit your first lead.</p>
                     </div>
                 )}
             </CardContent>
