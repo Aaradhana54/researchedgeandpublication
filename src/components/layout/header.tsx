@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Menu, LogOut, ChevronDown, User, Shield, Briefcase, Users, TrendingUp } from 'lucide-react';
+import { Menu, LogOut, ChevronDown, User, Shield, Briefcase, Users, TrendingUp, PenTool } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 import { useScrollSpy } from '@/hooks/use-scroll-spy';
@@ -144,6 +144,10 @@ export function Header() {
                         <DropdownMenuItem onClick={() => router.push('/sales/login')}>
                           <TrendingUp className="mr-2 h-4 w-4" />
                           <span>Sales Login</span>
+                        </DropdownMenuItem>
+                         <DropdownMenuItem onClick={() => router.push('/writing/login')}>
+                          <PenTool className="mr-2 h-4 w-4" />
+                          <span>Writing Login</span>
                         </DropdownMenuItem>
                     </DropdownMenuGroup>
                     <DropdownMenuSeparator />
