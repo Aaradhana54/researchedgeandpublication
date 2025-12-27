@@ -104,7 +104,7 @@ export function ReferClientDialog({ children }: { children: React.ReactNode }) {
                 <DialogDescription>Fill in the client's details. Our team will contact them shortly.</DialogDescription>
             </DialogHeader>
              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
                     {error && (
                         <Alert variant="destructive">
                             <AlertTitle>Error</AlertTitle>
