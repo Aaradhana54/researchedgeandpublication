@@ -42,8 +42,8 @@ import { useEffect } from 'react';
 
 const dashboardNavItems = [
   { href: '/sales/dashboard', label: 'Overview', icon: <LayoutGrid /> },
-  { href: '/sales/leads', label: 'Leads', icon: <Users /> },
-  { href: '/sales/projects', label: 'Projects', icon: <FolderKanban /> },
+  { href: '/sales/clients', label: 'Clients', icon: <Users /> },
+  { href: '/sales/leads', label: 'Leads', icon: <FolderKanban /> },
 ];
 
 function SalesSidebar() {
