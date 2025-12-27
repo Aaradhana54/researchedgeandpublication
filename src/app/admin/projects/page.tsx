@@ -91,13 +91,13 @@ export default function AdminProjectsPage() {
   return (
     <div className="p-4 sm:p-6 lg:p-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight">Project Management</h1>
-        <p className="text-muted-foreground">View and manage all user projects.</p>
+        <h1 className="text-3xl font-bold tracking-tight">Client Leads</h1>
+        <p className="text-muted-foreground">View and manage all leads submitted directly by clients.</p>
       </div>
       <Card>
         <CardHeader>
-          <CardTitle>All Projects</CardTitle>
-          <CardDescription>A list of all projects submitted by clients.</CardDescription>
+          <CardTitle>All Client Leads</CardTitle>
+          <CardDescription>A list of all projects submitted by clients via their dashboard.</CardDescription>
         </CardHeader>
         <CardContent>
           {loading ? (
@@ -167,8 +167,8 @@ export default function AdminProjectsPage() {
           ) : (
             <div className="text-center p-12 text-muted-foreground">
                 <FolderKanban className="mx-auto w-12 h-12 mb-4" />
-                <h3 className="text-lg font-semibold">No Projects Found</h3>
-                <p>Clients have not submitted any projects yet.</p>
+                <h3 className="text-lg font-semibold">No Client Leads Found</h3>
+                <p>Clients have not submitted any project leads yet.</p>
             </div>
           )}
         </CardContent>

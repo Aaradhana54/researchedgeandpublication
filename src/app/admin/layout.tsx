@@ -73,11 +73,12 @@ const adminNavItems = [
     label: 'Leads', 
     icon: <Briefcase />,
     subItems: [
+        { href: '/admin/leads', label: 'All Leads', icon: <Users /> },
+        { href: '/admin/projects', label: 'Client Leads', icon: <FolderKanban /> },
         { href: '/admin/partner-leads', label: 'Partner Leads', icon: <UserCheckIcon /> },
         { href: '/admin/website-leads', label: 'Website Leads', icon: <MessageSquare /> },
     ]
   },
-  { href: '/admin/projects', label: 'Projects', icon: <FolderKanban /> },
   { href: '/admin/accounts', label: 'Accounts', icon: <Wallet /> },
   { href: '/admin/sales', label: 'Sales', icon: <DollarSign /> },
   { href: '/admin/payouts', label: 'Payouts', icon: <ClipboardCheck /> },
@@ -100,7 +101,8 @@ function AdminSidebar() {
     return name.split(' ').map((n) => n[0]).join('').toUpperCase();
   };
 
-  const isLeadsActive = pathname.startsWith('/admin/partner-leads') || pathname.startsWith('/admin/website-leads');
+  const isLeadsActive = ['/admin/leads', '/admin/projects', '/admin/partner-leads', '/admin/website-leads'].some(p => pathname.startsWith(p));
+
 
   return (
     <Sidebar>
