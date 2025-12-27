@@ -116,7 +116,7 @@ export function ReferClientDialog({ children }: { children: React.ReactNode }) {
                         name="name"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Client Full Name</FormLabel>
+                                <FormLabel>Client Full Name *</FormLabel>
                                 <FormControl>
                                     <Input placeholder="John Doe" {...field} />
                                 </FormControl>
@@ -129,7 +129,7 @@ export function ReferClientDialog({ children }: { children: React.ReactNode }) {
                         name="email"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Client Email</FormLabel>
+                                <FormLabel>Client Email *</FormLabel>
                                 <FormControl>
                                     <Input type="email" placeholder="client@example.com" {...field} />
                                 </FormControl>
@@ -142,7 +142,7 @@ export function ReferClientDialog({ children }: { children: React.ReactNode }) {
                         name="phone"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Client Phone</FormLabel>
+                                <FormLabel>Client Phone *</FormLabel>
                                 <FormControl>
                                     <Input type="tel" placeholder="9876543210" {...field} />
                                 </FormControl>
@@ -155,7 +155,7 @@ export function ReferClientDialog({ children }: { children: React.ReactNode }) {
                         name="serviceType"
                         render={({ field }) => (
                            <FormItem>
-                                <FormLabel>Service of Interest (Optional)</FormLabel>
+                                <FormLabel>Service of Interest</FormLabel>
                                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                                     <FormControl>
                                     <SelectTrigger>
@@ -177,7 +177,7 @@ export function ReferClientDialog({ children }: { children: React.ReactNode }) {
                         name="message"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Notes (Optional)</FormLabel>
+                                <FormLabel>Notes</FormLabel>
                                 <FormControl>
                                     <Textarea placeholder="Any additional details..." {...field} />
                                 </FormControl>
