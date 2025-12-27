@@ -41,10 +41,11 @@ export default function MyTasksPage() {
 
   const tasksQuery = useMemo(() => {
     if (!firestore || !user) return null;
+    // Simplified query to prevent internal SDK errors and index requirements.
+    // Sorting will be handled client-side.
     return query(
         collection(firestore, 'tasks'), 
-        where('assignedTo', '==', user.uid),
-        orderBy('createdAt', 'desc')
+        where('assignedTo', '==', user.uid)
     );
   }, [firestore, user]);
 
@@ -64,6 +65,11 @@ export default function MyTasksPage() {
     return new Map(projects.map((project) => [project.id, project]));
   }, [projects]);
   
+  const sortedTasks = useMemo(() => {
+    if (!tasks) return [];
+    return [...tasks].sort((a, b) => b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime());
+  }, [tasks]);
+
   if (!user && !userLoading) {
       return (
          <div className="flex justify-center items-center h-full p-8">
@@ -99,7 +105,7 @@ export default function MyTasksPage() {
             <div className="flex justify-center items-center h-48">
               <LoaderCircle className="w-8 h-8 animate-spin text-primary" />
             </div>
-          ) : tasks && tasks.length > 0 ? (
+          ) : sortedTasks && sortedTasks.length > 0 ? (
             <Table>
               <TableHeader>
                 <TableRow>
@@ -111,7 +117,7 @@ export default function MyTasksPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {tasks.map((task) => {
+                {sortedTasks.map((task) => {
                   if (!task.id) return null;
                   const project = projectsMap.get(task.projectId);
                   return (
