@@ -96,7 +96,7 @@ export default function AdminProjectsPage() {
       </div>
       <Card>
         <CardHeader>
-          <CardTitle>All Client Leads</CardTitle>
+          <CardTitle>Direct Client Leads</CardTitle>
           <CardDescription>A list of all projects submitted by clients via their dashboard.</CardDescription>
         </CardHeader>
         <CardContent>
@@ -120,6 +120,10 @@ export default function AdminProjectsPage() {
                 {projects.map((project) => {
                   if (!project.id) return null;
                   const client = usersMap.get(project.userId);
+                  // Filter for projects created by registered clients, not placeholders
+                  if (!client || project.userId.startsWith('unregistered_')) {
+                    return null;
+                  }
                   return (
                     <TableRow key={project.id}>
                       <TableCell className="font-medium">
@@ -167,8 +171,8 @@ export default function AdminProjectsPage() {
           ) : (
             <div className="text-center p-12 text-muted-foreground">
                 <FolderKanban className="mx-auto w-12 h-12 mb-4" />
-                <h3 className="text-lg font-semibold">No Client Leads Found</h3>
-                <p>Clients have not submitted any project leads yet.</p>
+                <h3 className="text-lg font-semibold">No Direct Client Leads Found</h3>
+                <p>Clients have not submitted any project leads from their dashboard yet.</p>
             </div>
           )}
         </CardContent>
