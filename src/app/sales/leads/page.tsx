@@ -6,7 +6,7 @@ import { collection, query, orderBy } from 'firebase/firestore';
 import { useCollection, useFirestore } from '@/firebase';
 import type { ContactLead } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { LoaderCircle, User, Users } from 'lucide-react';
+import { LoaderCircle, Users } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -17,6 +17,8 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
+import { FinalizePartnerLeadDialog } from '@/components/sales/finalize-partner-lead-dialog';
+import { Button } from '@/components/ui/button';
 
 export default function SalesLeadsPage() {
   const firestore = useFirestore();
@@ -55,6 +57,7 @@ export default function SalesLeadsPage() {
                   <TableHead>Service of Interest</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Submitted On</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -81,6 +84,13 @@ export default function SalesLeadsPage() {
                        </TableCell>
                       <TableCell>
                         {lead.createdAt ? format(lead.createdAt.toDate(), 'PPP') : 'N/A'}
+                      </TableCell>
+                      <TableCell className="text-right">
+                         {lead.status === 'new' && (
+                            <FinalizePartnerLeadDialog lead={lead}>
+                                <Button size="sm">Finalize</Button>
+                            </FinalizePartnerLeadDialog>
+                         )}
                       </TableCell>
                     </TableRow>
                   )
