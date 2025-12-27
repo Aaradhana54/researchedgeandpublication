@@ -45,8 +45,8 @@ import { useEffect } from 'react';
 const dashboardNavItems = [
   { href: '/sales/dashboard', label: 'Overview', icon: <LayoutGrid /> },
   { href: '/sales/clients', label: 'Clients', icon: <Users /> },
-  { href: '/sales/leads', label: 'Leads', icon: <Briefcase /> },
-  { href: '/sales/projects', label: 'Projects', icon: <FolderKanban /> },
+  { href: '/sales/leads', label: 'Partner Leads', icon: <Briefcase /> },
+  { href: '/sales/projects', label: 'Client Leads', icon: <FolderKanban /> },
   { href: '/sales/approved-leads', label: 'Approved Leads', icon: <CheckCircle /> },
 ];
 

@@ -71,7 +71,7 @@ export default function SalesLeadsPage() {
                       </TableCell>
                        <TableCell>
                            <Badge variant="secondary" className="capitalize">
-                            {lead.serviceType}
+                            {lead.serviceType || 'Not Specified'}
                            </Badge>
                        </TableCell>
                        <TableCell>

@@ -18,6 +18,8 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { FinalizeDealDialog } from '@/components/sales/finalize-deal-dialog';
 
 const getProjectStatusVariant = (status?: string): 'default' | 'secondary' | 'destructive' | 'outline' => {
   switch (status) {
@@ -62,14 +64,14 @@ export default function SalesProjectsPage() {
   return (
     <div className="p-4 sm:p-6 lg:p-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight">All Projects</h1>
-        <p className="text-muted-foreground">A comprehensive list of all projects on the platform.</p>
+        <h1 className="text-3xl font-bold tracking-tight">All Client Leads</h1>
+        <p className="text-muted-foreground">A comprehensive list of all client-submitted leads on the platform.</p>
       </div>
       <Card>
         <CardHeader>
-          <CardTitle>All Client Projects</CardTitle>
+          <CardTitle>All Client Leads</CardTitle>
           <CardDescription>
-            Review project details to understand client needs and progress.
+            Review lead details to understand client needs and finalize deals.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -86,6 +88,7 @@ export default function SalesProjectsPage() {
                   <TableHead>Service</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Submitted On</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -95,7 +98,6 @@ export default function SalesProjectsPage() {
                   return (
                     <TableRow key={project.id}>
                       <TableCell className="font-medium">
-                        {/* Link to the admin project detail page as sales might need to view it */}
                         <Link href={`/admin/projects/${project.id}`} className="hover:underline text-primary">
                           {project.title}
                         </Link>
@@ -117,6 +119,13 @@ export default function SalesProjectsPage() {
                       <TableCell>
                         {project.createdAt ? format(project.createdAt.toDate(), 'PPP') : 'N/A'}
                       </TableCell>
+                      <TableCell className="text-right">
+                         {project.status === 'pending' && (
+                            <FinalizeDealDialog project={project}>
+                                <Button size="sm">Finalize</Button>
+                            </FinalizeDealDialog>
+                         )}
+                      </TableCell>
                     </TableRow>
                   )
                 })}
@@ -125,8 +134,8 @@ export default function SalesProjectsPage() {
           ) : (
             <div className="text-center p-12 text-muted-foreground">
                 <FolderKanban className="mx-auto w-12 h-12 mb-4" />
-                <h3 className="text-lg font-semibold">No Projects Found</h3>
-                <p>Clients have not submitted any projects yet.</p>
+                <h3 className="text-lg font-semibold">No Client Leads Found</h3>
+                <p>Clients have not submitted any project leads yet.</p>
             </div>
           )}
         </CardContent>
