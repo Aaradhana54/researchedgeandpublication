@@ -33,14 +33,14 @@ export default function SalesLeadsPage() {
   return (
     <div className="p-4 sm:p-6 lg:p-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight">Partner Leads</h1>
-        <p className="text-muted-foreground">Leads submitted by referral partners.</p>
+        <h1 className="text-3xl font-bold tracking-tight">All Leads</h1>
+        <p className="text-muted-foreground">Leads from partners and the public contact form.</p>
       </div>
       <Card>
         <CardHeader>
-          <CardTitle>All Referred Leads</CardTitle>
+          <CardTitle>All Incoming Leads</CardTitle>
           <CardDescription>
-            Review leads submitted by partners. Contact them to convert them into clients.
+            Review lead details to understand client needs and finalize deals.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -54,7 +54,7 @@ export default function SalesLeadsPage() {
                 <TableRow>
                   <TableHead>Client Name</TableHead>
                   <TableHead>Contact</TableHead>
-                  <TableHead>Service of Interest</TableHead>
+                  <TableHead>Source</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Submitted On</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
@@ -63,6 +63,7 @@ export default function SalesLeadsPage() {
               <TableBody>
                 {leads.map((lead) => {
                   if (!lead.id) return null;
+                  const source = lead.referredByPartnerId ? 'Partner' : 'Website';
                   return (
                     <TableRow key={lead.id}>
                       <TableCell className="font-medium">
@@ -73,8 +74,8 @@ export default function SalesLeadsPage() {
                         <div className="text-sm text-muted-foreground">{lead.phone}</div>
                       </TableCell>
                        <TableCell>
-                           <Badge variant="secondary" className="capitalize">
-                            {lead.serviceType || 'Not Specified'}
+                           <Badge variant={source === 'Partner' ? 'outline' : 'secondary'} className="capitalize">
+                            {source}
                            </Badge>
                        </TableCell>
                        <TableCell>
@@ -101,7 +102,7 @@ export default function SalesLeadsPage() {
             <div className="text-center p-12 text-muted-foreground">
                 <Users className="mx-auto w-12 h-12 mb-4" />
                 <h3 className="text-lg font-semibold">No Leads Found</h3>
-                <p>Referral partners have not submitted any leads yet.</p>
+                <p>No new leads have been submitted yet.</p>
             </div>
           )}
         </CardContent>
@@ -109,5 +110,3 @@ export default function SalesLeadsPage() {
     </div>
   );
 }
-
-    

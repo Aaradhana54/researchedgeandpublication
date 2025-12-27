@@ -73,7 +73,7 @@
         "phone": { "type": "string" },
         "serviceType": { "type": "string" },
         "message": { "type": "string", "description": "Notes from the person who submitted the lead." },
-        "referredByPartnerId": { "type": "string", "description": "The UID of the referral partner who submitted this lead." },
+        "referredByPartnerId": { "type": "string", "description": "The UID of the referral partner who submitted this lead. Optional." },
         "status": { "type": "string", "enum": ["new", "contacted", "converted"], "description": "The lifecycle status of the lead." },
         "createdAt": { "type": "string", "format": "date-time" }
       },
