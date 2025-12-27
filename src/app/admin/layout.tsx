@@ -17,7 +17,9 @@ import {
   TrendingUp,
   BookCheck,
   Banknote,
-  Paintbrush
+  Paintbrush,
+  MessageSquare,
+  UserCheck as UserCheckIcon
 } from 'lucide-react';
 import React from 'react';
 import { useEffect } from 'react';
@@ -67,8 +69,15 @@ const adminNavItems = [
         { href: '/admin/team/accounts', label: 'Accounts Team', icon: <Banknote /> },
     ]
   },
+  { 
+    label: 'Leads', 
+    icon: <Briefcase />,
+    subItems: [
+        { href: '/admin/partner-leads', label: 'Partner Leads', icon: <UserCheckIcon /> },
+        { href: '/admin/website-leads', label: 'Website Leads', icon: <MessageSquare /> },
+    ]
+  },
   { href: '/admin/projects', label: 'Projects', icon: <FolderKanban /> },
-  { href: '/admin/partner-leads', label: 'Partner Leads', icon: <Briefcase /> },
   { href: '/admin/accounts', label: 'Accounts', icon: <Wallet /> },
   { href: '/admin/sales', label: 'Sales', icon: <DollarSign /> },
   { href: '/admin/payouts', label: 'Payouts', icon: <ClipboardCheck /> },
@@ -91,6 +100,8 @@ function AdminSidebar() {
     return name.split(' ').map((n) => n[0]).join('').toUpperCase();
   };
 
+  const isLeadsActive = pathname.startsWith('/admin/partner-leads') || pathname.startsWith('/admin/website-leads');
+
   return (
     <Sidebar>
       <SidebarHeader>
@@ -100,9 +111,9 @@ function AdminSidebar() {
         <SidebarMenu>
           {adminNavItems.map((item) => (
             item.subItems ? (
-                 <Collapsible key={item.label} defaultOpen={item.subItems.some(sub => pathname.startsWith(sub.href))}>
+                 <Collapsible key={item.label} defaultOpen={item.subItems.some(sub => pathname.startsWith(sub.href)) || (item.label === 'Leads' && isLeadsActive)}>
                     <CollapsibleTrigger asChild>
-                         <SidebarMenuButton className="w-full justify-between">
+                         <SidebarMenuButton className="w-full justify-between" isActive={item.label === 'Leads' && isLeadsActive}>
                            <div className="flex items-center gap-2">
                                {item.icon}
                                <span>{item.label}</span>
