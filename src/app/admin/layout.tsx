@@ -68,6 +68,7 @@ const adminNavItems = [
     ]
   },
   { href: '/admin/projects', label: 'Projects', icon: <FolderKanban /> },
+  { href: '/admin/partner-leads', label: 'Partner Leads', icon: <Briefcase /> },
   { href: '/admin/accounts', label: 'Accounts', icon: <Wallet /> },
   { href: '/admin/sales', label: 'Sales', icon: <DollarSign /> },
   { href: '/admin/payouts', label: 'Payouts', icon: <ClipboardCheck /> },
