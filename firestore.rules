@@ -19,6 +19,10 @@ service cloud.firestore {
     function isAdmin() {
       return request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
+    
+    function isWritingTeam() {
+      return request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'writing-team';
+    }
 
     function isAllowedToCreateOwnProfile() {
       return request.auth != null && 
@@ -37,7 +41,7 @@ service cloud.firestore {
       allow read: if isOwner(userId) || isAdmin() || isSalesTeam() || (isReferralPartner() && resource.data.referredBy == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.referralCode);
       
       // Admins, referral partners, and sales team can list users (will be filtered in app).
-      allow list: if isAdmin() || isReferralPartner() || isSalesTeam();
+      allow list: if isAdmin() || isReferralPartner() || isSalesTeam() || isWritingTeam();
 
       // Users can update their own profile, but cannot change their role. 
       // Admins can update any profile, but also cannot change roles for security.
@@ -52,14 +56,15 @@ service cloud.firestore {
 
       // Owners, admins, or sales team can manage projects.
       // Referral partners can read projects of users they referred to calculate conversions.
-      allow read: if isOwner(resource.data.userId) || isAdmin() || isSalesTeam() || (isReferralPartner() && get(/databases/$(database)/documents/users/$(resource.data.userId)).data.referredBy == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.referralCode);
+      // Writers can read projects they are assigned to via a task.
+      allow read: if isOwner(resource.data.userId) || isAdmin() || isSalesTeam() || (isReferralPartner() && get(/databases/$(database)/documents/users/$(resource.data.userId)).data.referredBy == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.referralCode) || (isWritingTeam() && exists(/databases/$(database)/documents/tasks) && size(get(/databases/$(database)/documents/tasks).filter(t => t.projectId == projectId && t.assignedTo == request.auth.uid)) > 0);
       
       // Admins, sales team can update any project. Owners can update their own.
       allow update: if isOwner(resource.data.userId) || isAdmin() || isSalesTeam();
       
       allow delete: if isOwner(resource.data.userId) || isAdmin();
       
-      // Authenticated users (clients, admins, partners, sales) can list projects.
+      // Authenticated users (clients, admins, partners, sales, writers) can list projects.
       allow list: if request.auth != null;
     }
     
@@ -105,10 +110,15 @@ service cloud.firestore {
         allow read, list: if request.auth != null;
     }
     
-    // --- Admin-only Collections ---
+    // --- Admin-only Collections (with exceptions) ---
 
     match /tasks/{taskId} {
-      allow read, write, create, list, update, delete: if isAdmin();
+      // Admins can do anything.
+      // Writers can list their own tasks, and read/update tasks assigned to them.
+      allow create: if isAdmin();
+      allow list: if isAdmin() || (isWritingTeam() && request.query.where.get('assignedTo')[2][0] == request.auth.uid);
+      allow read, update: if isAdmin() || (isWritingTeam() && resource.data.assignedTo == request.auth.uid);
+      allow delete: if isAdmin();
     }
 
     match /book_sales/{saleId} {

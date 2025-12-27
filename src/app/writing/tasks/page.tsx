@@ -41,21 +41,25 @@ export default function MyTasksPage() {
 
   const tasksQuery = useMemo(() => {
     if (!firestore || !user) return null;
-    // Simplified query to prevent internal SDK errors and index requirements.
-    // Sorting will be handled client-side.
+    // This query is now secured by the updated Firestore rules.
+    // The rule ensures a writer can only list tasks where `assignedTo` is their own UID.
     return query(
         collection(firestore, 'tasks'), 
-        where('assignedTo', '==', user.uid)
+        where('assignedTo', '==', user.uid),
+        orderBy('createdAt', 'desc') 
     );
   }, [firestore, user]);
 
+  // We need to fetch all projects to map task.projectId to project details.
+  // This is less efficient, but necessary without complex joins.
+  // Security rules must allow writers to list projects.
   const projectsQuery = useMemo(() => {
     if (!firestore) return null;
     return query(collection(firestore, 'projects'));
   }, [firestore]);
 
 
-  const { data: tasks, loading: loadingTasks } = useCollection<Task>(tasksQuery);
+  const { data: tasks, loading: loadingTasks, error: tasksError } = useCollection<Task>(tasksQuery);
   const { data: projects, loading: loadingProjects } = useCollection<Project>(projectsQuery);
 
   const loading = loadingTasks || loadingProjects || userLoading;
@@ -65,10 +69,6 @@ export default function MyTasksPage() {
     return new Map(projects.map((project) => [project.id, project]));
   }, [projects]);
   
-  const sortedTasks = useMemo(() => {
-    if (!tasks) return [];
-    return [...tasks].sort((a, b) => b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime());
-  }, [tasks]);
 
   if (!user && !userLoading) {
       return (
@@ -105,7 +105,7 @@ export default function MyTasksPage() {
             <div className="flex justify-center items-center h-48">
               <LoaderCircle className="w-8 h-8 animate-spin text-primary" />
             </div>
-          ) : sortedTasks && sortedTasks.length > 0 ? (
+          ) : tasks && tasks.length > 0 ? (
             <Table>
               <TableHeader>
                 <TableRow>
@@ -117,7 +117,7 @@ export default function MyTasksPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {sortedTasks.map((task) => {
+                {tasks.map((task) => {
                   if (!task.id) return null;
                   const project = projectsMap.get(task.projectId);
                   return (
