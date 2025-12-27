@@ -21,12 +21,11 @@ import { format } from 'date-fns';
 export default function AdminPartnerLeadsPage() {
   const firestore = useFirestore();
 
+  // Fetch all leads, sorted by date. Filtering will happen on the client.
   const leadsQuery = useMemo(() => {
     if (!firestore) return null;
-    // Query only for partner leads and order by date
     return query(
         collection(firestore, 'contact_leads'), 
-        where('referredByPartnerId', '!=', null),
         orderBy('createdAt', 'desc')
     );
   }, [firestore]);
@@ -36,10 +35,16 @@ export default function AdminPartnerLeadsPage() {
     return query(collection(firestore, 'users'));
   }, [firestore]);
 
-  const { data: leads, loading: loadingLeads } = useCollection<ContactLead>(leadsQuery);
+  const { data: allLeads, loading: loadingLeads } = useCollection<ContactLead>(leadsQuery);
   const { data: users, loading: loadingUsers } = useCollection<UserProfile>(usersQuery);
 
   const loading = loadingLeads || loadingUsers;
+
+  // Filter for partner leads on the client side
+  const partnerLeads = useMemo(() => {
+    if (!allLeads) return [];
+    return allLeads.filter(lead => lead.referredByPartnerId);
+  }, [allLeads]);
 
   const usersMap = useMemo(() => {
     if (!users) return new Map();
@@ -65,7 +70,7 @@ export default function AdminPartnerLeadsPage() {
             <div className="flex justify-center items-center h-48">
               <LoaderCircle className="w-8 h-8 animate-spin text-primary" />
             </div>
-          ) : leads && leads.length > 0 ? (
+          ) : partnerLeads && partnerLeads.length > 0 ? (
             <Table>
               <TableHeader>
                 <TableRow>
@@ -77,7 +82,7 @@ export default function AdminPartnerLeadsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {leads.map((lead) => {
+                {partnerLeads.map((lead) => {
                   if (!lead.id) return null;
                   const partner = usersMap.get(lead.referredByPartnerId);
                   return (
