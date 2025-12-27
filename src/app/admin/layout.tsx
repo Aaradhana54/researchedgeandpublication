@@ -115,8 +115,10 @@ function AdminSidebar() {
                             <SidebarMenuItem key={subItem.label}>
                                 <Link href={subItem.href}>
                                     <SidebarMenuSubButton asChild isActive={pathname.startsWith(subItem.href)}>
-                                        {subItem.icon}
-                                        <span>{subItem.label}</span>
+                                        <span>
+                                            {subItem.icon}
+                                            <span>{subItem.label}</span>
+                                        </span>
                                     </SidebarMenuSubButton>
                                 </Link>
                             </SidebarMenuItem>
