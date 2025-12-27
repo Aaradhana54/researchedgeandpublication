@@ -2,7 +2,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { collection, query, orderBy, where } from 'firebase/firestore';
+import { collection, query, orderBy } from 'firebase/firestore';
 import { useCollection, useFirestore } from '@/firebase';
 import type { ContactLead } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,21 +21,21 @@ import { format } from 'date-fns';
 export default function AdminWebsiteLeadsPage() {
   const firestore = useFirestore();
 
-  // Fetch all leads without filtering by referredByPartnerId in the query
+  // Fetch all leads and order them by creation date to stabilize the query.
+  // Filtering will be done on the client-side.
   const leadsQuery = useMemo(() => {
     if (!firestore) return null;
-    return query(collection(firestore, 'contact_leads'));
+    return query(collection(firestore, 'contact_leads'), orderBy('createdAt', 'desc'));
   }, [firestore]);
   
 
   const { data: allLeads, loading: loadingLeads } = useCollection<ContactLead>(leadsQuery);
 
-  // Filter and sort the leads on the client side
-  const sortedLeads = useMemo(() => {
+  // Filter for website leads (those without a partner ID) on the client side.
+  // The data is already sorted by the query.
+  const websiteLeads = useMemo(() => {
     if (!allLeads) return [];
-    return allLeads
-      .filter(lead => !lead.referredByPartnerId) // Filter for website leads here
-      .sort((a, b) => b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime());
+    return allLeads.filter(lead => !lead.referredByPartnerId);
   }, [allLeads]);
 
   return (
@@ -56,7 +56,7 @@ export default function AdminWebsiteLeadsPage() {
             <div className="flex justify-center items-center h-48">
               <LoaderCircle className="w-8 h-8 animate-spin text-primary" />
             </div>
-          ) : sortedLeads && sortedLeads.length > 0 ? (
+          ) : websiteLeads && websiteLeads.length > 0 ? (
             <Table>
               <TableHeader>
                 <TableRow>
@@ -68,7 +68,7 @@ export default function AdminWebsiteLeadsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {sortedLeads.map((lead) => {
+                {websiteLeads.map((lead) => {
                   if (!lead.id) return null;
                   return (
                     <TableRow key={lead.id}>
