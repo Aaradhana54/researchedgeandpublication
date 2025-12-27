@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -112,10 +113,12 @@ function AdminSidebar() {
                         <SidebarMenuSub>
                           {item.subItems.map(subItem => (
                             <SidebarMenuItem key={subItem.label}>
-                                <Link href={subItem.href} legacyBehavior passHref>
+                                <Link href={subItem.href}>
                                     <SidebarMenuSubButton asChild isActive={pathname.startsWith(subItem.href)}>
-                                        {subItem.icon}
-                                        <span>{subItem.label}</span>
+                                        <>
+                                            {subItem.icon}
+                                            <span>{subItem.label}</span>
+                                        </>
                                     </SidebarMenuSubButton>
                                 </Link>
                             </SidebarMenuItem>
