@@ -115,7 +115,7 @@ function AdminSidebar() {
                             <SidebarMenuItem key={subItem.label}>
                                 <Link href={subItem.href}>
                                     <SidebarMenuSubButton asChild isActive={pathname.startsWith(subItem.href)}>
-                                        <span>
+                                        <span className="flex items-center gap-2">
                                             {subItem.icon}
                                             <span>{subItem.label}</span>
                                         </span>
@@ -187,11 +187,14 @@ export default function AdminLayout({
   const router = useRouter();
   const pathname = usePathname();
 
+  const isSalesViewingProject = user?.role === 'sales-team' && pathname.startsWith('/admin/projects/');
+
   useEffect(() => {
     // If we are not loading and the current page is not the login page
     if (!loading && pathname !== '/admin/login') {
       // If there is no user or the user is not an admin, redirect to login
-      if (!user || user.role !== 'admin') {
+      // Exception: allow sales team to view project detail pages.
+      if (!user || (user.role !== 'admin' && !isSalesViewingProject)) {
         router.replace('/admin/login');
       }
     }
@@ -200,11 +203,29 @@ export default function AdminLayout({
         router.replace('/admin/dashboard');
     }
 
-  }, [user, loading, router, pathname]);
+  }, [user, loading, router, pathname, isSalesViewingProject]);
 
   // Don't protect the login page itself with a loader/permission check
   if (pathname === '/admin/login') {
       return <>{children}</>;
+  }
+
+  // If a sales team member is viewing a project, we can show the content directly
+  // but without the full admin sidebar. We'll show a simplified layout.
+  if (isSalesViewingProject) {
+      return (
+        <div className="flex flex-col min-h-screen">
+          <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+            <div className="container flex h-14 items-center">
+              <Logo />
+               <div className="flex flex-1 items-center justify-end space-x-4">
+                  <Button variant="ghost" onClick={() => router.back()}>Back to Sales Portal</Button>
+               </div>
+            </div>
+          </header>
+           <main className="flex-1">{children}</main>
+        </div>
+      )
   }
 
 

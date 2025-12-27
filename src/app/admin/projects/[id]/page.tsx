@@ -4,7 +4,7 @@
 import { useMemo } from 'react';
 import { useParams, notFound, useRouter } from 'next/navigation';
 import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
-import { useDoc, useFirestore } from '@/firebase';
+import { useDoc, useFirestore, useUser } from '@/firebase';
 import type { Project, UserProfile, ProjectStatus } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoaderCircle, ArrowLeft, CheckCircle, XCircle, FileText } from 'lucide-react';
@@ -41,6 +41,7 @@ export default function ProjectDetailPage() {
     const firestore = useFirestore();
     const { toast } = useToast();
     const router = useRouter();
+    const { user: loggedInUser } = useUser();
 
     const projectRef = useMemo(() => {
         if (!firestore || !projectId) return null;
@@ -110,12 +111,15 @@ export default function ProjectDetailPage() {
     if (!project || projectError) {
         notFound();
     }
+    
+    const canShowAdminControls = loggedInUser?.role === 'admin';
+    const backLink = loggedInUser?.role === 'admin' ? '/admin/projects' : '/sales/projects';
 
     return (
         <div className="p-4 sm:p-6 lg:p-8">
             <div className="mb-8 max-w-4xl mx-auto">
                  <Button variant="ghost" asChild className="mb-4 -ml-4">
-                    <Link href="/admin/projects">
+                    <Link href={backLink}>
                         <ArrowLeft className="mr-2 h-4 w-4" />
                         Back to Projects
                     </Link>
@@ -125,16 +129,18 @@ export default function ProjectDetailPage() {
                         <h1 className="text-3xl font-bold tracking-tight">{project.title}</h1>
                         <p className="text-muted-foreground">Detailed view of the project submission.</p>
                     </div>
-                    <div className="flex items-center gap-2">
-                        <Button variant="outline" onClick={() => handleStatusUpdate('approved')}>
-                            <CheckCircle className="mr-2 h-4 w-4 text-green-500" />
-                            Approve
-                        </Button>
-                         <Button variant="destructive" onClick={() => handleStatusUpdate('rejected')}>
-                            <XCircle className="mr-2 h-4 w-4" />
-                            Reject
-                        </Button>
-                    </div>
+                    {canShowAdminControls && (
+                        <div className="flex items-center gap-2">
+                            <Button variant="outline" onClick={() => handleStatusUpdate('approved')}>
+                                <CheckCircle className="mr-2 h-4 w-4 text-green-500" />
+                                Approve
+                            </Button>
+                             <Button variant="destructive" onClick={() => handleStatusUpdate('rejected')}>
+                                <XCircle className="mr-2 h-4 w-4" />
+                                Reject
+                            </Button>
+                        </div>
+                    )}
                 </div>
             </div>
 
