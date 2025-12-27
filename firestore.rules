@@ -114,9 +114,10 @@ service cloud.firestore {
 
     match /tasks/{taskId} {
       // Admins can do anything.
-      // Writers can list their own tasks, and read/update tasks assigned to them.
       allow create: if isAdmin();
-      allow list: if isAdmin() || (isWritingTeam() && request.query.where.get('assignedTo')[2][0] == request.auth.uid);
+      // Writers can list their own tasks.
+      allow list: if isAdmin() || (isWritingTeam() && request.query.where[0][2] == request.auth.uid);
+      // Writers can read/update tasks assigned to them.
       allow read, update: if isAdmin() || (isWritingTeam() && resource.data.assignedTo == request.auth.uid);
       allow delete: if isAdmin();
     }
