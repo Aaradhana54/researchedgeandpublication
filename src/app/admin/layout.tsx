@@ -51,11 +51,21 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { LoaderCircle } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 const adminNavItems = [
   { href: '/admin/dashboard', label: 'Overview', icon: <LayoutGrid /> },
   { href: '/admin/users', label: 'User Management', icon: <Users /> },
-  { href: '/admin/team', label: 'Team Management', icon: <Briefcase /> },
+  { 
+    label: 'Team Management', 
+    icon: <Briefcase />,
+    subItems: [
+        { href: '/admin/team/writing', label: 'Writing Team', icon: <PenTool /> },
+        { href: '/admin/team/sales', label: 'Sales Team', icon: <TrendingUp /> },
+        { href: '/admin/team/publication', label: 'Publication Team', icon: <BookCheck /> },
+        { href: '/admin/team/accounts', label: 'Accounts Team', icon: <Banknote /> },
+    ]
+  },
   { href: '/admin/projects', label: 'Projects', icon: <FolderKanban /> },
   { href: '/admin/accounts', label: 'Accounts', icon: <Wallet /> },
   { href: '/admin/sales', label: 'Sales', icon: <DollarSign /> },
@@ -87,14 +97,42 @@ function AdminSidebar() {
       <SidebarContent>
         <SidebarMenu>
           {adminNavItems.map((item) => (
-            <SidebarMenuItem key={item.label}>
-              <Link href={item.href}>
-                <SidebarMenuButton isActive={pathname.startsWith(item.href)}>
-                  {item.icon}
-                  <span>{item.label}</span>
-                </SidebarMenuButton>
-              </Link>
-            </SidebarMenuItem>
+            item.subItems ? (
+                 <Collapsible key={item.label} defaultOpen={item.subItems.some(sub => pathname.startsWith(sub.href))}>
+                    <CollapsibleTrigger asChild>
+                         <SidebarMenuButton className="w-full justify-between">
+                           <div className="flex items-center gap-2">
+                               {item.icon}
+                               <span>{item.label}</span>
+                           </div>
+                           <ChevronDown className="h-4 w-4" />
+                        </SidebarMenuButton>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                        <SidebarMenuSub>
+                          {item.subItems.map(subItem => (
+                            <SidebarMenuItem key={subItem.label}>
+                                <Link href={subItem.href}>
+                                    <SidebarMenuSubButton isActive={pathname.startsWith(subItem.href)}>
+                                        {subItem.icon}
+                                        <span>{subItem.label}</span>
+                                    </SidebarMenuSubButton>
+                                </Link>
+                            </SidebarMenuItem>
+                          ))}
+                        </SidebarMenuSub>
+                    </CollapsibleContent>
+                </Collapsible>
+            ) : (
+                <SidebarMenuItem key={item.label}>
+                  <Link href={item.href!}>
+                    <SidebarMenuButton isActive={pathname.startsWith(item.href!)}>
+                      {item.icon}
+                      <span>{item.label}</span>
+                    </SidebarMenuButton>
+                  </Link>
+                </SidebarMenuItem>
+            )
           ))}
         </SidebarMenu>
       </SidebarContent>
