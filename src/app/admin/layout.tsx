@@ -19,7 +19,8 @@ import {
   Banknote,
   Paintbrush,
   MessageSquare,
-  UserCheck as UserCheckIcon
+  UserCheck as UserCheckIcon,
+  CheckCircle,
 } from 'lucide-react';
 import React from 'react';
 import { useEffect } from 'react';
@@ -77,6 +78,7 @@ const adminNavItems = [
         { href: '/admin/projects', label: 'Client Leads', icon: <FolderKanban /> },
         { href: '/admin/partner-leads', label: 'Partner Leads', icon: <UserCheckIcon /> },
         { href: '/admin/website-leads', label: 'Website Leads', icon: <MessageSquare /> },
+        { href: '/admin/approved-leads', label: 'Approved Leads', icon: <CheckCircle /> },
     ]
   },
   { href: '/admin/accounts', label: 'Accounts', icon: <Wallet /> },
@@ -101,7 +103,7 @@ function AdminSidebar() {
     return name.split(' ').map((n) => n[0]).join('').toUpperCase();
   };
 
-  const isLeadsActive = ['/admin/leads', '/admin/projects', '/admin/partner-leads', '/admin/website-leads'].some(p => pathname.startsWith(p));
+  const isLeadsActive = ['/admin/leads', '/admin/projects', '/admin/partner-leads', '/admin/website-leads', '/admin/approved-leads'].some(p => pathname.startsWith(p));
 
 
   return (
