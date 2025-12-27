@@ -6,7 +6,7 @@ import { useUser } from '@/firebase/auth/use-user';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoaderCircle, Users } from 'lucide-react';
 import { useCollection, useFirestore } from '@/firebase';
-import { collection, query, where, orderBy } from 'firebase/firestore';
+import { collection, query, where } from 'firebase/firestore';
 import type { ContactLead } from '@/lib/types';
 import {
   Table,
@@ -27,14 +27,18 @@ export default function ReferredClientsPage() {
     if (!user || !firestore) return null;
     return query(
         collection(firestore, 'contact_leads'), 
-        where('referredByPartnerId', '==', user.uid),
-        orderBy('createdAt', 'desc')
+        where('referredByPartnerId', '==', user.uid)
     );
   }, [user, firestore]);
 
   const { data: submittedLeads, loading: leadsLoading } = useCollection<ContactLead>(submittedLeadsQuery);
   
   const loading = userLoading || leadsLoading;
+
+  const sortedLeads = useMemo(() => {
+    if (!submittedLeads) return [];
+    return [...submittedLeads].sort((a, b) => b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime());
+  }, [submittedLeads]);
 
   if (loading) {
     return (
@@ -57,7 +61,7 @@ export default function ReferredClientsPage() {
                 <CardDescription>This table shows every lead you have submitted.</CardDescription>
             </CardHeader>
             <CardContent>
-                {submittedLeads && submittedLeads.length > 0 ? (
+                {sortedLeads && sortedLeads.length > 0 ? (
                     <Table>
                         <TableHeader>
                             <TableRow>
@@ -69,7 +73,7 @@ export default function ReferredClientsPage() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {submittedLeads.map(lead => (
+                            {sortedLeads.map(lead => (
                                 <TableRow key={lead.id}>
                                     <TableCell className="font-medium">{lead.name}</TableCell>
                                     <TableCell>
