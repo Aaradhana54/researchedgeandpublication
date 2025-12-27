@@ -57,7 +57,7 @@ service cloud.firestore {
       // Owners, admins, or sales team can manage projects.
       // Referral partners can read projects of users they referred to calculate conversions.
       // Writers can read projects they are assigned to via a task.
-      allow read: if isOwner(resource.data.userId) || isAdmin() || isSalesTeam() || (isReferralPartner() && get(/databases/$(database)/documents/users/$(resource.data.userId)).data.referredBy == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.referralCode) || (isWritingTeam() && exists(/databases/$(database)/documents/tasks) && size(get(/databases/$(database)/documents/tasks).filter(t => t.projectId == projectId && t.assignedTo == request.auth.uid)) > 0);
+      allow read: if isOwner(resource.data.userId) || isAdmin() || isSalesTeam() || (isReferralPartner() && get(/databases/$(database)/documents/users/$(resource.data.userId)).data.referredBy == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.referralCode) || (isWritingTeam() && exists(/databases/$(database)/documents/tasks/{taskId}) && get(/databases/$(database)/documents/tasks/{taskId}).data.projectId == projectId && get(/databases/$(database)/documents/tasks/{taskId}).data.assignedTo == request.auth.uid);
       
       // Admins, sales team can update any project. Owners can update their own.
       allow update: if isOwner(resource.data.userId) || isAdmin() || isSalesTeam();
@@ -115,8 +115,8 @@ service cloud.firestore {
     match /tasks/{taskId} {
       // Admins can do anything.
       allow create: if isAdmin();
-      // Writers can list their own tasks.
-      allow list: if isAdmin() || (isWritingTeam() && request.query.where[0][2] == request.auth.uid);
+      // Writers can list their own tasks, but only by querying their own uid.
+      allow list: if isAdmin() || (isWritingTeam() && request.query.where[0] == ['assignedTo', '==', request.auth.uid]);
       // Writers can read/update tasks assigned to them.
       allow read, update: if isAdmin() || (isWritingTeam() && resource.data.assignedTo == request.auth.uid);
       allow delete: if isAdmin();

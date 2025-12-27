@@ -1,10 +1,10 @@
 
 'use client';
 
-import { useMemo } from 'react';
-import { collection, query, where, orderBy } from 'firebase/firestore';
+import { useMemo, useState, useEffect } from 'react';
+import { collection, query, where, getDocs } from 'firebase/firestore';
 import { useCollection, useFirestore, useUser } from '@/firebase';
-import type { Task, Project, UserProfile } from '@/lib/types';
+import type { Task, Project } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoaderCircle, ClipboardList, AlertCircle } from 'lucide-react';
 import {
@@ -38,31 +38,57 @@ const getTaskStatusVariant = (status?: string): 'default' | 'secondary' | 'destr
 export default function MyTasksPage() {
   const { user, loading: userLoading } = useUser();
   const firestore = useFirestore();
-
-  const tasksQuery = useMemo(() => {
-    if (!firestore || !user) return null;
-    // This query is now secured by the updated Firestore rules.
-    // The rule ensures a writer can only list tasks where `assignedTo` is their own UID.
-    return query(
-        collection(firestore, 'tasks'), 
-        where('assignedTo', '==', user.uid),
-        orderBy('createdAt', 'desc') 
-    );
-  }, [firestore, user]);
+  
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [loadingTasks, setLoadingTasks] = useState(true);
+  const [tasksError, setTasksError] = useState<Error | null>(null);
 
   // We need to fetch all projects to map task.projectId to project details.
   // This is less efficient, but necessary without complex joins.
-  // Security rules must allow writers to list projects.
   const projectsQuery = useMemo(() => {
     if (!firestore) return null;
     return query(collection(firestore, 'projects'));
   }, [firestore]);
 
 
-  const { data: tasks, loading: loadingTasks, error: tasksError } = useCollection<Task>(tasksQuery);
   const { data: projects, loading: loadingProjects } = useCollection<Project>(projectsQuery);
 
   const loading = loadingTasks || loadingProjects || userLoading;
+  
+  useEffect(() => {
+    if (!firestore || !user) {
+        if (!userLoading) {
+            setLoadingTasks(false);
+        }
+        return;
+    };
+
+    const fetchTasks = async () => {
+        setLoadingTasks(true);
+        setTasksError(null);
+        try {
+            const tasksQuery = query(
+                collection(firestore, 'tasks'), 
+                where('assignedTo', '==', user.uid)
+            );
+            const querySnapshot = await getDocs(tasksQuery);
+            const fetchedTasks = querySnapshot.docs.map(doc => ({ ...doc.data() as Task, id: doc.id }));
+            
+            // Sort client-side
+            fetchedTasks.sort((a, b) => b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime());
+            
+            setTasks(fetchedTasks);
+        } catch (error: any) {
+            console.error("Failed to fetch tasks:", error);
+            setTasksError(error);
+        } finally {
+            setLoadingTasks(false);
+        }
+    };
+    
+    fetchTasks();
+
+  }, [firestore, user, userLoading]);
 
   const projectsMap = useMemo(() => {
     if (!projects) return new Map();
@@ -104,6 +130,12 @@ export default function MyTasksPage() {
           {loading ? (
             <div className="flex justify-center items-center h-48">
               <LoaderCircle className="w-8 h-8 animate-spin text-primary" />
+            </div>
+          ) : tasksError ? (
+             <div className="text-center p-12 text-destructive">
+                <AlertCircle className="mx-auto w-12 h-12 mb-4" />
+                <h3 className="text-lg font-semibold">Failed to Load Tasks</h3>
+                <p>{tasksError.message}</p>
             </div>
           ) : tasks && tasks.length > 0 ? (
             <Table>
