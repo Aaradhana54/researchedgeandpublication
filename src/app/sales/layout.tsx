@@ -7,6 +7,7 @@ import {
   ChevronDown,
   Users,
   FolderKanban,
+  CheckCircle,
 } from 'lucide-react';
 import React from 'react';
 import { usePathname, useRouter } from 'next/navigation';
@@ -44,6 +45,7 @@ const dashboardNavItems = [
   { href: '/sales/dashboard', label: 'Overview', icon: <LayoutGrid /> },
   { href: '/sales/clients', label: 'Clients', icon: <Users /> },
   { href: '/sales/leads', label: 'Leads', icon: <FolderKanban /> },
+  { href: '/sales/approved-leads', label: 'Approved Leads', icon: <CheckCircle /> },
 ];
 
 function SalesSidebar() {
