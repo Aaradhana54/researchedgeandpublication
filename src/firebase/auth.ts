@@ -12,7 +12,8 @@ import { auth, firestore } from './client';
 import type { UserProfile, UserRole } from '@/lib/types';
 import { errorEmitter } from './error-emitter';
 import { FirestorePermissionError } from './errors';
-import { getApp } from 'firebase/app';
+import { getApp, initializeApp } from 'firebase/app';
+import { firebaseConfig } from './config';
 
 // --- Login with Role Check ---
 export async function loginWithRole(email: string, password: string, requiredRole: UserRole | UserRole[]) {
@@ -99,4 +100,47 @@ export async function signup(email: string, password: string, name: string, role
 // --- Logout ---
 export async function logout() {
   await signOut(auth);
+}
+
+// --- Admin-only user creation ---
+export async function createUserAsAdmin(email: string, password: string, name: string, role: UserRole) {
+  // Create a temporary, secondary Firebase app instance.
+  // This allows us to create a new user without signing out the current admin.
+  const secondaryApp = initializeApp(firebaseConfig, `secondary-app-${Date.now()}`);
+  const secondaryAuth = getAuth(secondaryApp);
+  const firestoreInstance = getFirestore(getApp());
+
+  try {
+    const userCredential = await createUserWithEmailAndPassword(secondaryAuth, email, password);
+    const user = userCredential.user;
+
+    const userDocRef = doc(firestoreInstance, 'users', user.uid);
+    const dataToSet: any = {
+      uid: user.uid,
+      name,
+      email,
+      role,
+      createdAt: serverTimestamp(),
+    };
+    
+    if (role === 'referral-partner') {
+       dataToSet.referralCode = user.uid.substring(0, 8);
+    }
+
+    // Since the admin is authenticated on the client, Firestore security rules
+    // should permit this write operation.
+    await setDoc(userDocRef, dataToSet);
+
+    // Clean up the secondary app instance
+    await signOut(secondaryAuth);
+    // Note: Firebase doesn't have a public API to delete app instances on the client.
+    // They are garbage collected when they are no longer referenced.
+
+    return user;
+  } catch (error: any) {
+    // Clean up the secondary app instance on error as well
+    await signOut(secondaryAuth);
+    console.error("Error creating user as admin:", error);
+    throw error; // Re-throw the error to be handled by the calling component
+  }
 }
