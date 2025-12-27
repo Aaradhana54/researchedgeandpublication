@@ -66,8 +66,9 @@ service cloud.firestore {
     match /contact_leads/{contactLeadId} {
       // Referral partners can submit leads for their account.
       allow create: if isReferralPartner() && request.resource.data.referredByPartnerId == request.auth.uid;
-      // Admins and Sales can read/list. No one can update/delete from the client.
-      allow read, list: if isAdmin() || isSalesTeam();
+      // Admins, Sales, and the partner who created the lead can read/list.
+      allow read, list: if isAdmin() || isSalesTeam() || (isReferralPartner() && resource.data.referredByPartnerId == request.auth.uid);
+      // No one can update/delete from the client.
       allow update, delete: if false;
     }
 
@@ -121,5 +122,3 @@ service cloud.firestore {
     }
   }
 }
-
-    
