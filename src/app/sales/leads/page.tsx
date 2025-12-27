@@ -121,7 +121,7 @@ export default function SalesLeadsPage() {
                        <TableCell className="text-right">
                           {project.status === 'pending' && (
                             <FinalizeDealDialog project={project}>
-                                <span className="text-primary hover:underline cursor-pointer">Finalize</span>
+                                <span className="text-primary hover:underline cursor-pointer font-medium">Finalize</span>
                             </FinalizeDealDialog>
                           )}
                       </TableCell>
