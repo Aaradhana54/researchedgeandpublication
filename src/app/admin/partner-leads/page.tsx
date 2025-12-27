@@ -23,10 +23,10 @@ export default function AdminPartnerLeadsPage() {
 
   const leadsQuery = useMemo(() => {
     if (!firestore) return null;
+    // Query only for partner leads and order by date
     return query(
         collection(firestore, 'contact_leads'), 
         where('referredByPartnerId', '!=', null),
-        orderBy('referredByPartnerId'),
         orderBy('createdAt', 'desc')
     );
   }, [firestore]);
