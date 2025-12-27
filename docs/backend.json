@@ -52,7 +52,14 @@
           "type": "string",
           "enum": ["pending", "approved", "rejected", "in-progress", "completed"],
           "description": "The current status of the project."
-        }
+        },
+        "dealAmount": { "type": "number", "description": "The final agreed amount for the project." },
+        "advanceReceived": { "type": "number", "description": "The advance payment amount received from the client." },
+        "discussionNotes": { "type": "string", "description": "Notes from the sales team's discussion with the client." },
+        "paymentScreenshotUrl": { "type": "string", "description": "URL of the uploaded payment screenshot." },
+        "finalDeadline": { "type": "string", "format": "date-time", "description": "The final completion deadline agreed upon." },
+        "finalizedAt": { "type": "string", "format": "date-time", "description": "Timestamp when the deal was finalized." },
+        "finalizedBy": { "type": "string", "description": "UID of the sales person who finalized the deal." }
       },
       "required": ["userId", "title", "serviceType", "createdAt"]
     },

@@ -66,6 +66,14 @@ export interface Project {
   status?: ProjectStatus;
   createdAt: Timestamp;
   updatedAt: Timestamp;
+  // Sales Finalization Fields
+  dealAmount?: number;
+  advanceReceived?: number;
+  discussionNotes?: string;
+  paymentScreenshotUrl?: string;
+  finalDeadline?: Timestamp;
+  finalizedAt?: Timestamp;
+  finalizedBy?: string; // UID of the sales person
 }
 
 export interface Task {

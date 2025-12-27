@@ -18,6 +18,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import Link from 'next/link';
+import { FinalizeDealDialog } from '@/components/sales/finalize-deal-dialog';
 
 const getProjectStatusVariant = (status?: string): 'default' | 'secondary' | 'destructive' | 'outline' => {
   switch (status) {
@@ -69,7 +70,7 @@ export default function SalesLeadsPage() {
         <CardHeader>
           <CardTitle>All Project Leads</CardTitle>
           <CardDescription>
-            Review project details to understand client needs and progress.
+            Review project details to understand client needs and progress. Use the 'Finalize' button to convert a lead.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -86,6 +87,7 @@ export default function SalesLeadsPage() {
                   <TableHead>Service</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Submitted On</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -95,7 +97,6 @@ export default function SalesLeadsPage() {
                   return (
                     <TableRow key={project.id}>
                       <TableCell className="font-medium">
-                        {/* Link to the admin project detail page as sales might need to view it */}
                         <Link href={`/admin/projects/${project.id}`} className="hover:underline text-primary">
                           {project.title}
                         </Link>
@@ -116,6 +117,13 @@ export default function SalesLeadsPage() {
                        </TableCell>
                       <TableCell>
                         {project.createdAt ? format(project.createdAt.toDate(), 'PPP') : 'N/A'}
+                      </TableCell>
+                       <TableCell className="text-right">
+                          {project.status === 'pending' && (
+                            <FinalizeDealDialog project={project}>
+                                <span className="text-primary hover:underline cursor-pointer">Finalize</span>
+                            </FinalizeDealDialog>
+                          )}
                       </TableCell>
                     </TableRow>
                   )
