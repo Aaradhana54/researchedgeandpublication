@@ -155,99 +155,101 @@ export function FinalizePartnerLeadDialog({ children, lead }: { children: React.
                 <DialogTitle>Finalize Partner Lead: {lead.name}</DialogTitle>
                 <DialogDescription>Create a project and confirm the deal details to approve this lead.</DialogDescription>
             </DialogHeader>
-             <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                    {error && (
-                        <Alert variant="destructive">
-                            <AlertTitle>Error</AlertTitle>
-                            <AlertDescription>{error}</AlertDescription>
+            <div className="max-h-[70vh] overflow-y-auto pr-4">
+                 <Form {...form}>
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
+                        {error && (
+                            <Alert variant="destructive">
+                                <AlertTitle>Error</AlertTitle>
+                                <AlertDescription>{error}</AlertDescription>
+                            </Alert>
+                        )}
+                        <Alert>
+                            <AlertTitle>Lead Details</AlertTitle>
+                            <AlertDescription>
+                                <p><strong>Name:</strong> {lead.name}</p>
+                                <p><strong>Email:</strong> {lead.email}</p>
+                                <p><strong>Phone:</strong> {lead.phone}</p>
+                            </AlertDescription>
                         </Alert>
-                    )}
-                    <Alert>
-                        <AlertTitle>Lead Details</AlertTitle>
-                        <AlertDescription>
-                            <p><strong>Name:</strong> {lead.name}</p>
-                            <p><strong>Email:</strong> {lead.email}</p>
-                            <p><strong>Phone:</strong> {lead.phone}</p>
-                        </AlertDescription>
-                    </Alert>
-                    <div className="grid grid-cols-2 gap-4">
-                        <FormField
-                            control={form.control}
-                            name="dealAmount"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Final Deal Amount (INR)</FormLabel>
-                                    <FormControl>
-                                        <Input type="number" placeholder="e.g., 50000" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
+                        <div className="grid grid-cols-2 gap-4">
+                            <FormField
+                                control={form.control}
+                                name="dealAmount"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Final Deal Amount (INR)</FormLabel>
+                                        <FormControl>
+                                            <Input type="number" placeholder="e.g., 50000" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                             <FormField
+                                control={form.control}
+                                name="advanceReceived"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Advance Received (INR)</FormLabel>
+                                        <FormControl>
+                                            <Input type="number" placeholder="e.g., 25000" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
                          <FormField
                             control={form.control}
-                            name="advanceReceived"
+                            name="finalDeadline"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Advance Received (INR)</FormLabel>
+                                    <FormLabel>Completion Deadline</FormLabel>
                                     <FormControl>
-                                        <Input type="number" placeholder="e.g., 25000" {...field} />
+                                        <Input type="date" {...field} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
                             )}
                         />
-                    </div>
-                     <FormField
-                        control={form.control}
-                        name="finalDeadline"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Completion Deadline</FormLabel>
-                                <FormControl>
-                                    <Input type="date" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                    <FormField
-                        control={form.control}
-                        name="discussionNotes"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Discussion Summary</FormLabel>
-                                <FormControl>
-                                    <Textarea placeholder="Notes on client discussion, requirements, etc." {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                    <div className="space-y-2">
-                        <Label htmlFor="payment-screenshot">Payment Screenshot *</Label>
-                        <Input 
-                            id="payment-screenshot"
-                            type="file"
-                            onChange={handleFileChange}
-                            accept="image/png, image/jpeg, image/gif"
-                            required
+                        <FormField
+                            control={form.control}
+                            name="discussionNotes"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Discussion Summary</FormLabel>
+                                    <FormControl>
+                                        <Textarea placeholder="Notes on client discussion, requirements, etc." {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
                         />
-                        {loading && uploadProgress > 0 && <Progress value={uploadProgress} />}
-                    </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="payment-screenshot">Payment Screenshot *</Label>
+                            <Input 
+                                id="payment-screenshot"
+                                type="file"
+                                onChange={handleFileChange}
+                                accept="image/png, image/jpeg, image/gif"
+                                required
+                            />
+                            {loading && uploadProgress > 0 && <Progress value={uploadProgress} />}
+                        </div>
 
-                    <DialogFooter>
-                        <DialogClose asChild>
-                            <Button type="button" variant="secondary" disabled={loading}>Cancel</Button>
-                        </DialogClose>
-                        <Button type="submit" disabled={loading}>
-                             {loading && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />}
-                            Finalize & Approve
-                        </Button>
-                    </DialogFooter>
-                </form>
-            </Form>
+                        <DialogFooter className="sticky bottom-0 bg-background py-4 -mx-4 px-4 border-t">
+                            <DialogClose asChild>
+                                <Button type="button" variant="secondary" disabled={loading}>Cancel</Button>
+                            </DialogClose>
+                            <Button type="submit" disabled={loading}>
+                                 {loading && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />}
+                                Finalize & Approve
+                            </Button>
+                        </DialogFooter>
+                    </form>
+                </Form>
+            </div>
         </DialogContent>
     </Dialog>
   );
