@@ -1,9 +1,12 @@
+
 'use client';
 
 import {
   LayoutGrid,
   LogOut,
   ChevronDown,
+  Users,
+  FolderKanban,
 } from 'lucide-react';
 import React from 'react';
 import { usePathname, useRouter } from 'next/navigation';
@@ -39,7 +42,8 @@ import { useEffect } from 'react';
 
 const dashboardNavItems = [
   { href: '/sales/dashboard', label: 'Overview', icon: <LayoutGrid /> },
-  // Add more sales-specific links here in the future
+  { href: '/sales/leads', label: 'Leads', icon: <Users /> },
+  { href: '/sales/projects', label: 'Projects', icon: <FolderKanban /> },
 ];
 
 function SalesSidebar() {
