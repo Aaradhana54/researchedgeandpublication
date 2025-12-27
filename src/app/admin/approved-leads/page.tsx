@@ -2,11 +2,11 @@
 'use client';
 
 import { useMemo } from 'react';
-import { collection, query, orderBy, where } from 'firebase/firestore';
+import { collection, query, where, updateDoc, doc, serverTimestamp } from 'firebase/firestore';
 import { useCollection, useFirestore } from '@/firebase';
-import type { Project, UserProfile } from '@/lib/types';
+import type { Project, UserProfile, Task } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { LoaderCircle, CheckCircle } from 'lucide-react';
+import { LoaderCircle, CheckCircle, User as UserIcon } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -18,6 +18,9 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { AssignWriterDialog } from '@/components/admin/assign-writer-dialog';
+import { useToast } from '@/hooks/use-toast';
 
 const getProjectStatusVariant = (status?: string): 'default' | 'secondary' | 'destructive' | 'outline' => {
   switch (status) {
@@ -38,30 +41,52 @@ const getProjectStatusVariant = (status?: string): 'default' | 'secondary' | 'de
 
 export default function ApprovedLeadsPage() {
   const firestore = useFirestore();
+  const { toast } = useToast();
 
   const projectsQuery = useMemo(() => {
     if (!firestore) return null;
-    // Query only by status to avoid needing a composite index. Sorting will be done on the client.
     return query(
         collection(firestore, 'projects'), 
-        where('status', '==', 'approved')
+        where('status', 'in', ['approved', 'in-progress'])
     );
   }, [firestore]);
-
+  
   const usersQuery = useMemo(() => {
     if (!firestore) return null;
     return query(collection(firestore, 'users'));
   }, [firestore]);
 
+  const tasksQuery = useMemo(() => {
+    if (!firestore) return null;
+    return query(collection(firestore, 'tasks'));
+  }, [firestore]);
+
+
   const { data: projects, loading: loadingProjects } = useCollection<Project>(projectsQuery);
   const { data: users, loading: loadingUsers } = useCollection<UserProfile>(usersQuery);
+  const { data: tasks, loading: loadingTasks } = useCollection<Task>(tasksQuery);
 
-  const loading = loadingProjects || loadingUsers;
+  const loading = loadingProjects || loadingUsers || loadingTasks;
 
   const usersMap = useMemo(() => {
     if (!users) return new Map();
     return new Map(users.map((user) => [user.uid, user]));
   }, [users]);
+  
+  const writingTeam = useMemo(() => {
+    if (!users) return [];
+    return users.filter(u => u.role === 'writing-team');
+  }, [users]);
+
+  const assignedTasksMap = useMemo(() => {
+    if (!tasks) return new Map();
+    const map = new Map<string, Task>();
+    tasks.forEach(task => {
+        // Assuming one writer task per project for now
+        map.set(task.projectId, task);
+    });
+    return map;
+  }, [tasks]);
 
   const sortedProjects = useMemo(() => {
     if (!projects) return [];
@@ -69,18 +94,39 @@ export default function ApprovedLeadsPage() {
     return [...projects].sort((a, b) => b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime());
   }, [projects]);
 
+  const onTaskCreated = async (projectId: string) => {
+    if (!firestore) return;
+    try {
+      const projectDocRef = doc(firestore, 'projects', projectId);
+      await updateDoc(projectDocRef, {
+        status: 'in-progress',
+        updatedAt: serverTimestamp(),
+      });
+      toast({
+        title: 'Project Updated',
+        description: 'Project status has been set to "In Progress".',
+      });
+    } catch (error: any) {
+      toast({
+        variant: 'destructive',
+        title: 'Error updating project',
+        description: error.message,
+      });
+    }
+  };
+
 
   return (
     <div className="p-4 sm:p-6 lg:p-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold tracking-tight">Approved Leads</h1>
-        <p className="text-muted-foreground">A list of all projects that have been approved.</p>
+        <p className="text-muted-foreground">Assign approved projects to the writing team.</p>
       </div>
       <Card>
         <CardHeader>
-          <CardTitle>Approved Projects</CardTitle>
+          <CardTitle>Approved & In-Progress Projects</CardTitle>
           <CardDescription>
-            These projects have been approved and are ready for the next stage.
+            These projects are ready for assignment or are currently being worked on.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -94,15 +140,17 @@ export default function ApprovedLeadsPage() {
                 <TableRow>
                   <TableHead>Project Title</TableHead>
                   <TableHead>Client</TableHead>
-                  <TableHead>Service</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Submitted On</TableHead>
+                  <TableHead>Assigned To</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {sortedProjects.map((project) => {
                   if (!project.id) return null;
                   const client = usersMap.get(project.userId);
+                  const assignedTask = assignedTasksMap.get(project.id);
+                  const assignedWriter = assignedTask ? usersMap.get(assignedTask.assignedTo) : null;
                   return (
                     <TableRow key={project.id}>
                       <TableCell className="font-medium">
@@ -115,17 +163,30 @@ export default function ApprovedLeadsPage() {
                         <div className="text-sm text-muted-foreground">{client?.email}</div>
                       </TableCell>
                        <TableCell>
-                           <Badge variant="secondary" className="capitalize">
-                            {project.serviceType.replace(/-/g, ' ')}
-                           </Badge>
-                       </TableCell>
-                       <TableCell>
                            <Badge variant={getProjectStatusVariant(project.status)} className="capitalize">
                             {project.status || 'Pending'}
                            </Badge>
                        </TableCell>
-                      <TableCell>
-                        {project.createdAt ? format(project.createdAt.toDate(), 'PPP') : 'N/A'}
+                       <TableCell>
+                         {assignedWriter ? (
+                            <div className="flex items-center gap-2">
+                                <UserIcon className="w-4 h-4 text-muted-foreground" />
+                                <span>{assignedWriter.name}</span>
+                            </div>
+                         ) : (
+                            <span className="text-muted-foreground">Not Assigned</span>
+                         )}
+                       </TableCell>
+                      <TableCell className="text-right">
+                        {!assignedTask && project.status === 'approved' ? (
+                            <AssignWriterDialog 
+                                project={project} 
+                                writers={writingTeam}
+                                onTaskCreated={() => onTaskCreated(project.id!)}
+                            >
+                                <Button size="sm">Assign</Button>
+                            </AssignWriterDialog>
+                        ) : null}
                       </TableCell>
                     </TableRow>
                   )
