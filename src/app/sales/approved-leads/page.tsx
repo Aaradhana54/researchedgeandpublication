@@ -41,10 +41,10 @@ export default function ApprovedLeadsPage() {
 
   const projectsQuery = useMemo(() => {
     if (!firestore) return null;
+    // Query only by status to avoid needing a composite index. Sorting will be done on the client.
     return query(
         collection(firestore, 'projects'), 
-        where('status', '==', 'approved'),
-        orderBy('createdAt', 'desc')
+        where('status', '==', 'approved')
     );
   }, [firestore]);
 
@@ -62,6 +62,13 @@ export default function ApprovedLeadsPage() {
     if (!users) return new Map();
     return new Map(users.map((user) => [user.uid, user]));
   }, [users]);
+
+  const sortedProjects = useMemo(() => {
+    if (!projects) return [];
+    // Sort projects by creation date on the client side
+    return [...projects].sort((a, b) => b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime());
+  }, [projects]);
+
 
   return (
     <div className="p-4 sm:p-6 lg:p-8">
@@ -81,7 +88,7 @@ export default function ApprovedLeadsPage() {
             <div className="flex justify-center items-center h-48">
               <LoaderCircle className="w-8 h-8 animate-spin text-primary" />
             </div>
-          ) : projects && projects.length > 0 ? (
+          ) : sortedProjects && sortedProjects.length > 0 ? (
             <Table>
               <TableHeader>
                 <TableRow>
@@ -93,7 +100,7 @@ export default function ApprovedLeadsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {projects.map((project) => {
+                {sortedProjects.map((project) => {
                   if (!project.id) return null;
                   const client = usersMap.get(project.userId);
                   return (
