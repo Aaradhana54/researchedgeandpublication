@@ -33,7 +33,8 @@ service cloud.firestore {
 
       // Users can read their own profile. Admins can read any profile.
       // Referral partners can read profiles of clients they referred.
-      allow read: if isOwner(userId) || isAdmin() || (isReferralPartner() && resource.data.referredBy == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.referralCode);
+      // Sales team can read any user profile.
+      allow read: if isOwner(userId) || isAdmin() || isSalesTeam() || (isReferralPartner() && resource.data.referredBy == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.referralCode);
       
       // Admins, referral partners, and sales team can list users (will be filtered in app).
       allow list: if isAdmin() || isReferralPartner() || isSalesTeam();
