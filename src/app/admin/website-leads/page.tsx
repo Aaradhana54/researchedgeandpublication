@@ -21,23 +21,22 @@ import { format } from 'date-fns';
 export default function AdminWebsiteLeadsPage() {
   const firestore = useFirestore();
 
+  // Fetch all leads without filtering by referredByPartnerId in the query
   const leadsQuery = useMemo(() => {
     if (!firestore) return null;
-    // Query for leads where referredByPartnerId is null (or does not exist)
-    // Sorting is removed to prevent index error and will be handled client-side.
-    return query(
-        collection(firestore, 'contact_leads'), 
-        where('referredByPartnerId', '==', null)
-    );
+    return query(collection(firestore, 'contact_leads'));
   }, [firestore]);
   
 
-  const { data: leads, loading: loadingLeads } = useCollection<ContactLead>(leadsQuery);
+  const { data: allLeads, loading: loadingLeads } = useCollection<ContactLead>(leadsQuery);
 
+  // Filter and sort the leads on the client side
   const sortedLeads = useMemo(() => {
-    if (!leads) return [];
-    return [...leads].sort((a, b) => b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime());
-  }, [leads]);
+    if (!allLeads) return [];
+    return allLeads
+      .filter(lead => !lead.referredByPartnerId) // Filter for website leads here
+      .sort((a, b) => b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime());
+  }, [allLeads]);
 
   return (
     <div className="p-4 sm:p-6 lg:p-8">
