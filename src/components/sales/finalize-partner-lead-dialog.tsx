@@ -84,31 +84,8 @@ export function FinalizePartnerLeadDialog({ children, lead }: { children: React.
     setUploadProgress(0);
 
     try {
-      // 1. Create a placeholder user for this project
-      // In a real app, you'd create a proper user account. For now, we'll use a placeholder.
-      const placeholderUserId = `unregistered_${lead.email.replace(/[^a-zA-Z0-9]/g, '_')}`;
-
-      // 2. Create a new Project from the ContactLead
-      const projectData = {
-          userId: placeholderUserId, // This user doesn't exist in auth, but links the project
-          title: `Project for ${lead.name}`,
-          mobile: lead.phone,
-          serviceType: 'research-paper' as ProjectServiceType, // Default or map from lead.serviceType
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp(),
-          // Now add the deal finalization data
-          ...data,
-          status: 'approved',
-          finalDeadline: Timestamp.fromDate(new Date(data.finalDeadline)),
-          finalizedAt: serverTimestamp(),
-          finalizedBy: salesUser.uid,
-      };
-
-      const projectCollection = collection(firestore, 'projects');
-      const projectDocRef = await addDoc(projectCollection, projectData);
-
-      // 3. Upload screenshot to a path related to the new project
-      const storageRef = ref(storage, `payment_screenshots/${projectDocRef.id}/${file.name}`);
+      // Step 1: Upload the screenshot and get the URL
+      const storageRef = ref(storage, `payment_screenshots/${lead.id}/${file.name}`);
       const uploadTask = uploadBytesResumable(storageRef, file);
 
       uploadTask.on('state_changed', (snapshot) => {
@@ -118,13 +95,27 @@ export function FinalizePartnerLeadDialog({ children, lead }: { children: React.
 
       await uploadTask;
       const downloadUrl = await getDownloadURL(uploadTask.snapshot.ref);
+      
+      // Step 2: Create the new Project document with all data at once
+      const projectCollection = collection(firestore, 'projects');
+      const placeholderUserId = `unregistered_${lead.email.replace(/[^a-zA-Z0-9]/g, '_')}`;
 
-      // 4. Update the new project with the screenshot URL
-      await updateDoc(projectDocRef, {
+      await addDoc(projectCollection, {
+        ...data,
+        userId: placeholderUserId,
+        title: `Project for ${lead.name}`,
+        mobile: lead.phone,
+        serviceType: 'research-paper' as ProjectServiceType,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+        status: 'approved',
+        finalDeadline: Timestamp.fromDate(new Date(data.finalDeadline)),
+        finalizedAt: serverTimestamp(),
+        finalizedBy: salesUser.uid,
         paymentScreenshotUrl: downloadUrl,
       });
 
-      // 5. Update the original lead's status to 'converted'
+      // Step 3: Update the original lead's status to 'converted'
       const leadDocRef = doc(firestore, 'contact_leads', lead.id);
       await updateDoc(leadDocRef, {
         status: 'converted',
