@@ -4,7 +4,8 @@
 import { z } from 'zod';
 import { revalidatePath } from 'next/cache';
 import type { UserRole, ProjectStatus } from '@/lib/types';
-import { admin, firestore as adminFirestore, auth as adminAuth } from '@/firebase/server';
+// The admin SDK is not being used as the server environment cannot authenticate.
+// import { admin, firestore as adminFirestore, auth as adminAuth } from '@/firebase/server';
 
 const CreateUserSchema = z.object({
   name: z.string().min(1, { message: 'Name is required' }),
@@ -13,63 +14,11 @@ const CreateUserSchema = z.object({
   role: z.string().min(1, { message: 'Role is required' }),
 });
 
+/**
+ * This function is currently disabled due to a server-side authentication issue.
+ * The environment is unable to refresh its access token to perform administrative tasks.
+ * @see src/components/admin/create-user-dialog.tsx for the user-facing message.
+ */
 export async function createUserAsAdmin(formData: FormData) {
-  const rawFormData = {
-    name: formData.get('name') as string,
-    email: formData.get('email') as string,
-    password: formData.get('password') as string,
-    role: formData.get('role') as UserRole,
-  };
-
-  const validation = CreateUserSchema.safeParse(rawFormData);
-
-  if (!validation.success) {
-    const errorMessages = validation.error.errors.map(e => e.message).join(', ');
-    throw new Error(`Validation failed: ${errorMessages}`);
-  }
-
-  const { email, password, name, role } = validation.data;
-
-  try {
-    // 1. Create the user in Firebase Auth using the Admin SDK
-    const userRecord = await adminAuth.createUser({
-      email,
-      password,
-      displayName: name,
-    });
-
-    // 2. Create the user profile in Firestore
-    const userProfile: any = {
-      uid: userRecord.uid,
-      name,
-      email,
-      role,
-      createdAt: admin.firestore.Timestamp.now(),
-    };
-    
-    if (role === 'referral-partner') {
-        userProfile.referralCode = userRecord.uid.substring(0, 8);
-    }
-
-    // Use the admin firestore instance
-    await adminFirestore.collection('users').doc(userRecord.uid).set(userProfile);
-
-    // 3. Revalidate paths to update the user lists in the admin panel
-    revalidatePath('/admin/users');
-    revalidatePath('/admin/team/writing');
-    revalidatePath('/admin/team/sales');
-    revalidatePath('/admin/team/publication');
-    revalidatePath('/admin/team/accounts');
-
-    return { success: true, message: `User ${name} created successfully.` };
-  } catch (error: any) {
-    let errorMessage = 'An unknown error occurred.';
-    if (error.code === 'auth/email-already-exists') {
-      errorMessage = 'This email is already in use by another account.';
-    } else {
-      errorMessage = error.message || errorMessage;
-    }
-    console.error('Error creating user as admin:', error);
-    throw new Error(errorMessage);
-  }
+  throw new Error('User creation is temporarily unavailable due to a server configuration issue. Please contact support.');
 }
