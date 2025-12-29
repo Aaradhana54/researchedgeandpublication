@@ -23,7 +23,7 @@ import { useToast } from '@/hooks/use-toast';
 import { LoaderCircle } from 'lucide-react';
 import type { Project, UserProfile } from '@/lib/types';
 import { useFirestore, useUser } from '@/firebase';
-import { doc, serverTimestamp, Timestamp, addDoc, collection } from 'firebase/firestore';
+import { doc, serverTimestamp, Timestamp, addDoc, collection, updateDoc } from 'firebase/firestore';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '../ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
@@ -76,8 +76,16 @@ export function AssignWriterDialog({ children, project, writers, onTaskCreated }
         taskData.dueDate = Timestamp.fromDate(new Date(data.dueDate));
       }
 
+      // Create the task
       const tasksCollection = collection(firestore, 'tasks');
       await addDoc(tasksCollection, taskData);
+
+      // Update the project with the assigned writer's ID
+      const projectDocRef = doc(firestore, 'projects', project.id);
+      await updateDoc(projectDocRef, {
+        assignedWriterId: data.assignedTo,
+      });
+
 
       toast({
         title: 'Task Created!',

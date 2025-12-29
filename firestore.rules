@@ -28,10 +28,8 @@ service cloud.firestore {
       return request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'writing-team';
     }
 
-    function isWriterAssignedToProject(projectId) {
-      return isWritingTeam() && exists(/databases/$(database)/documents/tasks/{taskId})
-             && get(/databases/$(database)/documents/tasks/{taskId}).data.projectId == projectId
-             && get(/databases/$(database)/documents/tasks/{taskId}).data.assignedTo == request.auth.uid;
+    function isWriterAssignedToProject(project) {
+       return isWritingTeam() && request.auth.uid == project.assignedWriterId;
     }
 
     function isAllowedToCreateOwnProfile() {
@@ -71,8 +69,8 @@ service cloud.firestore {
       // Admins, sales team can update any project. Owners can update their own.
       // Writers can update a project's status to 'completed'.
       allow update: if isOwner(resource.data.userId) || isAdmin() || isSalesTeamAssigned(resource.data.assignedSalesId) ||
-                     (isWritingTeam() && 
-                      request.resource.data.status == 'completed' && 
+                     (isWriterAssignedToProject(resource.data) && 
+                      request.resource.data.status == 'completed' &&
                       request.resource.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt']));
       
       allow delete: if isOwner(resource.data.userId) || isAdmin();
