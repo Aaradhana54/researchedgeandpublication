@@ -23,6 +23,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuGroup,
 } from '@/components/ui/dropdown-menu';
+import { ThemeToggleButton } from '../ui/theme-toggle-button';
 
 
 const navItems = [
@@ -101,6 +102,7 @@ export function Header() {
         </nav>
 
         <div className="flex items-center gap-2">
+           <ThemeToggleButton />
           {!loading && user ? (
              <div className="flex items-center gap-2">
                 <Button asChild>

@@ -5,6 +5,7 @@ import { Inter } from 'next/font/google';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
 import { FirebaseErrorListener } from '@/components/firebase-error-listener';
 import { UserProvider } from '@/firebase/auth/use-user';
+import { ThemeProvider } from '@/components/theme-provider';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
@@ -20,7 +21,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`!scroll-smooth ${inter.variable}`}>
+    <html lang="en" className={`!scroll-smooth ${inter.variable}`} suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -30,13 +31,20 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body antialiased bg-background">
-        <FirebaseClientProvider>
-          <UserProvider>
-            {children}
-            <Toaster />
-            {process.env.NODE_ENV === 'development' && <FirebaseErrorListener />}
-          </UserProvider>
-        </FirebaseClientProvider>
+        <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+        >
+            <FirebaseClientProvider>
+            <UserProvider>
+                {children}
+                <Toaster />
+                {process.env.NODE_ENV === 'development' && <FirebaseErrorListener />}
+            </UserProvider>
+            </FirebaseClientProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
