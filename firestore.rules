@@ -143,7 +143,7 @@ service cloud.firestore {
       allow update, delete: if isAdmin();
       allow read: if isAdmin() || resource.data.status == 'approved';
       
-      // Anyone can list APPROVED feedback. Admins can list ALL feedback.
+      // Admins can list ALL feedback. Public can ONLY list where status is 'approved'.
       allow list: if isAdmin() || (request.query.where.get('status') == 'approved');
     }
     
