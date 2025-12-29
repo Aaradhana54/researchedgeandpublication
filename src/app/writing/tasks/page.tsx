@@ -228,28 +228,6 @@ export default function MyTasksPage() {
                              <Button asChild size="sm" variant="outline">
                                 <Link href={`/writing/projects/${task.projectId}`}>View Details</Link>
                             </Button>
-                             <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                   <Button size="sm">
-                                    <CheckCircle className="mr-2 h-4 w-4" />
-                                    Complete
-                                  </Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                  <AlertDialogHeader>
-                                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                      This will mark the task and the entire project as complete. This action cannot be undone.
-                                    </AlertDialogDescription>
-                                  </AlertDialogHeader>
-                                  <AlertDialogFooter>
-                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                    <AlertDialogAction onClick={() => handleCompleteTask(task)}>
-                                      Yes, Mark as Complete
-                                    </AlertDialogAction>
-                                  </AlertDialogFooter>
-                                </AlertDialogContent>
-                              </AlertDialog>
                       </TableCell>
                     </TableRow>
                   )
