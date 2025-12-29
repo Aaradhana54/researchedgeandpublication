@@ -197,15 +197,10 @@ export default function CreateProjectPage() {
                 dataToSave.wordCount = Number(rawFormData.wordCount);
             }
 
-            let assignedSalesId: string | null = null;
-            // Only assign a sales lead if the user is a client
-            if (user.role === 'client') {
-                assignedSalesId = await assignLeadToSales(firestore);
-                if (assignedSalesId) {
-                    dataToSave.assignedSalesId = assignedSalesId;
-                }
+            const assignedSalesId = await assignLeadToSales(firestore);
+            if (assignedSalesId) {
+                dataToSave.assignedSalesId = assignedSalesId;
             }
-
 
             const projectsCollection = collection(firestore, 'projects');
             const docRef = await addDoc(projectsCollection, dataToSave);
