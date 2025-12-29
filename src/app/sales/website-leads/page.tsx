@@ -26,20 +26,23 @@ export default function SalesWebsiteLeadsPage() {
 
   const leadsQuery = useMemo(() => {
     if (!firestore || !user) return null;
+    // Remove orderBy to avoid composite index, will sort on client
     return query(
         collection(firestore, 'contact_leads'), 
-        where('assignedSalesId', '==', user.uid),
-        orderBy('createdAt', 'desc')
+        where('assignedSalesId', '==', user.uid)
     );
   }, [firestore, user]);
   
 
-  const { data: allLeads, loading: loadingLeads } = useCollection<ContactLead>(leadsQuery);
+  const { data: allLeadsData, loading: loadingLeads } = useCollection<ContactLead>(leadsQuery);
 
+  // Client-side filtering and sorting
   const websiteLeads = useMemo(() => {
-    if (!allLeads) return [];
-    return allLeads.filter(lead => !lead.referredByPartnerId);
-  }, [allLeads]);
+    if (!allLeadsData) return [];
+    return allLeadsData
+        .filter(lead => !lead.referredByPartnerId)
+        .sort((a, b) => b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime());
+  }, [allLeadsData]);
 
   return (
     <div className="p-4 sm:p-6 lg:p-8">

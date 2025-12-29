@@ -26,10 +26,10 @@ export default function SalesPartnerLeadsPage() {
 
   const leadsQuery = useMemo(() => {
     if (!firestore || !user) return null;
+    // Remove orderBy to avoid composite index, will sort on client
     return query(
         collection(firestore, 'contact_leads'), 
-        where('assignedSalesId', '==', user.uid),
-        orderBy('createdAt', 'desc')
+        where('assignedSalesId', '==', user.uid)
     );
   }, [firestore, user]);
   
@@ -38,16 +38,18 @@ export default function SalesPartnerLeadsPage() {
     return query(collection(firestore, 'users'));
   }, [firestore]);
 
-  const { data: allLeads, loading: loadingLeads } = useCollection<ContactLead>(leadsQuery);
+  const { data: allLeadsData, loading: loadingLeads } = useCollection<ContactLead>(leadsQuery);
   const { data: users, loading: loadingUsers } = useCollection<UserProfile>(usersQuery);
 
   const loading = loadingLeads || loadingUsers;
 
-  // Filter for partner leads on the client side
+  // Client-side filtering and sorting
   const partnerLeads = useMemo(() => {
-    if (!allLeads) return [];
-    return allLeads.filter(lead => lead.referredByPartnerId);
-  }, [allLeads]);
+    if (!allLeadsData) return [];
+    return allLeadsData
+      .filter(lead => lead.referredByPartnerId)
+      .sort((a, b) => b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime());
+  }, [allLeadsData]);
 
   const usersMap = useMemo(() => {
     if (!users) return new Map();
