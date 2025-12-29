@@ -44,14 +44,14 @@ service cloud.firestore {
       let forbiddenKeys = [
         'dealAmount', 'advanceReceived', 'discussionNotes', 
         'paymentScreenshotUrl', 'finalDeadline', 'finalizedAt', 
-        'finalizedBy', 'assignedWriterId'
+        'finalizedBy', 'assignedWriterId', 'status'
       ];
       
       return request.auth.uid == data.userId &&
              get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'client' &&
-             data.status == 'pending' &&
+             request.resource.data.status == 'pending' &&
              // Ensure no forbidden fields are being set by the client.
-             data.keys().removeAll(forbiddenKeys).size() == data.keys().size() - forbiddenKeys.removeAll(data.keys()).size();
+             data.keys().toSet().intersection(forbiddenKeys.toSet()).size() == 0;
     }
 
     match /users/{userId} {
