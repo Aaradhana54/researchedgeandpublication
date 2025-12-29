@@ -158,8 +158,6 @@ export default function CreateProjectPage() {
         return;
     }
     
-    let synopsisFileUrl = '';
-    
     // Wrap the main logic in a new async function to handle file upload first
     const processFormSubmission = async (synopsisUrl = '') => {
         const assignedSalesId = await assignLeadToSales(firestore);
@@ -217,10 +215,9 @@ export default function CreateProjectPage() {
                 requestResourceData: dataToSave,
               }, err);
               errorEmitter.emit('permission-error', permissionError);
-            } else {
-              console.error(err);
-              setError(err.message || 'An unknown error occurred while creating the project.');
             }
+            console.error(err);
+            setError(err.message || 'An unknown error occurred while creating the project.');
           })
           .finally(() => {
             setLoading(false);
@@ -242,9 +239,9 @@ export default function CreateProjectPage() {
             setUploading(false);
           },
           async () => {
-            synopsisFileUrl = await getDownloadURL(uploadTask.snapshot.ref);
+            const downloadUrl = await getDownloadURL(uploadTask.snapshot.ref);
             setUploading(false);
-            await processFormSubmission(synopsisFileUrl);
+            await processFormSubmission(downloadUrl);
           }
         );
     } else {
