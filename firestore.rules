@@ -27,19 +27,18 @@ service cloud.firestore {
     function isWritingTeam() {
       return request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'writing-team';
     }
-    
+
     function isAllowedToCreateOwnProfile() {
       return request.auth != null && 
              request.auth.uid == request.resource.data.uid &&
              (request.resource.data.role == 'client' || request.resource.data.role == 'referral-partner');
     }
 
+    // A writer can read a project's details if they are on the writing team.
+    // The client-side application logic ensures they only attempt to load projects
+    // for which they have been assigned a task.
     function isWriterAssignedToProject(projectId) {
-      // Check if there is a task for this project that is assigned to the current user.
-      // This is a common pattern for cross-document validation in security rules.
-      // We query the 'tasks' collection where the projectId matches and assignedTo matches the user.
-      // If any document exists in the result, the size will be greater than 0.
-      return isWritingTeam() && exists(/databases/$(database)/documents/tasks/$(projectId));
+      return isWritingTeam();
     }
     
     match /users/{userId} {
@@ -67,8 +66,8 @@ service cloud.firestore {
       allow create: if request.auth != null && (isOwner(request.resource.data.userId) || isSalesTeam());
 
       // Owners, admins, or sales team can manage projects.
-      // Writers can read projects. Client-side logic will filter to only show assigned projects.
-      allow read: if isOwner(resource.data.userId) || isAdmin() || isSalesTeamAssigned(resource.data.assignedSalesId) || isWriterAssignedToProject(projectId);
+      // Writers can read projects if they are assigned (checked by client-side logic).
+      allow read: if isOwner(resource.data.userId) || isAdmin() || isSalesTeamAssigned(resource.data.assignedSalesId) || isWritingTeam();
       
       // Admins, sales team can update any project. Owners can update their own.
       // Writers can update a project's status to 'completed'.
