@@ -55,7 +55,6 @@ service cloud.firestore {
       allow create: if request.auth != null && (isOwner(request.resource.data.userId) || isSalesTeam());
 
       // Owners, admins, or sales team can manage projects.
-      // Referral partners can read projects of users they referred to calculate conversions.
       // Writers can read projects they are assigned to.
       allow read: if isOwner(resource.data.userId) || isAdmin() || isSalesTeam() || isWritingTeam();
       
