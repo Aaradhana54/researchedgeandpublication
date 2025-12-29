@@ -25,10 +25,10 @@ export function Hero() {
       id="home"
       className="relative w-full h-[calc(100vh-5rem)] overflow-hidden"
     >
-      {/* Background Carousel */}
+      {/* Background Carousel Layer */}
       <Carousel
         plugins={[plugin.current]}
-        className="absolute inset-0 w-full h-full"
+        className="absolute inset-0 w-full h-full z-0"
         onMouseEnter={plugin.current.stop}
         onMouseLeave={plugin.current.reset}
       >
@@ -49,7 +49,7 @@ export function Hero() {
         </CarouselContent>
       </Carousel>
       
-      {/* Foreground Content */}
+      {/* Foreground Content Layer */}
       <div className="relative z-10 h-full flex flex-col items-center justify-center text-center container mx-auto px-4">
         <AnimatedWrapper>
           <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl md:text-6xl lg:text-7xl font-headline">
