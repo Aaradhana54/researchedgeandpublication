@@ -86,7 +86,6 @@ const adminNavItems = [
     ]
   },
   { href: '/admin/approved-leads', label: 'Approved Leads', icon: <CheckCircle /> },
-  { href: '/admin/completed-leads', label: 'Completed Leads', icon: <CheckCircle2 /> },
   { href: '/admin/accounts', label: 'Accounts', icon: <Wallet /> },
   { href: '/admin/sales', label: 'Sales', icon: <DollarSign /> },
   { href: '/admin/payouts', label: 'Payouts', icon: <ClipboardCheck /> },
