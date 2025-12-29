@@ -1,3 +1,4 @@
+
 'use client';
 
 import Image from 'next/image';
@@ -33,7 +34,7 @@ export function Hero() {
       >
         <CarouselContent>
           {heroImages.map((heroImage) => (
-            <CarouselItem key={heroImage.id}>
+            <CarouselItem key={heroImage.id} className="relative w-full h-full">
               <Image
                 src={heroImage.imageUrl}
                 alt={heroImage.description}
