@@ -43,13 +43,13 @@ export default function SalesProjectsPage() {
   const { user } = useUser();
 
   const projectsQuery = useMemo(() => {
-    if (!firestore || !user) return null;
-    // Removed orderBy to avoid composite index. Sorting is now done on the client.
+    if (!firestore) return null;
+    // Query for all pending projects. Sales team can see all new leads.
     return query(
         collection(firestore, 'projects'), 
-        where('assignedSalesId', '==', user.uid)
+        where('status', '==', 'pending')
     );
-  }, [firestore, user]);
+  }, [firestore]);
 
   const usersQuery = useMemo(() => {
     if (!firestore) return null;
@@ -61,7 +61,9 @@ export default function SalesProjectsPage() {
 
   const projects = useMemo(() => {
     if (!projectsData) return [];
-    return [...projectsData].sort((a, b) => b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime());
+    // Client-side filtering to only show projects from actual clients (not partner/website leads converted to projects)
+    const clientProjects = projectsData.filter(p => !p.userId.startsWith('unregistered_'));
+    return clientProjects.sort((a, b) => b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime());
   }, [projectsData]);
 
   const loading = loadingProjects || loadingUsers;
@@ -74,14 +76,14 @@ export default function SalesProjectsPage() {
   return (
     <div className="p-4 sm:p-6 lg:p-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight">Your Client Leads</h1>
-        <p className="text-muted-foreground">A list of client-submitted leads assigned to you.</p>
+        <h1 className="text-3xl font-bold tracking-tight">New Client Leads</h1>
+        <p className="text-muted-foreground">A list of all new leads submitted directly by clients.</p>
       </div>
       <Card>
         <CardHeader>
-          <CardTitle>Assigned Client Leads</CardTitle>
+          <CardTitle>New Client Leads</CardTitle>
           <CardDescription>
-            Review lead details to understand client needs and finalize deals.
+            Review these new leads to understand client needs and finalize deals.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -144,8 +146,8 @@ export default function SalesProjectsPage() {
           ) : (
             <div className="text-center p-12 text-muted-foreground">
                 <FolderKanban className="mx-auto w-12 h-12 mb-4" />
-                <h3 className="text-lg font-semibold">No Client Leads Assigned</h3>
-                <p>You have no new client leads assigned to you at this time.</p>
+                <h3 className="text-lg font-semibold">No New Client Leads</h3>
+                <p>There are no new client-submitted leads at this time.</p>
             </div>
           )}
         </CardContent>
