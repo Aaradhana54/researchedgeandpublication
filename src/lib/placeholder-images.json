@@ -41,27 +41,27 @@
     },
     {
       "id": "hero-background",
-      "description": "A bright, modern library with people studying, evoking a sense of knowledge and academia.",
-      "imageUrl": "https://images.unsplash.com/photo-1521587760476-6c12a4b040da?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2070&q=80",
-      "imageHint": "modern library"
+      "description": "A scientist looking through a microscope in a laboratory, representing scientific discovery.",
+      "imageUrl": "https://images.unsplash.com/photo-1532094349884-543bc11b234d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxzY2llbnRpZmljJTIwcmVzZWFyY2h8ZW58MHx8fHwxNzY3MDA4MzAxfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "scientific research"
     },
     {
       "id": "hero-background-2",
-      "description": "A close-up shot of a person's hands typing on a laptop, representing the work of writing and research.",
-      "imageUrl": "https://images.unsplash.com/photo-1499750310107-5fef28a66643?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2070&q=80",
-      "imageHint": "writing research"
+      "description": "A close-up of a printed academic journal or publication, symbolizing the final output of research.",
+      "imageUrl": "https://images.unsplash.com/photo-1707246719682-6841358980c0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxhY2FkZW1pYyUyMGpvdXJuYWx8ZW58MHx8fHwxNzY3MDA4MzAwfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "academic journal"
     },
     {
       "id": "hero-background-3",
-      "description": "A stack of classic, leather-bound books, symbolizing tradition, knowledge, and publishing.",
-      "imageUrl": "https://images.unsplash.com/photo-1524995767962-b1f5b5a3a78f?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2070&q=80",
-      "imageHint": "academic books"
+      "description": "A person's hands carefully editing a manuscript, representing the writing and revision process.",
+      "imageUrl": "https://images.unsplash.com/photo-1763225037262-75d0cb46f9c2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHx3cml0aW5nJTIwbWFudXNjcmlwdHxlbnwwfHx8fDE3NjcwMDgzMDB8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "writing manuscript"
     },
     {
       "id": "hero-background-4",
-      "description": "An image of a university building or campus, representing higher education and institutional services.",
-      "imageUrl": "https://images.unsplash.com/photo-1607237138185-e894ee3bf38f?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1974&q=80",
-      "imageHint": "university campus"
+      "description": "A scholar or student in a library, surrounded by books, embodying the spirit of academic pursuit.",
+      "imageUrl": "https://images.unsplash.com/photo-1606996704767-4d39b7820043?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHx1bml2ZXJzaXR5JTIwc2Nob2xhcnxlbnwwfHx8fDE3NjcwMDgzMDB8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "university scholar"
     },
     {
       "id": "services-image",
