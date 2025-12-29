@@ -179,6 +179,8 @@ export default function ProjectDetailPage() {
     }
     
     const canShowAdminControls = loggedInUser?.role === 'admin';
+    const canShowDealDetails = loggedInUser?.role === 'admin' || loggedInUser?.role === 'sales-team';
+
     const getBackLink = () => {
         switch(loggedInUser?.role) {
             case 'admin':
@@ -240,7 +242,7 @@ export default function ProjectDetailPage() {
                         </CardContent>
                     </Card>
 
-                    {project.finalizedAt && (
+                    {project.finalizedAt && canShowDealDetails && (
                         <Card>
                              <CardHeader>
                                 <CardTitle>Deal Details</CardTitle>
