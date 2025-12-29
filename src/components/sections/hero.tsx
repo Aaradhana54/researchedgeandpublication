@@ -2,32 +2,52 @@
 'use client';
 
 import Image from 'next/image';
+import { useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { AnimatedWrapper } from '@/components/animated-wrapper';
 import Link from 'next/link';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import Autoplay from "embla-carousel-autoplay"
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+} from '@/components/ui/carousel';
 
 export function Hero() {
-  const heroImage = PlaceHolderImages.find(p => p.id === 'hero-background');
+  const heroImages = PlaceHolderImages.filter(p => p.id.startsWith('hero-background'));
+  const plugin = useRef(
+    Autoplay({ delay: 4000, stopOnInteraction: true })
+  )
 
   return (
     <section
       id="home"
       className="relative w-full min-h-[calc(100vh-5rem)] flex items-center justify-center text-center"
     >
-      {heroImage && (
-        <Image
-          src={heroImage.imageUrl}
-          alt={heroImage.description}
-          fill
-          className="object-cover -z-20"
-          data-ai-hint={heroImage.imageHint}
-          priority
-        />
-      )}
-      {/* This overlay creates a dark tint. Remove the div for a proper image view. */}
+      <Carousel
+        plugins={[plugin.current]}
+        className="absolute top-0 left-0 w-full h-full -z-20"
+        onMouseEnter={plugin.current.stop}
+        onMouseLeave={plugin.current.reset}
+      >
+        <CarouselContent>
+          {heroImages.map((image) => (
+            <CarouselItem key={image.id}>
+              <Image
+                src={image.imageUrl}
+                alt={image.description}
+                fill
+                className="object-cover"
+                data-ai-hint={image.imageHint}
+                priority={image.id === 'hero-background'}
+              />
+            </CarouselItem>
+          ))}
+        </CarouselContent>
+      </Carousel>
+      
       <div className="absolute top-0 left-0 inset-0 bg-black/50 -z-10" />
-
 
       <div className="container mx-auto px-4 relative z-10">
         <AnimatedWrapper>
