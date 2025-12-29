@@ -53,16 +53,22 @@ async function assignLeadToSales(firestore: any): Promise<string | null> {
     const metadataRef = doc(firestore, 'metadata', 'leadAssignment');
     let nextIndex = 0;
 
-    await runTransaction(firestore, async (transaction) => {
-        const metadataDoc = await transaction.get(metadataRef);
-        if (!metadataDoc.exists()) {
-            nextIndex = 0;
-        } else {
-            const currentIndex = metadataDoc.data().salesLeadIndex || 0;
-            nextIndex = (currentIndex + 1) % salesTeam.length;
-        }
-        transaction.set(metadataRef, { salesLeadIndex: nextIndex }, { merge: true });
-    });
+    try {
+        await runTransaction(firestore, async (transaction) => {
+            const metadataDoc = await transaction.get(metadataRef);
+            if (!metadataDoc.exists()) {
+                nextIndex = 0;
+            } else {
+                const currentIndex = metadataDoc.data().salesLeadIndex || 0;
+                nextIndex = (currentIndex + 1) % salesTeam.length;
+            }
+            transaction.set(metadataRef, { salesLeadIndex: nextIndex }, { merge: true });
+        });
+    } catch (e) {
+        console.error("Lead assignment transaction failed: ", e);
+        // Fallback to random assignment if transaction fails
+        return salesTeam[Math.floor(Math.random() * salesTeam.length)];
+    }
     
     return salesTeam[nextIndex];
 }
@@ -158,46 +164,45 @@ export default function CreateProjectPage() {
         return;
     }
     
-    // Wrap the main logic in a new async function to handle file upload first
     const processFormSubmission = async (synopsisUrl = '') => {
-        const assignedSalesId = await assignLeadToSales(firestore);
+        try {
+            const assignedSalesId = await assignLeadToSales(firestore);
+    
+            const dataToSave: any = {
+              userId: user.uid,
+              serviceType: service,
+              title: rawFormData.title,
+              wantToPublish: rawFormData.wantToPublish === 'on',
+              isPaperReady: rawFormData.isPaperReady === 'on',
+              status: 'pending',
+              createdAt: serverTimestamp(),
+              updatedAt: serverTimestamp(),
+              synopsisFileUrl: synopsisUrl,
+              assignedSalesId: assignedSalesId,
+            };
+            
+            if (rawFormData.mobile) dataToSave.mobile = rawFormData.mobile;
+            if (rawFormData.topic) dataToSave.topic = rawFormData.topic;
+            if (rawFormData.courseLevel) dataToSave.courseLevel = rawFormData.courseLevel;
+            if (rawFormData.referencingStyle) dataToSave.referencingStyle = rawFormData.referencingStyle;
+            if (rawFormData.language) dataToSave.language = rawFormData.language;
+            if (rawFormData.publishWhere) {
+              dataToSave.publishWhere = rawFormData.publishWhere;
+            }
+    
+            if (rawFormData.deadline) {
+              dataToSave.deadline = Timestamp.fromDate(new Date(rawFormData.deadline as string));
+            }
+            if (rawFormData.pageCount) {
+              dataToSave.pageCount = Number(rawFormData.pageCount);
+            }
+            if (rawFormData.wordCount) {
+                dataToSave.wordCount = Number(rawFormData.wordCount);
+            }
+    
+            const projectsCollection = collection(firestore, 'projects');
+            await addDoc(projectsCollection, dataToSave);
 
-        const dataToSave: any = {
-          userId: user.uid,
-          serviceType: service,
-          title: rawFormData.title,
-          wantToPublish: rawFormData.wantToPublish === 'on',
-          isPaperReady: rawFormData.isPaperReady === 'on',
-          status: 'pending',
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp(),
-          synopsisFileUrl: synopsisUrl,
-          assignedSalesId: assignedSalesId,
-        };
-        
-        if (rawFormData.mobile) dataToSave.mobile = rawFormData.mobile;
-        if (rawFormData.topic) dataToSave.topic = rawFormData.topic;
-        if (rawFormData.courseLevel) dataToSave.courseLevel = rawFormData.courseLevel;
-        if (rawFormData.referencingStyle) dataToSave.referencingStyle = rawFormData.referencingStyle;
-        if (rawFormData.language) dataToSave.language = rawFormData.language;
-        if (rawFormData.publishWhere) {
-          dataToSave.publishWhere = rawFormData.publishWhere;
-        }
-
-        if (rawFormData.deadline) {
-          dataToSave.deadline = Timestamp.fromDate(new Date(rawFormData.deadline as string));
-        }
-        if (rawFormData.pageCount) {
-          dataToSave.pageCount = Number(rawFormData.pageCount);
-        }
-        if (rawFormData.wordCount) {
-            dataToSave.wordCount = Number(rawFormData.wordCount);
-        }
-
-        const projectsCollection = collection(firestore, 'projects');
-        addDoc(projectsCollection, dataToSave)
-          .then(async () => {
-             // Send notifications to admins and sales
             await notifyAdminsAndSales(firestore, `New client project lead: "${dataToSave.title}" from ${user.name}.`, assignedSalesId);
 
             toast({
@@ -206,46 +211,46 @@ export default function CreateProjectPage() {
             });
             setFormKey(Date.now()); 
             router.push('/dashboard/projects');
-          })
-          .catch((err: any) => {
-            if (err.code === 'permission-denied') {
+
+        } catch (err: any) {
+             if (err.code === 'permission-denied') {
               const permissionError = new FirestorePermissionError({
                 path: 'projects',
                 operation: 'create',
-                requestResourceData: dataToSave,
+                requestResourceData: "redacted_for_ brevity", // Can't serialize the full object here
               }, err);
               errorEmitter.emit('permission-error', permissionError);
             }
             console.error(err);
             setError(err.message || 'An unknown error occurred while creating the project.');
-          })
-          .finally(() => {
-            setLoading(false);
-          });
+        }
     };
 
-    if (file && storage) {
-        setUploading(true);
-        const storageRef = ref(storage, `projects/${user.uid}/${Date.now()}-${file.name}`);
-        const uploadTask = uploadBytesResumable(storageRef, file);
-
-        uploadTask.on(
-          'state_changed',
-          (snapshot) => setUploadProgress((snapshot.bytesTransferred / snapshot.totalBytes) * 100),
-          (error) => {
-            console.error("File upload error:", error);
-            setError("Failed to upload file. Please try again.");
-            setLoading(false);
-            setUploading(false);
-          },
-          async () => {
-            const downloadUrl = await getDownloadURL(uploadTask.snapshot.ref);
-            setUploading(false);
-            await processFormSubmission(downloadUrl);
-          }
-        );
-    } else {
-      await processFormSubmission();
+    try {
+        if (file && storage) {
+            setUploading(true);
+            const storageRef = ref(storage, `projects/${user.uid}/${Date.now()}-${file.name}`);
+            const uploadTask = uploadBytesResumable(storageRef, file);
+    
+            uploadTask.on(
+              'state_changed',
+              (snapshot) => setUploadProgress((snapshot.bytesTransferred / snapshot.totalBytes) * 100),
+              (error) => {
+                console.error("File upload error:", error);
+                setError("Failed to upload file. Please try again.");
+                setUploading(false);
+              },
+              async () => {
+                const downloadUrl = await getDownloadURL(uploadTask.snapshot.ref);
+                setUploading(false);
+                await processFormSubmission(downloadUrl);
+              }
+            );
+        } else {
+          await processFormSubmission();
+        }
+    } finally {
+      setLoading(false);
     }
   }
 
