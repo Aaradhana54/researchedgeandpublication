@@ -23,7 +23,7 @@ export function Hero() {
   return (
     <section
       id="home"
-      className="relative w-full min-h-[calc(100vh-5rem)] flex items-center justify-center text-center"
+      className="relative w-full h-[calc(100vh-5rem)] flex items-center justify-center text-center"
     >
       <Carousel
         plugins={[plugin.current]}
@@ -33,8 +33,7 @@ export function Hero() {
       >
         <CarouselContent>
           {heroImages.map((image, index) => (
-            <CarouselItem key={image.id}>
-              <div className="relative w-full h-full min-h-[calc(100vh-5rem)]">
+            <CarouselItem key={image.id} className="relative w-full h-full">
                 <Image
                   src={image.imageUrl}
                   alt={image.description}
@@ -44,7 +43,6 @@ export function Hero() {
                   priority={index === 0}
                 />
                 <div className="absolute inset-0 bg-black/50" />
-              </div>
             </CarouselItem>
           ))}
         </CarouselContent>
