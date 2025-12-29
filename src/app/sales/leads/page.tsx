@@ -71,7 +71,7 @@ export default function SalesLeadsPage() {
   return (
     <div className="p-4 sm:p-6 lg:p-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight">All Assigned Leads</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Your Assigned Leads</h1>
         <p className="text-muted-foreground">A list of all project leads assigned to you.</p>
       </div>
       <Card>

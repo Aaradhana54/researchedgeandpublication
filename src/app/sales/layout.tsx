@@ -57,7 +57,7 @@ const salesNavItems = [
     label: 'Leads', 
     icon: <Briefcase />,
     subItems: [
-        { href: '/sales/leads', label: 'All Leads', icon: <Users /> },
+        { href: '/sales/leads', label: 'Your Assigned Leads', icon: <Users /> },
         { href: '/sales/projects', label: 'Client Leads', icon: <FolderKanban /> },
         { href: '/sales/partner-leads', label: 'Partner Leads', icon: <UserCheckIcon /> },
         { href: '/sales/website-leads', label: 'Website Leads', icon: <MessageSquare /> },
