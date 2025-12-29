@@ -56,16 +56,14 @@ service cloud.firestore {
       let forbiddenKeys = [
         'dealAmount', 'advanceReceived', 'discussionNotes', 
         'paymentScreenshotUrl', 'finalDeadline', 'finalizedAt', 
-        'finalizedBy', 'assignedWriterId'
+        'finalizedBy', 'assignedWriterId', 'status'
       ];
       
       let isCreatingOwnProject = request.auth != null && request.auth.uid == data.userId;
       let hasClientRoleOrNoDoc = !userDocExists() || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'client';
-      // Explicitly check that status is 'pending' and that it's the only status being set.
-      let isStatusPending = request.resource.data.status == 'pending';
-      let noForbiddenFields = data.keys().toSet().intersection(forbiddenKeys.toSet()).size() == 0;
+      let noForbiddenFields = !data.keys().hasAny(forbiddenKeys);
       
-      return isCreatingOwnProject && hasClientRoleOrNoDoc && isStatusPending && noForbiddenFields;
+      return isCreatingOwnProject && hasClientRoleOrNoDoc && noForbiddenFields;
     }
 
     match /users/{userId} {
@@ -89,8 +87,9 @@ service cloud.firestore {
     }
     
     match /projects/{projectId} {
-      // Clients can create their own project, or sales team can create on behalf of others.
-      allow create: if isClientCreatingOwnProject() || isSalesTeam();
+      // Clients can create their own project with status 'pending'
+      // Sales team can create on behalf of others.
+      allow create: if (isClientCreatingOwnProject() && request.resource.data.status == 'pending') || isSalesTeam();
 
       // Owners, admins, or sales team can manage projects.
       // Writers can read projects if they are assigned (checked by client-side logic).
