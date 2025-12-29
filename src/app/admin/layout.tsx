@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import {
@@ -48,6 +49,7 @@ import {
   SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarMenuBadge,
+  SidebarTrigger,
 } from '@/components/ui/sidebar';
 import { Logo } from '@/components/ui/logo';
 import { Button } from '@/components/ui/button';
@@ -229,14 +231,11 @@ export default function AdminLayout({
   const router = useRouter();
   const pathname = usePathname();
 
-  const isSalesViewingProject = user?.role === 'sales-team' && pathname.startsWith('/admin/projects/');
-
   useEffect(() => {
     // If we are not loading and the current page is not the login page
     if (!loading && pathname !== '/admin/login') {
       // If there is no user or the user is not an admin/sales, redirect to login
-      const isAllowedSpecialRole = isSalesViewingProject;
-      if (!user || (user.role !== 'admin' && !isAllowedSpecialRole)) {
+      if (!user || !['admin', 'sales-team'].includes(user.role)) {
         router.replace('/admin/login');
       }
     }
@@ -245,29 +244,11 @@ export default function AdminLayout({
         router.replace('/admin/dashboard');
     }
 
-  }, [user, loading, router, pathname, isSalesViewingProject]);
+  }, [user, loading, router, pathname]);
 
   // Don't protect the login page itself with a loader/permission check
   if (pathname === '/admin/login') {
       return <>{children}</>;
-  }
-
-  // If a sales team member is viewing a project, we can show the content directly
-  // but without the full admin sidebar. We'll show a simplified layout.
-  if (isSalesViewingProject) {
-      return (
-        <div className="flex flex-col min-h-screen">
-          <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-            <div className="container flex h-14 items-center">
-              <Logo />
-               <div className="flex flex-1 items-center justify-end space-x-4">
-                  <Button variant="ghost" onClick={() => router.push('/sales/projects')}>Back to Sales Portal</Button>
-               </div>
-            </div>
-          </header>
-           <main className="flex-1">{children}</main>
-        </div>
-      )
   }
 
 
@@ -279,7 +260,7 @@ export default function AdminLayout({
     );
   }
   
-  if (user.role !== 'admin') {
+  if (!['admin', 'sales-team'].includes(user.role)) {
     return (
        <div className="flex h-screen w-full items-center justify-center bg-background">
         <p>You do not have permission to view this page.</p>
@@ -291,7 +272,15 @@ export default function AdminLayout({
   return (
      <SidebarProvider>
       <AdminSidebar />
-      <SidebarInset>{children}</SidebarInset>
+      <SidebarInset>
+         <header className="sticky top-0 z-40 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
+            <SidebarTrigger className="sm:hidden" />
+            <div className="flex-1">
+                {/* Header content can go here if needed */}
+            </div>
+        </header>
+        {children}
+      </SidebarInset>
     </SidebarProvider>
   );
 }

@@ -26,6 +26,7 @@ import {
   SidebarGroup,
   SidebarSeparator,
   SidebarInset,
+  SidebarTrigger,
 } from '@/components/ui/sidebar';
 import { Logo } from '@/components/ui/logo';
 import { Button } from '@/components/ui/button';
@@ -157,7 +158,15 @@ export default function AuthenticatedLayout({
   return (
     <SidebarProvider>
       <DashboardSidebar />
-      <SidebarInset>{children}</SidebarInset>
+      <SidebarInset>
+         <header className="sticky top-0 z-40 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
+            <SidebarTrigger className="sm:hidden" />
+             <div className="flex-1">
+                {/* Header content can go here if needed */}
+            </div>
+        </header>
+        {children}
+      </SidebarInset>
     </SidebarProvider>
   );
 }
