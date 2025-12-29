@@ -22,6 +22,7 @@ import {
   UserCheck as UserCheckIcon,
   CheckCircle,
   CheckCircle2,
+  Globe,
 } from 'lucide-react';
 import React from 'react';
 import { useEffect, useMemo } from 'react';
@@ -94,6 +95,9 @@ const adminNavItems = [
   { href: '/admin/marketing', label: 'Marketing Kit', icon: <Paintbrush /> },
 ];
 
+const siteNavItem = { href: '/', label: 'Back to Site', icon: <Globe /> };
+
+
 function AdminSidebar() {
   const pathname = usePathname();
   const { user } = useUser();
@@ -131,7 +135,7 @@ function AdminSidebar() {
       </SidebarHeader>
       <SidebarContent>
         <SidebarMenu>
-          {adminNavItems.map((item) => (
+          {[...adminNavItems, siteNavItem].map((item) => (
             item.subItems ? (
                  <Collapsible key={item.label} defaultOpen={item.subItems.some(sub => pathname.startsWith(sub.href)) || (item.label === 'Leads' && isLeadsActive)}>
                     <CollapsibleTrigger asChild>

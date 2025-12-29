@@ -12,6 +12,7 @@ import {
   UserCheck as UserCheckIcon,
   MessageSquare,
   CheckCircle2,
+  Globe,
 } from 'lucide-react';
 import React from 'react';
 import { usePathname, useRouter } from 'next/navigation';
@@ -64,6 +65,7 @@ const salesNavItems = [
   },
   { href: '/sales/approved-leads', label: 'Approved Leads', icon: <CheckCircle /> },
   { href: '/sales/completed-leads', label: 'Completed Leads', icon: <CheckCircle2 /> },
+  { href: '/', label: 'Back to Site', icon: <Globe /> },
 ];
 
 function SalesSidebar() {

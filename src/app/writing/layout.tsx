@@ -9,6 +9,7 @@ import {
   ClipboardList,
   CheckCircle2,
   FolderKanban,
+  Globe,
 } from 'lucide-react';
 import React from 'react';
 import { usePathname, useRouter } from 'next/navigation';
@@ -47,6 +48,7 @@ const dashboardNavItems = [
   { href: '/writing/tasks', label: 'My Tasks', icon: <ClipboardList /> },
   { href: '/writing/completed-leads', label: 'Completed Tasks', icon: <CheckCircle2 /> },
   { href: '/writing/submissions', label: 'Submissions', icon: <FileText /> },
+  { href: '/', label: 'Back to Site', icon: <Globe /> },
 ];
 
 function WritingSidebar() {
@@ -73,7 +75,7 @@ function WritingSidebar() {
           {dashboardNavItems.map((item) => (
             <SidebarMenuItem key={item.label}>
               <Link href={item.href}>
-                <SidebarMenuButton isActive={pathname.startsWith(item.href)}>
+                <SidebarMenuButton isActive={pathname.startsWith(item.href) && item.href !== '/'}>
                   {item.icon}
                   <span>{item.label}</span>
                 </SidebarMenuButton>

@@ -8,6 +8,7 @@ import {
   Users,
   Receipt,
   Paintbrush,
+  Globe,
 } from 'lucide-react';
 import React from 'react';
 import { usePathname, useRouter } from 'next/navigation';
@@ -46,6 +47,7 @@ const dashboardNavItems = [
   { href: '/referral-partner/clients', label: 'Referred Clients', icon: <Users /> },
   { href: '/referral-partner/payouts', label: 'Payouts', icon: <Receipt /> },
   { href: '/referral-partner/marketing', label: 'Marketing Kit', icon: <Paintbrush /> },
+  { href: '/', label: 'Back to Site', icon: <Globe /> },
 ];
 
 function PartnerSidebar() {

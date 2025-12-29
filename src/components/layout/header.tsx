@@ -59,6 +59,18 @@ export function Header() {
   const getInitials = (name = '') => {
     return name.split(' ').map((n) => n[0]).join('').toUpperCase();
   }
+  
+  const getPortalPath = () => {
+      if (!user) return '/';
+      switch (user.role) {
+          case 'admin': return '/admin/dashboard';
+          case 'client': return '/dashboard';
+          case 'referral-partner': return '/referral-partner/dashboard';
+          case 'sales-team': return '/sales/dashboard';
+          case 'writing-team': return '/writing/dashboard';
+          default: return '/';
+      }
+  }
 
   return (
     <header
@@ -90,34 +102,35 @@ export function Header() {
 
         <div className="flex items-center gap-2">
           {!loading && user ? (
-             <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-                  <Avatar className='h-10 w-10'>
-                     <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
-                  </Avatar>
+             <div className="flex items-center gap-2">
+                <Button asChild>
+                    <Link href={getPortalPath()}>Go to Portal</Link>
                 </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56" align="end" forceMount>
-                <DropdownMenuLabel className="font-normal">
-                  <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">{user.name}</p>
-                    <p className="text-xs leading-none text-muted-foreground">
-                      {user.email}
-                    </p>
-                  </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => router.push('/dashboard')}>
-                    Dashboard
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout}>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span>Log out</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                      <Avatar className='h-10 w-10'>
+                         <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
+                      </Avatar>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-56" align="end" forceMount>
+                    <DropdownMenuLabel className="font-normal">
+                      <div className="flex flex-col space-y-1">
+                        <p className="text-sm font-medium leading-none">{user.name}</p>
+                        <p className="text-xs leading-none text-muted-foreground">
+                          {user.email}
+                        </p>
+                      </div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleLogout}>
+                      <LogOut className="mr-2 h-4 w-4" />
+                      <span>Log out</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+            </div>
           ) : (
             <div className="hidden md:flex items-center gap-2">
                 <DropdownMenu>
@@ -199,7 +212,7 @@ export function Header() {
                       {!loading && user ? (
                         <>
                           <Button asChild onClick={() => setIsMobileMenuOpen(false)}>
-                            <Link href="/dashboard">Go to Dashboard</Link>
+                            <Link href={getPortalPath()}>Go to Portal</Link>
                           </Button>
                           <Button variant="outline" onClick={() => { handleLogout(); setIsMobileMenuOpen(false); }}>
                             <LogOut className="mr-2 h-4 w-4" />
