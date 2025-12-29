@@ -27,22 +27,22 @@ export function Hero() {
     >
       <Carousel
         plugins={[plugin.current]}
-        className="absolute inset-0 w-full h-full -z-10"
+        className="absolute inset-0 w-full h-full"
         onMouseEnter={plugin.current.stop}
         onMouseLeave={plugin.current.reset}
       >
-        <CarouselContent>
+        <CarouselContent className="h-full">
           {heroImages.map((image, index) => (
-            <CarouselItem key={image.id} className="relative w-full h-full">
-                <Image
-                  src={image.imageUrl}
-                  alt={image.description}
-                  fill
-                  className="object-cover"
-                  data-ai-hint={image.imageHint}
-                  priority={index === 0}
-                />
-                <div className="absolute inset-0 bg-black/50" />
+            <CarouselItem key={image.id} className="relative h-full">
+              <Image
+                src={image.imageUrl}
+                alt={image.description}
+                fill
+                className="object-cover"
+                data-ai-hint={image.imageHint}
+                priority={index === 0}
+              />
+              <div className="absolute inset-0 bg-black/50" />
             </CarouselItem>
           ))}
         </CarouselContent>
