@@ -2,53 +2,32 @@
 'use client';
 
 import Image from 'next/image';
-import { useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { AnimatedWrapper } from '@/components/animated-wrapper';
 import Link from 'next/link';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
-import Autoplay from "embla-carousel-autoplay"
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-} from '@/components/ui/carousel';
 
 export function Hero() {
-  const heroImages = PlaceHolderImages.filter(p => p.id.startsWith('hero-background'));
-  const plugin = useRef(
-    Autoplay({ delay: 4000, stopOnInteraction: true })
-  );
+  const heroImage = {
+    imageUrl: 'https://images.unsplash.com/photo-1521587760476-6c12a4b040da?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxsaWJyYXJ5JTIwYm9va3N8ZW58MHx8fHwxNzE4MDI3NTI5fDA&ixlib=rb-4.0.3&q=80&w=1080',
+    description: 'A stack of books on a table with a library in the background.',
+    imageHint: 'library books'
+  };
 
   return (
     <section
       id="home"
-      className="relative w-full h-[calc(100vh-5rem)] overflow-hidden bg-black"
+      className="relative w-full h-[calc(100vh-5rem)] overflow-hidden"
     >
-      {/* Background Carousel Layer */}
-      <Carousel
-        plugins={[plugin.current]}
-        className="absolute inset-0 w-full h-full"
-        opts={{ loop: true }}
-        onMouseEnter={plugin.current.stop}
-        onMouseLeave={plugin.current.reset}
-      >
-        <CarouselContent className="h-full">
-          {heroImages.map((image, index) => (
-            <CarouselItem key={image.id} className="relative h-full">
-              <Image
-                src={image.imageUrl}
-                alt={image.description}
-                fill
-                className="object-cover"
-                data-ai-hint={image.imageHint}
-                priority={index === 0}
-              />
-              <div className="absolute inset-0 bg-black/50" />
-            </CarouselItem>
-          ))}
-        </CarouselContent>
-      </Carousel>
+      {/* Background Image Layer */}
+      <Image
+        src={heroImage.imageUrl}
+        alt={heroImage.description}
+        fill
+        className="object-cover"
+        data-ai-hint={heroImage.imageHint}
+        priority
+      />
+      <div className="absolute inset-0 bg-black/50" />
       
       {/* Foreground Content Layer */}
       <div className="relative z-10 h-full flex flex-col items-center justify-center text-center container mx-auto px-4">
