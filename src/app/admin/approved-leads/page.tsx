@@ -140,6 +140,8 @@ export default function ApprovedLeadsPage() {
                 <TableRow>
                   <TableHead>Project Title</TableHead>
                   <TableHead>Client</TableHead>
+                  <TableHead>Deal Value</TableHead>
+                  <TableHead>Advance Paid</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Assigned To</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
@@ -161,6 +163,12 @@ export default function ApprovedLeadsPage() {
                       <TableCell>
                         <div className="font-medium">{client?.name || 'Unknown User'}</div>
                         <div className="text-sm text-muted-foreground">{client?.email}</div>
+                      </TableCell>
+                      <TableCell>
+                        {project.dealAmount ? project.dealAmount.toLocaleString('en-IN', { style: 'currency', currency: 'INR' }) : 'N/A'}
+                      </TableCell>
+                       <TableCell>
+                        {project.advanceReceived ? project.advanceReceived.toLocaleString('en-IN', { style: 'currency', currency: 'INR' }) : 'N/A'}
                       </TableCell>
                        <TableCell>
                            <Badge variant={getProjectStatusVariant(project.status)} className="capitalize">
