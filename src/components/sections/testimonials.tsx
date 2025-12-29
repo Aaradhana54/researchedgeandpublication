@@ -1,6 +1,5 @@
 'use client';
 import Image from 'next/image';
-import { useMemo } from 'react';
 import {
   Carousel,
   CarouselContent,
@@ -10,14 +9,10 @@ import {
 } from '@/components/ui/carousel';
 import { Card, CardContent } from '@/components/ui/card';
 import { AnimatedWrapper } from '@/components/animated-wrapper';
-import { type Testimonial, type Feedback } from '@/lib/types';
+import { type Testimonial } from '@/lib/types';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { useCollection, useFirestore } from '@/firebase';
-import { collection, query, where } from 'firebase/firestore';
-import { LoaderCircle, Star } from 'lucide-react';
 
-
-const staticTestimonials: Testimonial[] = PlaceHolderImages
+const testimonials: Testimonial[] = PlaceHolderImages
     .filter(img => img.id.startsWith('testimonial-') && img.data)
     .map(img => ({
         ...img.data!,
@@ -26,31 +21,6 @@ const staticTestimonials: Testimonial[] = PlaceHolderImages
 
 
 export function Testimonials() {
-  const firestore = useFirestore();
-
-  const feedbackQuery = useMemo(() => {
-    if (!firestore) return null;
-    return query(collection(firestore, 'feedbacks'), where('status', '==', 'approved'));
-  }, [firestore]);
-  
-  const { data: approvedFeedback, loading } = useCollection<Feedback>(feedbackQuery);
-
-  const allTestimonials = useMemo(() => {
-    const dynamicTestimonials = approvedFeedback ? approvedFeedback.map(fb => ({
-        name: fb.name,
-        designation: fb.designation,
-        message: fb.message,
-        rating: fb.rating,
-    })) : [];
-    
-    // Combine static and dynamic testimonials
-    const combined = [...staticTestimonials, ...dynamicTestimonials];
-    
-    // Simple shuffle
-    return combined.sort(() => Math.random() - 0.5);
-  }, [approvedFeedback]);
-
-
   return (
     <section id="testimonials" className="w-full py-16 md:py-24 lg:py-32">
       <div className="container mx-auto">
@@ -65,9 +35,6 @@ export function Testimonials() {
           </div>
         </AnimatedWrapper>
         <AnimatedWrapper delay={200}>
-        {loading ? (
-             <div className="flex justify-center"><LoaderCircle className="w-8 h-8 animate-spin text-primary" /></div>
-        ) : (
           <Carousel
             opts={{
               align: 'start',
@@ -76,16 +43,16 @@ export function Testimonials() {
             className="w-full max-w-4xl mx-auto"
           >
             <CarouselContent>
-              {allTestimonials.map((testimonial, index) => {
+              {testimonials.map((testimonial, index) => {
                 const image = PlaceHolderImages.find(p => p.id === testimonial.avatarId);
                 const message = testimonial.message.replace(/Revio Research|Revio/gi, 'Research Edge and Publication');
-                const rating = (testimonial as any).rating;
+
                 return (
                   <CarouselItem key={index} className="md:basis-1/2">
                     <div className="p-1 h-full">
                       <Card className="h-full flex flex-col justify-between shadow-soft hover:shadow-lift transition-shadow duration-300">
                         <CardContent className="p-6 flex flex-col items-center text-center gap-4">
-                          {image ? (
+                          {image && (
                              <Image
                                 src={image.imageUrl}
                                 alt={`Avatar of ${testimonial.name}`}
@@ -94,18 +61,7 @@ export function Testimonials() {
                                 data-ai-hint={image.imageHint}
                                 className="rounded-full border-4 border-primary/10"
                               />
-                          ) : (
-                             <div className="w-20 h-20 rounded-full border-4 border-primary/10 bg-muted flex items-center justify-center">
-                               <span className="text-2xl font-bold text-primary">{testimonial.name.charAt(0)}</span>
-                             </div>
-                           )}
-                           {rating && (
-                            <div className="flex items-center gap-0.5">
-                                {Array.from({ length: 5 }).map((_, i) => (
-                                    <Star key={i} className={`w-5 h-5 ${i < rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`} />
-                                ))}
-                            </div>
-                           )}
+                          )}
                           <blockquote className="mt-2 text-muted-foreground italic">
                             “{message}”
                           </blockquote>
@@ -123,7 +79,6 @@ export function Testimonials() {
             <CarouselPrevious className="hidden sm:flex" />
             <CarouselNext className="hidden sm:flex" />
           </Carousel>
-        )}
         </AnimatedWrapper>
       </div>
     </section>
