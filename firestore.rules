@@ -56,11 +56,12 @@ service cloud.firestore {
       let forbiddenKeys = [
         'dealAmount', 'advanceReceived', 'discussionNotes', 
         'paymentScreenshotUrl', 'finalDeadline', 'finalizedAt', 
-        'finalizedBy', 'assignedWriterId', 'status'
+        'finalizedBy', 'assignedWriterId'
       ];
       
       let isCreatingOwnProject = request.auth != null && request.auth.uid == data.userId;
       let hasClientRoleOrNoDoc = !userDocExists() || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'client';
+      // Explicitly check that status is 'pending' and that it's the only status being set.
       let isStatusPending = request.resource.data.status == 'pending';
       let noForbiddenFields = data.keys().toSet().intersection(forbiddenKeys.toSet()).size() == 0;
       
