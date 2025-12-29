@@ -60,7 +60,7 @@ service cloud.firestore {
       ];
       
       return request.auth.uid == data.userId &&
-             hasRole('client') &&
+             (!userDocExists() || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'client') &&
              request.resource.data.status == 'pending' &&
              // Ensure no forbidden fields are being set by the client.
              data.keys().toSet().intersection(forbiddenKeys.toSet()).size() == 0;
