@@ -1,4 +1,6 @@
 
+'use client';
+
 import { AnimatedWrapper } from '@/components/animated-wrapper';
 import {
   BookOpenText,
@@ -13,52 +15,53 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 const researchServices = [
   {
     title: 'Thesis & Dissertation Writing',
     description: 'Comprehensive support from start to finish.',
-    icon: <BookOpenText className="w-6 h-6 text-primary" />,
+    icon: <BookOpenText className="w-8 h-8 text-primary" />,
   },
   {
     title: 'Synopsis & Proposal Preparation',
     description: 'Develop a compelling research proposal.',
-    icon: <FileSignature className="w-6 h-6 text-primary" />,
+    icon: <FileSignature className="w-8 h-8 text-primary" />,
   },
   {
     title: 'Research Paper Writing & Publication',
     description: 'Expert assistance for high-impact journals.',
-    icon: <FileText className="w-6 h-6 text-primary" />,
+    icon: <FileText className="w-8 h-8 text-primary" />,
   },
   {
     title: 'Literature Review',
     description: 'Systematic literature reviews and management.',
-    icon: <ClipboardList className="w-6 h-6 text-primary" />,
+    icon: <ClipboardList className="w-8 h-8 text-primary" />,
   },
   {
     title: 'Data Analysis & Interpretation',
     description: 'Advanced statistical analysis for your data.',
-    icon: <BarChart3 className="w-6 h-6 text-primary" />,
+    icon: <BarChart3 className="w-8 h-8 text-primary" />,
   },
   {
     title: 'Plagiarism Checking & Removal',
     description: 'Ensure originality with our refinement services.',
-    icon: <ShieldCheck className="w-6 h-6 text-primary" />,
+    icon: <ShieldCheck className="w-8 h-8 text-primary" />,
   },
    {
     title: 'Proofreading & Editing',
     description: 'Enhance clarity, grammar, and style.',
-    icon: <PenSquare className="w-6 h-6 text-primary" />,
+    icon: <PenSquare className="w-8 h-8 text-primary" />,
   },
   {
     title: 'Topic Selection & Research Design',
     description: 'Guidance on topic and methodology.',
-    icon: <Lightbulb className="w-6 h-6 text-primary" />,
+    icon: <Lightbulb className="w-8 h-8 text-primary" />,
   },
   {
     title: 'Journal Formatting & Submission',
     description: 'Manuscript formatting and submission process.',
-    icon: <Send className="w-6 h-6 text-primary" />,
+    icon: <Send className="w-8 h-8 text-primary" />,
   },
 ];
 
@@ -66,49 +69,45 @@ export function Services() {
   const serviceImage = PlaceHolderImages.find(p => p.id === 'services-image');
   
   return (
-    <section id="services" className="w-full py-16 md:py-24 lg:py-32">
+    <section id="services" className="relative w-full py-16 md:py-24 lg:py-32">
+        {serviceImage && (
+            <Image
+                src={serviceImage.imageUrl}
+                alt={serviceImage.description}
+                fill
+                className="object-cover -z-20"
+                data-ai-hint={serviceImage.imageHint}
+            />
+        )}
+        <div className="absolute inset-0 bg-background/80 backdrop-blur-sm -z-10" />
       <div className="container mx-auto">
         <AnimatedWrapper>
           <div className="text-center space-y-4 mb-12">
             <h2 className="text-3xl font-bold tracking-tight text-primary sm:text-4xl font-headline">
               Research Services
             </h2>
-            <p className="max-w-2xl mx-auto text-lg text-muted-foreground">
+            <p className="max-w-2xl mx-auto text-lg text-foreground/80">
               End-to-end support for every stage of your academic research journey.
             </p>
           </div>
         </AnimatedWrapper>
         
-        <div className="grid md:grid-cols-2 gap-12 items-center">
-            <AnimatedWrapper>
-               {serviceImage && (
-                  <div className="overflow-hidden rounded-lg shadow-lift">
-                     <Image
-                      src={serviceImage.imageUrl}
-                      alt={serviceImage.description}
-                      width={600}
-                      height={800}
-                      data-ai-hint={serviceImage.imageHint}
-                      className="w-full h-auto object-cover transition-transform duration-500 hover:scale-105"
-                    />
-                  </div>
-                )}
-            </AnimatedWrapper>
-            <div className="space-y-6">
-              {researchServices.map((service, index) => (
-                <AnimatedWrapper key={service.title} delay={index * 100}>
-                  <div className="flex items-start gap-4">
-                     <div className="flex-shrink-0 bg-primary/10 p-3 rounded-full">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {researchServices.map((service, index) => (
+            <AnimatedWrapper key={service.title} delay={index * 100}>
+              <Card className="h-full bg-card/80 shadow-soft hover:shadow-lift hover:-translate-y-1 transition-all duration-300">
+                 <CardHeader className="flex-row items-center gap-4">
+                    <div className="flex-shrink-0 bg-primary/10 p-3 rounded-full">
                         {service.icon}
                     </div>
-                    <div>
-                        <h3 className="text-lg font-semibold">{service.title}</h3>
-                        <p className="text-muted-foreground mt-1">{service.description}</p>
-                    </div>
-                  </div>
-                </AnimatedWrapper>
-              ))}
-            </div>
+                    <CardTitle className="text-lg font-semibold">{service.title}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground">{service.description}</p>
+                </CardContent>
+              </Card>
+            </AnimatedWrapper>
+          ))}
         </div>
       </div>
     </section>
