@@ -13,8 +13,6 @@ import {
   Lightbulb,
   Send,
 } from 'lucide-react';
-import Image from 'next/image';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 const researchServices = [
@@ -66,27 +64,16 @@ const researchServices = [
 ];
 
 export function Services() {
-  const serviceImage = PlaceHolderImages.find(p => p.id === 'services-image');
   
   return (
-    <section id="services" className="relative w-full py-16 md:py-24 lg:py-32">
-        {serviceImage && (
-            <Image
-                src={serviceImage.imageUrl}
-                alt={serviceImage.description}
-                fill
-                className="object-cover -z-20"
-                data-ai-hint={serviceImage.imageHint}
-            />
-        )}
-        <div className="absolute inset-0 bg-background/80 backdrop-blur-sm -z-10" />
+    <section id="services" className="w-full bg-secondary py-16 md:py-24 lg:py-32">
       <div className="container mx-auto">
         <AnimatedWrapper>
           <div className="text-center space-y-4 mb-12">
             <h2 className="text-3xl font-bold tracking-tight text-primary sm:text-4xl font-headline">
               Research Services
             </h2>
-            <p className="max-w-2xl mx-auto text-lg text-foreground/80">
+            <p className="max-w-2xl mx-auto text-lg text-muted-foreground">
               End-to-end support for every stage of your academic research journey.
             </p>
           </div>
@@ -95,7 +82,7 @@ export function Services() {
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {researchServices.map((service, index) => (
             <AnimatedWrapper key={service.title} delay={index * 100}>
-              <Card className="h-full bg-card/80 shadow-soft hover:shadow-lift hover:-translate-y-1 transition-all duration-300">
+              <Card className="h-full shadow-soft hover:shadow-lift hover:-translate-y-1 transition-all duration-300">
                  <CardHeader className="flex-row items-center gap-4">
                     <div className="flex-shrink-0 bg-primary/10 p-3 rounded-full">
                         {service.icon}
