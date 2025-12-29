@@ -23,7 +23,7 @@ export function Hero() {
   return (
     <section
       id="home"
-      className="relative w-full h-[calc(100vh-5rem)] overflow-hidden bg-black"
+      className="relative w-full h-[calc(100vh-5rem)] overflow-hidden"
     >
       {/* Background Carousel Layer */}
       <Carousel
