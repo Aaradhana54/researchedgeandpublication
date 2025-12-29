@@ -17,7 +17,7 @@ export function MissionVision() {
               </CardHeader>
               <CardContent>
                 <p className="text-lg text-muted-foreground">
-                  Make research and publishing simple, ethical, and globally accessible.
+                  To simplify the complex journey of research and publication by providing ethical, high-quality support that makes academic and institutional publishing straightforward, transparent, and accessible to scholars, educators, and institutions worldwide.
                 </p>
               </CardContent>
             </Card>
@@ -32,7 +32,7 @@ export function MissionVision() {
               </CardHeader>
               <CardContent>
                 <p className="text-lg text-muted-foreground">
-                  Become India’s most reliable one-stop platform for research and institutional publishing.
+                  To become India’s most trusted and comprehensive one-stop platform for all research and publishing needs, building a future where every brilliant idea receives the expert support it needs to achieve global recognition.
                 </p>
               </CardContent>
             </Card>
