@@ -6,47 +6,25 @@ import { Button } from '@/components/ui/button';
 import { AnimatedWrapper } from '@/components/animated-wrapper';
 import Link from 'next/link';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-} from '@/components/ui/carousel';
-import Autoplay from 'embla-carousel-autoplay';
 
 export function Hero() {
-  const heroImages = PlaceHolderImages.filter(p => p.id.startsWith('hero-background'));
+  const heroImage = PlaceHolderImages.find(p => p.id === 'hero-background');
 
   return (
     <section
       id="home"
       className="relative w-full min-h-[calc(100vh-5rem)] flex items-center justify-center text-center"
     >
-      <Carousel
-        className="absolute top-0 left-0 w-full h-full -z-20"
-        plugins={[
-          Autoplay({
-            delay: 5000,
-          }),
-        ]}
-        opts={{
-          loop: true,
-        }}
-      >
-        <CarouselContent className="h-full">
-          {heroImages.map((heroImage) => (
-            <CarouselItem key={heroImage.id} className="relative w-full h-full">
-              <Image
-                src={heroImage.imageUrl}
-                alt={heroImage.description}
-                fill
-                className="object-cover"
-                data-ai-hint={heroImage.imageHint}
-                priority={heroImage.id === 'hero-background'}
-              />
-            </CarouselItem>
-          ))}
-        </CarouselContent>
-      </Carousel>
+      {heroImage && (
+        <Image
+          src={heroImage.imageUrl}
+          alt={heroImage.description}
+          fill
+          className="object-cover -z-20"
+          data-ai-hint={heroImage.imageHint}
+          priority
+        />
+      )}
       <div className="absolute top-0 left-0 inset-0 bg-background/80 -z-10" />
 
       <div className="container mx-auto px-4">
