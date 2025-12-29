@@ -7,7 +7,7 @@ import { doc, getDoc, updateDoc, serverTimestamp, getFirestore } from 'firebase/
 import { useFirebaseApp, useUser } from '@/firebase';
 import type { Project, UserProfile, ProjectStatus } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { LoaderCircle, ArrowLeft, CheckCircle, XCircle, FileText, Download, User as UserIcon } from 'lucide-react';
+import { LoaderCircle, ArrowLeft, CheckCircle, XCircle, FileText, Download, User as UserIcon, Hourglass } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
@@ -244,31 +244,41 @@ export default function ProjectDetailPage() {
                         </CardContent>
                     </Card>
 
-                    {canShowDealDetails && project.finalizedAt && (
+                    {canShowDealDetails && (
                         <Card>
                              <CardHeader>
                                 <CardTitle>Deal Details</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <DetailItem label="Deal Amount" value={project.dealAmount?.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })} />
-                                <DetailItem label="Advance Received" value={project.advanceReceived?.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })} />
-                                <DetailItem label="Final Deadline" value={project.finalDeadline ? format(project.finalDeadline.toDate(), 'PPP') : 'Not set'} />
-                                <DetailItem label="Discussion Notes" value={project.discussionNotes} />
-                                <DetailItem label="Payment Screenshot">
-                                    {project.paymentScreenshotUrl ? (
-                                        <a href={project.paymentScreenshotUrl} target="_blank" rel="noopener noreferrer" className="flex items-center text-primary hover:underline">
-                                            <Download className="mr-2 h-4 w-4" />
-                                            View Screenshot
-                                        </a>
-                                    ) : 'Not uploaded'}
-                                </DetailItem>
-                                 <DetailItem label="Finalized On" value={project.finalizedAt ? format(project.finalizedAt.toDate(), 'PPP p') : 'N/A'} />
-                                <DetailItem label="Finalized By">
-                                    <div className="flex items-center gap-2">
-                                        <UserIcon className="w-4 h-4 text-muted-foreground"/>
-                                        <span>{finalizerUser ? finalizerUser.name : (project.finalizedBy || 'Unknown')}</span>
+                                {project.finalizedAt ? (
+                                    <>
+                                        <DetailItem label="Deal Amount" value={project.dealAmount?.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })} />
+                                        <DetailItem label="Advance Received" value={project.advanceReceived?.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })} />
+                                        <DetailItem label="Final Deadline" value={project.finalDeadline ? format(project.finalDeadline.toDate(), 'PPP') : 'Not set'} />
+                                        <DetailItem label="Discussion Notes" value={project.discussionNotes} />
+                                        <DetailItem label="Payment Screenshot">
+                                            {project.paymentScreenshotUrl ? (
+                                                <a href={project.paymentScreenshotUrl} target="_blank" rel="noopener noreferrer" className="flex items-center text-primary hover:underline">
+                                                    <Download className="mr-2 h-4 w-4" />
+                                                    View Screenshot
+                                                </a>
+                                            ) : 'Not uploaded'}
+                                        </DetailItem>
+                                        <DetailItem label="Finalized On" value={project.finalizedAt ? format(project.finalizedAt.toDate(), 'PPP p') : 'N/A'} />
+                                        <DetailItem label="Finalized By">
+                                            <div className="flex items-center gap-2">
+                                                <UserIcon className="w-4 h-4 text-muted-foreground"/>
+                                                <span>{finalizerUser ? finalizerUser.name : (project.finalizedBy || 'Unknown')}</span>
+                                            </div>
+                                        </DetailItem>
+                                    </>
+                                ) : (
+                                    <div className="text-center text-muted-foreground py-8">
+                                        <Hourglass className="mx-auto h-8 w-8 mb-2" />
+                                        <p>This lead has not been finalized yet.</p>
+                                        <p className="text-xs">Deal details will appear here once approved by the sales team.</p>
                                     </div>
-                                </DetailItem>
+                                )}
                             </CardContent>
                         </Card>
                     )}
