@@ -98,13 +98,14 @@ export function FinalizePartnerLeadDialog({ children, lead }: { children: React.
       // Step 2: Create the new Project document with all data at once
       const projectCollection = collection(firestore, 'projects');
       const placeholderUserId = `unregistered_${lead.email.replace(/[^a-zA-Z0-9]/g, '_')}`;
+      const projectName = `Project for ${lead.name}`;
 
       await addDoc(projectCollection, {
         ...data,
         userId: placeholderUserId,
-        title: `Project for ${lead.name}`,
+        title: projectName,
         mobile: lead.phone,
-        serviceType: 'research-paper' as ProjectServiceType,
+        serviceType: 'research-paper' as ProjectServiceType, // Default service, can be changed later
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
         status: 'approved',
@@ -118,6 +119,15 @@ export function FinalizePartnerLeadDialog({ children, lead }: { children: React.
       const leadDocRef = doc(firestore, 'contact_leads', lead.id);
       await updateDoc(leadDocRef, {
         status: 'converted',
+      });
+      
+      // Step 4: Create a notification for the (future) user
+      const notificationsCollection = collection(firestore, 'notifications');
+      await addDoc(notificationsCollection, {
+          userId: placeholderUserId,
+          message: `Congratulations! Your project "${projectName}" has been approved.`,
+          isRead: false,
+          createdAt: serverTimestamp(),
       });
 
 

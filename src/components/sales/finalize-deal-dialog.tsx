@@ -23,7 +23,7 @@ import { useToast } from '@/hooks/use-toast';
 import { LoaderCircle, Upload } from 'lucide-react';
 import type { Project } from '@/lib/types';
 import { useFirestore, useStorage, useUser } from '@/firebase';
-import { doc, serverTimestamp, Timestamp, updateDoc } from 'firebase/firestore';
+import { doc, serverTimestamp, Timestamp, updateDoc, addDoc, collection } from 'firebase/firestore';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '../ui/form';
@@ -103,6 +103,16 @@ export function FinalizeDealDialog({ children, project }: { children: React.Reac
         finalizedBy: salesUser.uid,
         updatedAt: serverTimestamp(),
       });
+      
+      // 3. Create a notification for the client
+      const notificationsCollection = collection(firestore, 'notifications');
+      await addDoc(notificationsCollection, {
+        userId: project.userId,
+        message: `Congratulations! Your project "${project.title}" has been approved.`,
+        isRead: false,
+        createdAt: serverTimestamp(),
+      });
+
 
       toast({
         title: 'Lead Finalized!',
