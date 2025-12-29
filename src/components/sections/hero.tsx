@@ -23,8 +23,9 @@ export function Hero() {
   return (
     <section
       id="home"
-      className="relative w-full h-[calc(100vh-5rem)] flex items-center justify-center text-center overflow-hidden"
+      className="relative w-full h-[calc(100vh-5rem)] overflow-hidden"
     >
+      {/* Background Carousel */}
       <Carousel
         plugins={[plugin.current]}
         className="absolute inset-0 w-full h-full"
@@ -48,7 +49,8 @@ export function Hero() {
         </CarouselContent>
       </Carousel>
       
-      <div className="container mx-auto px-4 relative z-10">
+      {/* Foreground Content */}
+      <div className="relative z-10 h-full flex flex-col items-center justify-center text-center container mx-auto px-4">
         <AnimatedWrapper>
           <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl md:text-6xl lg:text-7xl font-headline">
             Research Edge and Publication
