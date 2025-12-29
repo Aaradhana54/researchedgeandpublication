@@ -4,7 +4,7 @@
 import { useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useUser, useFirestore, useCollection } from '@/firebase';
-import { collection, query, where, orderBy, writeBatch, doc } from 'firebase/firestore';
+import { collection, query, where, writeBatch, doc } from 'firebase/firestore';
 import type { Notification } from '@/lib/types';
 import { LoaderCircle, BellOff, Bell } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
@@ -18,14 +18,21 @@ export default function NotificationsPage() {
 
   const notificationsQuery = useMemo(() => {
     if (!user || !firestore) return null;
+    // Query only by userId to avoid needing a composite index. Sorting will be done client-side.
     return query(
       collection(firestore, 'notifications'),
-      where('userId', '==', user.uid),
-      orderBy('createdAt', 'desc')
+      where('userId', '==', user.uid)
     );
   }, [user, firestore]);
 
   const { data: notifications, loading } = useCollection<Notification>(notificationsQuery);
+  
+  // Sort on the client side
+  const sortedNotifications = useMemo(() => {
+    if (!notifications) return [];
+    return [...notifications].sort((a, b) => b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime());
+  }, [notifications]);
+
   const hasUnread = notifications?.some(n => !n.isRead) ?? false;
 
   const handleMarkAllAsRead = async () => {
@@ -76,9 +83,9 @@ export default function NotificationsPage() {
              <div className="flex justify-center items-center h-48">
               <LoaderCircle className="w-8 h-8 animate-spin text-primary" />
             </div>
-          ) : notifications && notifications.length > 0 ? (
+          ) : sortedNotifications && sortedNotifications.length > 0 ? (
             <ul className="space-y-4">
-                {notifications.map(notif => (
+                {sortedNotifications.map(notif => (
                     <li key={notif.id} className="flex items-start gap-4 p-4 rounded-lg border bg-background hover:bg-secondary/50">
                         <div className="p-2 bg-primary/10 rounded-full mt-1">
                             <Bell className={`w-5 h-5 ${notif.isRead ? 'text-muted-foreground' : 'text-primary'}`} />
