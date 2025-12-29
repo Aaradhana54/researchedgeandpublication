@@ -227,14 +227,12 @@ export default function AdminLayout({
   const pathname = usePathname();
 
   const isSalesViewingProject = user?.role === 'sales-team' && pathname.startsWith('/admin/projects/');
-  const isWriterViewingProject = user?.role === 'writing-team' && pathname.startsWith('/admin/projects/');
 
   useEffect(() => {
     // If we are not loading and the current page is not the login page
     if (!loading && pathname !== '/admin/login') {
-      // If there is no user or the user is not an admin, redirect to login
-      // Exception: allow sales team & writers to view project detail pages.
-      const isAllowedSpecialRole = isSalesViewingProject || isWriterViewingProject;
+      // If there is no user or the user is not an admin/sales, redirect to login
+      const isAllowedSpecialRole = isSalesViewingProject;
       if (!user || (user.role !== 'admin' && !isAllowedSpecialRole)) {
         router.replace('/admin/login');
       }
@@ -244,25 +242,23 @@ export default function AdminLayout({
         router.replace('/admin/dashboard');
     }
 
-  }, [user, loading, router, pathname, isSalesViewingProject, isWriterViewingProject]);
+  }, [user, loading, router, pathname, isSalesViewingProject]);
 
   // Don't protect the login page itself with a loader/permission check
   if (pathname === '/admin/login') {
       return <>{children}</>;
   }
 
-  // If a sales team member or writer is viewing a project, we can show the content directly
+  // If a sales team member is viewing a project, we can show the content directly
   // but without the full admin sidebar. We'll show a simplified layout.
-  if (isSalesViewingProject || isWriterViewingProject) {
-      const backPath = isSalesViewingProject ? '/sales/projects' : '/writing/tasks';
-      const backText = isSalesViewingProject ? 'Back to Sales Portal' : 'Back to Writing Portal';
+  if (isSalesViewingProject) {
       return (
         <div className="flex flex-col min-h-screen">
           <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             <div className="container flex h-14 items-center">
               <Logo />
                <div className="flex flex-1 items-center justify-end space-x-4">
-                  <Button variant="ghost" onClick={() => router.push(backPath)}>{backText}</Button>
+                  <Button variant="ghost" onClick={() => router.push('/sales/projects')}>Back to Sales Portal</Button>
                </div>
             </div>
           </header>

@@ -7,7 +7,8 @@ import {
   ChevronDown,
   FileText,
   ClipboardList,
-  CheckCircle2
+  CheckCircle2,
+  FolderKanban,
 } from 'lucide-react';
 import React from 'react';
 import { usePathname, useRouter } from 'next/navigation';
@@ -72,7 +73,7 @@ function WritingSidebar() {
           {dashboardNavItems.map((item) => (
             <SidebarMenuItem key={item.label}>
               <Link href={item.href}>
-                <SidebarMenuButton isActive={pathname === item.href}>
+                <SidebarMenuButton isActive={pathname.startsWith(item.href)}>
                   {item.icon}
                   <span>{item.label}</span>
                 </SidebarMenuButton>

@@ -68,7 +68,6 @@ export default function MyTasksPage() {
     setLoadingTasks(true);
     setTasksError(null);
     try {
-        // Simplified query: Only fetch by assignedTo
         const tasksQuery = query(
             collection(firestore, 'tasks'), 
             where('assignedTo', '==', user.uid)
@@ -76,10 +75,8 @@ export default function MyTasksPage() {
         const querySnapshot = await getDocs(tasksQuery);
         const fetchedTasks = querySnapshot.docs.map(doc => ({ ...doc.data() as Task, id: doc.id }));
         
-        // Filter out completed tasks on the client
         const activeTasks = fetchedTasks.filter(task => task.status !== 'completed');
         
-        // Sort by creation date
         activeTasks.sort((a, b) => b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime());
         
         setTasks(activeTasks);
@@ -113,17 +110,14 @@ export default function MyTasksPage() {
 
       const batch = writeBatch(firestore);
 
-      // 1. Update task status
       const taskRef = doc(firestore, 'tasks', task.id);
       const taskUpdateData = { status: 'completed', updatedAt: serverTimestamp() };
       batch.update(taskRef, taskUpdateData);
 
-      // 2. Update project status
       const projectRef = doc(firestore, 'projects', task.projectId);
       const projectUpdateData = { status: 'completed', updatedAt: serverTimestamp() };
       batch.update(projectRef, projectUpdateData);
       
-      // 3. Create notification for client
       const projectData = projectsMap.get(task.projectId);
       let notificationRef;
       let notificationData;
@@ -144,7 +138,6 @@ export default function MyTasksPage() {
                   title: 'Project Completed!',
                   description: 'The project status has been updated.',
               });
-              // Refresh the task list
               fetchTasks();
           })
           .catch((error: any) => {
@@ -233,11 +226,11 @@ export default function MyTasksPage() {
                       </TableCell>
                        <TableCell className="text-right space-x-2">
                              <Button asChild size="sm" variant="outline">
-                                <Link href={`/admin/projects/${task.projectId}`}>View Details</Link>
+                                <Link href={`/writing/projects/${task.projectId}`}>View Details</Link>
                             </Button>
                              <AlertDialog>
                                 <AlertDialogTrigger asChild>
-                                   <Button size="sm" variant="default">
+                                   <Button size="sm">
                                     <CheckCircle className="mr-2 h-4 w-4" />
                                     Complete
                                   </Button>
