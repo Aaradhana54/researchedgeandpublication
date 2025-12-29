@@ -68,6 +68,12 @@
       "description": "A person sitting at a desk covered in notes and books, deeply focused on their research.",
       "imageUrl": "https://images.unsplash.com/photo-1485217988980-11786ced9454?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wzNzEyODZ8MHwxfHNlYXJjaHw1fHxyZXNlYXJjaHxlbnwwfHx8fDE3MTc4NjYyODF8MA&ixlib=rb-4.0.3&q=80&w=1080",
       "imageHint": "academic research"
+    },
+    {
+      "id": "process-image",
+      "description": "A person sketching out a flowchart on a whiteboard, representing a clear and structured process.",
+      "imageUrl": "https://images.unsplash.com/photo-1542744095-fcf48d80b2fd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wzNzEyODZ8MHwxfHNlYXJjaHwxfHxmbG93Y2hhcnR8ZW58MHx8fHwxNzE4MDI3NTI5fDA&ixlib=rb-4.0.3&q=80&w=1080",
+      "imageHint": "planning workflow"
     }
   ]
 }

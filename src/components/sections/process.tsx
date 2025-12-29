@@ -1,4 +1,6 @@
 import { AnimatedWrapper } from '@/components/animated-wrapper';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
+import Image from 'next/image';
 
 const processSteps = [
   {
@@ -29,6 +31,8 @@ const processSteps = [
 ];
 
 export function Process() {
+  const processImage = PlaceHolderImages.find(p => p.id === 'process-image');
+
   return (
     <section id="process" className="w-full bg-secondary py-16 md:py-24 lg:py-32">
       <div className="container mx-auto">
@@ -42,27 +46,33 @@ export function Process() {
             </p>
           </div>
         </AnimatedWrapper>
-        <div className="relative">
-          {/* Timeline Line */}
-          <div className="absolute left-1/2 top-0 bottom-0 w-0.5 bg-border -translate-x-1/2" aria-hidden="true"></div>
-
-          <div className="space-y-12">
+        
+        <div className="grid md:grid-cols-2 gap-12 items-center">
+          <AnimatedWrapper delay={200}>
+             {processImage && (
+              <div className="overflow-hidden rounded-lg shadow-lift">
+                 <Image
+                  src={processImage.imageUrl}
+                  alt={processImage.description}
+                  width={600}
+                  height={400}
+                  data-ai-hint={processImage.imageHint}
+                  className="w-full h-auto object-cover transition-transform duration-500 hover:scale-105"
+                />
+              </div>
+            )}
+          </AnimatedWrapper>
+          <div className="space-y-8">
             {processSteps.map((item, index) => (
-              <AnimatedWrapper key={item.step} delay={index * 200}>
-                <div className="relative flex items-center">
-                  <div className={`flex-1 ${index % 2 === 0 ? 'pr-8 text-right' : 'pl-8 text-left'}`}>
-                    <div className="p-6 bg-card rounded-lg shadow-soft hover:shadow-lift transition-shadow duration-300">
-                      <h3 className="text-xl font-bold text-primary">{item.title}</h3>
-                      <p className="mt-2 text-muted-foreground">{item.description}</p>
-                    </div>
-                  </div>
-
-                  {/* Timeline Dot */}
-                  <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 bg-background rounded-full border-4 border-primary flex items-center justify-center font-bold text-primary">
+              <AnimatedWrapper key={item.step} delay={index * 150}>
+                <div className="flex items-start gap-4">
+                  <div className="flex-shrink-0 w-12 h-12 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-bold text-xl">
                     {item.step}
                   </div>
-
-                  <div className="flex-1"></div>
+                  <div>
+                    <h3 className="text-xl font-bold">{item.title}</h3>
+                    <p className="mt-1 text-muted-foreground">{item.description}</p>
+                  </div>
                 </div>
               </AnimatedWrapper>
             ))}
