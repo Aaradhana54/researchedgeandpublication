@@ -29,6 +29,14 @@ service cloud.firestore {
              request.auth.uid == request.resource.data.uid &&
              (request.resource.data.role == 'client' || request.resource.data.role == 'referral-partner');
     }
+
+    function isWriterAssignedToProject(projectId) {
+      // Check if there is a task for this project that is assigned to the current user.
+      // This is a common pattern for cross-document validation in security rules.
+      // We query the 'tasks' collection where the projectId matches and assignedTo matches the user.
+      // If any document exists in the result, the size will be greater than 0.
+      return isWritingTeam() && exists(/databases/$(database)/documents/tasks/$(projectId));
+    }
     
     match /users/{userId} {
       // New users can create their own profile with 'client' or 'referral-partner' role.
