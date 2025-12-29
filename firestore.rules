@@ -139,8 +139,10 @@ service cloud.firestore {
       // Anyone can create new feedback.
       allow create: if request.resource.data.status == 'pending';
       
-      // Admins can read, update, and delete any feedback document.
+      // Admins can update and delete any feedback document.
       allow update, delete: if isAdmin();
+
+      // Admins can read any feedback. Public can read approved feedback.
       allow read: if isAdmin() || resource.data.status == 'approved';
       
       // Admins can list ALL feedback. Public can ONLY list where status is 'approved'.
