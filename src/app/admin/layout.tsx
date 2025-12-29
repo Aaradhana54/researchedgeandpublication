@@ -23,11 +23,13 @@ import {
   CheckCircle,
 } from 'lucide-react';
 import React from 'react';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useUser } from '@/firebase/auth/use-user';
+import { useUser, useCollection, useFirestore } from '@/firebase';
 import { logout } from '@/firebase/auth';
+import type { Notification } from '@/lib/types';
+import { collection, query, where } from 'firebase/firestore';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
   Sidebar,
@@ -43,6 +45,7 @@ import {
   SidebarInset,
   SidebarMenuSub,
   SidebarMenuSubButton,
+  SidebarMenuBadge,
 } from '@/components/ui/sidebar';
 import { Logo } from '@/components/ui/logo';
 import { Button } from '@/components/ui/button';
@@ -93,6 +96,19 @@ function AdminSidebar() {
   const pathname = usePathname();
   const { user } = useUser();
   const router = useRouter();
+  const firestore = useFirestore();
+
+  const notificationsQuery = useMemo(() => {
+    if (!user || !firestore) return null;
+    return query(
+      collection(firestore, 'notifications'),
+      where('userId', '==', user.uid),
+      where('isRead', '==', false)
+    );
+  }, [user, firestore]);
+
+  const { data: unreadNotifications } = useCollection<Notification>(notificationsQuery);
+  const unreadCount = unreadNotifications?.length ?? 0;
 
   const handleLogout = async () => {
     await logout();
@@ -146,8 +162,13 @@ function AdminSidebar() {
                 <SidebarMenuItem key={item.label}>
                   <Link href={item.href!}>
                     <SidebarMenuButton isActive={pathname.startsWith(item.href!)}>
-                      {item.icon}
-                      <span>{item.label}</span>
+                       <div className="flex items-center gap-2">
+                         {item.icon}
+                         <span>{item.label}</span>
+                       </div>
+                       {item.href === '/admin/notifications' && unreadCount > 0 && (
+                          <SidebarMenuBadge>{unreadCount}</SidebarMenuBadge>
+                       )}
                     </SidebarMenuButton>
                   </Link>
                 </SidebarMenuItem>
