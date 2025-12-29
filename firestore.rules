@@ -7,13 +7,25 @@ service cloud.firestore {
     function isOwner(userId) {
       return request.auth != null && request.auth.uid == userId;
     }
+    
+    // --- Safe Role Checking Functions ---
+    
+    function userDocExists() {
+      return exists(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+    
+    function hasRole(role) {
+      return request.auth != null
+        && userDocExists()
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == role;
+    }
 
     function isReferralPartner() {
-        return request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'referral-partner';
+      return hasRole('referral-partner');
     }
 
     function isSalesTeam() {
-      return request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'sales-team';
+      return hasRole('sales-team');
     }
     
     function isSalesTeamAssigned(assignedSalesId) {
@@ -21,11 +33,11 @@ service cloud.firestore {
     }
 
     function isAdmin() {
-      return request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+      return hasRole('admin');
     }
     
     function isWritingTeam() {
-      return request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'writing-team';
+      return hasRole('writing-team');
     }
 
     function isWriterAssignedToProject(project) {
@@ -48,7 +60,7 @@ service cloud.firestore {
       ];
       
       return request.auth.uid == data.userId &&
-             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'client' &&
+             hasRole('client') &&
              request.resource.data.status == 'pending' &&
              // Ensure no forbidden fields are being set by the client.
              data.keys().toSet().intersection(forbiddenKeys.toSet()).size() == 0;
