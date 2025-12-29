@@ -27,28 +27,29 @@ export function Hero() {
     >
       <Carousel
         plugins={[plugin.current]}
-        className="absolute top-0 left-0 w-full h-full -z-20"
+        className="absolute inset-0 w-full h-full -z-10"
         onMouseEnter={plugin.current.stop}
         onMouseLeave={plugin.current.reset}
       >
         <CarouselContent>
-          {heroImages.map((image) => (
+          {heroImages.map((image, index) => (
             <CarouselItem key={image.id}>
-              <Image
-                src={image.imageUrl}
-                alt={image.description}
-                fill
-                className="object-cover"
-                data-ai-hint={image.imageHint}
-                priority={image.id === 'hero-background'}
-              />
+               <div className="relative w-full h-[100vh]">
+                 <Image
+                  src={image.imageUrl}
+                  alt={image.description}
+                  fill
+                  className="object-cover"
+                  data-ai-hint={image.imageHint}
+                  priority={index === 0}
+                />
+                <div className="absolute inset-0 bg-black/50" />
+              </div>
             </CarouselItem>
           ))}
         </CarouselContent>
       </Carousel>
       
-      <div className="absolute top-0 left-0 inset-0 bg-black/50 -z-10" />
-
       <div className="container mx-auto px-4 relative z-10">
         <AnimatedWrapper>
           <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl md:text-6xl lg:text-7xl font-headline">
