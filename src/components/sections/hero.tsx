@@ -22,7 +22,7 @@ export function Hero() {
       className="relative w-full min-h-[calc(100vh-5rem)] flex items-center justify-center text-center"
     >
       <Carousel
-        className="absolute top-0 left-0 w-full h-full -z-10"
+        className="absolute top-0 left-0 w-full h-full -z-20"
         plugins={[
           Autoplay({
             delay: 5000,
