@@ -12,7 +12,7 @@ export function Logo({ className }: { className?: string }) {
       )}
     >
       <BookOpenCheck className="h-6 w-6 transition-transform duration-300 group-hover:scale-110" />
-      <span className="font-headline">RAP</span>
+      <span className="font-headline">REP</span>
     </Link>
   );
 }

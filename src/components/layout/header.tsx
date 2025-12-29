@@ -189,7 +189,7 @@ export function Header() {
               <SheetContent side="right" className="w-[280px]">
                 <SheetHeader className="border-b pb-4">
                     <SheetTitle className="sr-only">Main Menu</SheetTitle>
-                    <SheetDescription className="sr-only">Navigate the Research Agent Publication website.</SheetDescription>
+                    <SheetDescription className="sr-only">Navigate the Research Edge and Publication website.</SheetDescription>
                     <Logo />
                 </SheetHeader>
                 <div className="flex flex-col h-full">

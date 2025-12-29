@@ -10,7 +10,7 @@ const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
 
 export const metadata: Metadata = {
-  title: 'Research Agent Publication',
+  title: 'Research Edge and Publication',
   description: 'From Research to Publication, All in One Place',
 };
 

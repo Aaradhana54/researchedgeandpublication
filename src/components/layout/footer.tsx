@@ -73,7 +73,7 @@ export function Footer() {
 
         </div>
         <div className="mt-12 pt-8 border-t text-center text-sm text-muted-foreground">
-          <p>&copy; {currentYear} Research Agent Publication. All rights reserved.</p>
+          <p>&copy; {currentYear} Research Edge and Publication. All rights reserved.</p>
         </div>
       </div>
     </footer>
