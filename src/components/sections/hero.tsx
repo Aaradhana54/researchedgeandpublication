@@ -23,7 +23,7 @@ export function Hero() {
   return (
     <section
       id="home"
-      className="relative w-full h-[calc(100vh-5rem)] flex items-center justify-center text-center"
+      className="relative w-full h-[calc(100vh-5rem)] flex items-center justify-center text-center overflow-hidden"
     >
       <Carousel
         plugins={[plugin.current]}
@@ -33,7 +33,7 @@ export function Hero() {
       >
         <CarouselContent className="h-full">
           {heroImages.map((image, index) => (
-            <CarouselItem key={image.id} className="relative h-full">
+            <CarouselItem key={image.id} className="relative h-full w-full">
               <Image
                 src={image.imageUrl}
                 alt={image.description}
