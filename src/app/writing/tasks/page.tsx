@@ -66,17 +66,21 @@ export default function MyTasksPage() {
     setLoadingTasks(true);
     setTasksError(null);
     try {
+        // Simplified query: Only fetch by assignedTo
         const tasksQuery = query(
             collection(firestore, 'tasks'), 
-            where('assignedTo', '==', user.uid),
-            where('status', '!=', 'completed') // Exclude completed tasks
+            where('assignedTo', '==', user.uid)
         );
         const querySnapshot = await getDocs(tasksQuery);
         const fetchedTasks = querySnapshot.docs.map(doc => ({ ...doc.data() as Task, id: doc.id }));
         
-        fetchedTasks.sort((a, b) => b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime());
+        // Filter out completed tasks on the client
+        const activeTasks = fetchedTasks.filter(task => task.status !== 'completed');
         
-        setTasks(fetchedTasks);
+        // Sort by creation date
+        activeTasks.sort((a, b) => b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime());
+        
+        setTasks(activeTasks);
     } catch (error: any) {
         console.error("Failed to fetch tasks:", error);
         setTasksError(error);
