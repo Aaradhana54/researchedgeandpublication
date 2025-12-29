@@ -10,11 +10,11 @@ import {
 } from '@/components/ui/carousel';
 import { Card, CardContent } from '@/components/ui/card';
 import { AnimatedWrapper } from '@/components/animated-wrapper';
-import { type Testimonial } from '@/lib/types';
+import { type Testimonial, type Feedback } from '@/lib/types';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { useCollection, useFirestore } from '@/firebase';
-import { collection, query } from 'firebase/firestore';
-import { LoaderCircle } from 'lucide-react';
+import { collection, query, where } from 'firebase/firestore';
+import { LoaderCircle, Star } from 'lucide-react';
 
 
 const staticTestimonials: Testimonial[] = PlaceHolderImages
@@ -28,14 +28,27 @@ const staticTestimonials: Testimonial[] = PlaceHolderImages
 export function Testimonials() {
   const firestore = useFirestore();
 
-  const testimonialsQuery = useMemo(() => {
+  const feedbackQuery = useMemo(() => {
     if (!firestore) return null;
-    return query(collection(firestore, 'testimonials'));
+    return query(collection(firestore, 'feedbacks'), where('status', '==', 'approved'));
   }, [firestore]);
   
-  const { data: dynamicTestimonials, loading } = useCollection<Testimonial>(testimonialsQuery);
+  const { data: approvedFeedback, loading } = useCollection<Feedback>(feedbackQuery);
 
-  const allTestimonials = [...staticTestimonials, ...(dynamicTestimonials || [])];
+  const allTestimonials = useMemo(() => {
+    const dynamicTestimonials = approvedFeedback ? approvedFeedback.map(fb => ({
+        name: fb.name,
+        designation: fb.designation,
+        message: fb.message,
+        rating: fb.rating,
+    })) : [];
+    
+    // Combine static and dynamic testimonials
+    const combined = [...staticTestimonials, ...dynamicTestimonials];
+    
+    // Simple shuffle
+    return combined.sort(() => Math.random() - 0.5);
+  }, [approvedFeedback]);
 
 
   return (
@@ -66,6 +79,7 @@ export function Testimonials() {
               {allTestimonials.map((testimonial, index) => {
                 const image = PlaceHolderImages.find(p => p.id === testimonial.avatarId);
                 const message = testimonial.message.replace(/Revio Research|Revio/gi, 'Research Edge and Publication');
+                const rating = (testimonial as any).rating;
                 return (
                   <CarouselItem key={index} className="md:basis-1/2">
                     <div className="p-1 h-full">
@@ -84,6 +98,13 @@ export function Testimonials() {
                              <div className="w-20 h-20 rounded-full border-4 border-primary/10 bg-muted flex items-center justify-center">
                                <span className="text-2xl font-bold text-primary">{testimonial.name.charAt(0)}</span>
                              </div>
+                           )}
+                           {rating && (
+                            <div className="flex items-center gap-0.5">
+                                {Array.from({ length: 5 }).map((_, i) => (
+                                    <Star key={i} className={`w-5 h-5 ${i < rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`} />
+                                ))}
+                            </div>
                            )}
                           <blockquote className="mt-2 text-muted-foreground italic">
                             “{message}”

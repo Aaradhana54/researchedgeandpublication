@@ -10,6 +10,7 @@ import { Testimonials } from '@/components/sections/testimonials';
 import { Contact } from '@/components/sections/contact';
 import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
+import { FeedbackForm } from '@/components/sections/feedback-form';
 
 export default function Home() {
   return (
@@ -25,6 +26,7 @@ export default function Home() {
         <InstitutionalBranding />
         <Process />
         <Testimonials />
+        <FeedbackForm />
         <Contact />
       </main>
       <Footer />

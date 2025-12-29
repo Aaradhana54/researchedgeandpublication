@@ -162,4 +162,16 @@ export interface MarketingAsset {
     createdAt: Timestamp;
 }
 
+export type FeedbackStatus = 'pending' | 'approved' | 'rejected';
+
+export interface Feedback {
+  id?: string;
+  name: string;
+  email: string;
+  designation: string;
+  message: string;
+  rating: number;
+  status: FeedbackStatus;
+  createdAt: Timestamp;
+}
     

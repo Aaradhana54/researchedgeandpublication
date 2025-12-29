@@ -24,6 +24,7 @@ import {
   CheckCircle,
   CheckCircle2,
   Globe,
+  Star,
 } from 'lucide-react';
 import React from 'react';
 import { useEffect, useMemo } from 'react';
@@ -88,6 +89,7 @@ const adminNavItems = [
     ]
   },
   { href: '/admin/approved-leads', label: 'Approved Leads', icon: <CheckCircle /> },
+  { href: '/admin/feedback', label: 'Feedback', icon: <Star /> },
   { href: '/admin/accounts', label: 'Accounts', icon: <Wallet /> },
   { href: '/admin/sales', label: 'Sales', icon: <DollarSign /> },
   { href: '/admin/payouts', label: 'Payouts', icon: <ClipboardCheck /> },
