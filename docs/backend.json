@@ -45,6 +45,7 @@
         "wordCount": { "type": "number", "description": "The estimated word count." },
         "language": { "type": "string", "description": "The language of the project." },
         "wantToPublish": { "type": "boolean", "description": "Indicates if the client wants to publish the work." },
+        "isPaperReady": { "type": "boolean", "description": "Indicates if the client's paper is ready." },
         "publishWhere": { "type": "string", "description": "Specifies where the client wants to publish." },
         "createdAt": { "type": "string", "format": "date-time" },
         "updatedAt": { "type": "string", "format": "date-time" },

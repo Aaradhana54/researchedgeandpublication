@@ -177,6 +177,7 @@ export default function CreateProjectPage() {
           serviceType: service,
           title: rawFormData.title,
           wantToPublish: rawFormData.wantToPublish === 'on',
+          isPaperReady: rawFormData.isPaperReady === 'on',
           status: 'pending',
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp(),
@@ -380,8 +381,15 @@ export default function CreateProjectPage() {
         </div>
         
         <div data-testid="publish-where-container" className="space-y-2">
-          <Label htmlFor="publishWhere">Where do you want to publish it? (e.g., Scopus, SCI, specific journal name)</Label>
+          <Label htmlFor="publishWhere">Where to Publish (e.g., Scopus, SCI, specific journal name)</Label>
           <Textarea id="publishWhere" name="publishWhere" placeholder="Let us know your target journal or index..." disabled={loading}/>
+        </div>
+
+        <div className="flex items-center space-x-2">
+          <Checkbox id="isPaperReady" name="isPaperReady" disabled={loading}/>
+          <Label htmlFor="isPaperReady" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+            Is your paper ready?
+          </Label>
         </div>
 
       </div>
