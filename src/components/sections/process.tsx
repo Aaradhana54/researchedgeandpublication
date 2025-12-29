@@ -3,7 +3,7 @@
 
 import { AnimatedWrapper } from '@/components/animated-wrapper';
 import { Lightbulb, Calendar, Pencil, MessageSquare, CheckCircle, Send } from 'lucide-react';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 
 const processSteps = [
   {
@@ -53,25 +53,37 @@ export function Process() {
           </div>
         </AnimatedWrapper>
         
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="relative max-w-4xl mx-auto">
+          {/* Central Timeline */}
+          <div className="absolute left-1/2 top-0 h-full w-0.5 bg-border -translate-x-1/2" aria-hidden="true"></div>
+
+          <div className="space-y-16">
             {processSteps.map((step, index) => (
-              <AnimatedWrapper key={step.title} delay={index * 100}>
-                 <Card className="h-full relative overflow-hidden bg-background/50 shadow-soft hover:shadow-lift transition-shadow duration-300">
-                    <span className="absolute -top-4 -right-4 text-[8rem] font-bold text-primary/5 opacity-50 select-none">
-                        {String(index + 1).padStart(2, '0')}
-                    </span>
-                    <CardHeader>
-                        <div className="bg-primary/10 p-4 rounded-full mb-4 w-fit">
-                            {step.icon}
-                        </div>
-                    </CardHeader>
-                    <CardContent className="space-y-2">
-                      <h3 className="text-xl font-bold text-foreground">{step.title}</h3>
-                      <p className="text-muted-foreground">{step.description}</p>
-                    </CardContent>
-                </Card>
+              <AnimatedWrapper key={step.title} delay={index * 150}>
+                <div className={cn(
+                  "relative flex items-center",
+                  index % 2 === 0 ? "justify-start" : "justify-end"
+                )}>
+                  {/* Content Box */}
+                  <div className={cn(
+                    "w-1/2 p-6 bg-background rounded-lg shadow-soft border border-transparent hover:border-primary/50 hover:shadow-lift transition-all duration-300",
+                    index % 2 === 0 ? "pr-12 text-right" : "pl-12 text-left"
+                  )}>
+                    <h3 className="text-xl font-bold text-foreground mb-2">{step.title}</h3>
+                    <p className="text-muted-foreground">{step.description}</p>
+                  </div>
+
+                  {/* Icon and Number */}
+                  <div className="absolute left-1/2 -translate-x-1/2 bg-secondary flex flex-col items-center gap-2">
+                     <div className="flex items-center justify-center w-16 h-16 bg-background rounded-full border-2 border-primary">
+                      {step.icon}
+                    </div>
+                     <span className="font-bold text-sm text-primary">STEP {index + 1}</span>
+                  </div>
+                </div>
               </AnimatedWrapper>
             ))}
+          </div>
         </div>
       </div>
     </section>
