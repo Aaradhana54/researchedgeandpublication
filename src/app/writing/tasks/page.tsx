@@ -21,6 +21,8 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
 
 
 const getTaskStatusVariant = (status?: string): 'default' | 'secondary' | 'destructive' | 'outline' => {
@@ -82,6 +84,13 @@ export default function MyTasksPage() {
         
         setTasks(activeTasks);
     } catch (error: any) {
+        if (error.code === 'permission-denied') {
+            const permissionError = new FirestorePermissionError({
+                path: `tasks`,
+                operation: 'list',
+            }, error);
+            errorEmitter.emit('permission-error', permissionError);
+        }
         console.error("Failed to fetch tasks:", error);
         setTasksError(error);
     } finally {
@@ -106,40 +115,46 @@ export default function MyTasksPage() {
 
       // 1. Update task status
       const taskRef = doc(firestore, 'tasks', task.id);
-      batch.update(taskRef, { status: 'completed', updatedAt: serverTimestamp() });
+      const taskUpdateData = { status: 'completed', updatedAt: serverTimestamp() };
+      batch.update(taskRef, taskUpdateData);
 
       // 2. Update project status
       const projectRef = doc(firestore, 'projects', task.projectId);
-      batch.update(projectRef, { status: 'completed', updatedAt: serverTimestamp() });
+      const projectUpdateData = { status: 'completed', updatedAt: serverTimestamp() };
+      batch.update(projectRef, projectUpdateData);
       
       // 3. Create notification for client
       const projectData = projectsMap.get(task.projectId);
+      let notificationRef;
+      let notificationData;
       if (projectData) {
-          const notificationRef = doc(collection(firestore, 'notifications'));
-          batch.set(notificationRef, {
+          notificationRef = doc(collection(firestore, 'notifications'));
+          notificationData = {
               userId: projectData.userId,
               message: `Your project "${projectData.title}" has been marked as complete.`,
               isRead: false,
               createdAt: serverTimestamp(),
-          });
+          };
+          batch.set(notificationRef, notificationData);
       }
 
-      try {
-          await batch.commit();
-          toast({
-              title: 'Project Completed!',
-              description: 'The project status has been updated.',
+      batch.commit()
+          .then(() => {
+              toast({
+                  title: 'Project Completed!',
+                  description: 'The project status has been updated.',
+              });
+              // Refresh the task list
+              fetchTasks();
+          })
+          .catch((error: any) => {
+               const permissionError = new FirestorePermissionError({
+                  path: `BATCH WRITE: [tasks/${task.id}, projects/${task.projectId}]`,
+                  operation: 'update',
+                  requestResourceData: { taskUpdate: taskUpdateData, projectUpdate: projectUpdateData },
+              }, error);
+              errorEmitter.emit('permission-error', permissionError);
           });
-          // Refresh the task list
-          fetchTasks();
-      } catch (error: any) {
-          toast({
-              variant: 'destructive',
-              title: 'Error',
-              description: `Could not complete the task: ${error.message}`,
-          });
-          console.error(error);
-      }
   };
 
   if (!user && !userLoading) {
@@ -217,6 +232,9 @@ export default function MyTasksPage() {
                         {task.dueDate ? format(task.dueDate.toDate(), 'PPP') : 'Not set'}
                       </TableCell>
                        <TableCell className="text-right space-x-2">
+                             <Button asChild size="sm" variant="outline">
+                                <Link href={`/admin/projects/${task.projectId}`}>View Details</Link>
+                            </Button>
                              <AlertDialog>
                                 <AlertDialogTrigger asChild>
                                    <Button size="sm" variant="default">
@@ -239,9 +257,6 @@ export default function MyTasksPage() {
                                   </AlertDialogFooter>
                                 </AlertDialogContent>
                               </AlertDialog>
-                            <Button asChild size="sm" variant="outline">
-                                <Link href={`/admin/projects/${task.projectId}`}>View Details</Link>
-                            </Button>
                       </TableCell>
                     </TableRow>
                   )

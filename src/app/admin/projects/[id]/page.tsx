@@ -13,6 +13,8 @@ import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 function DetailItem({ label, value, isBadge = false, badgeVariant, children }: { label: string; value?: string | number | boolean | null; isBadge?: boolean; badgeVariant?: 'default' | 'secondary' | 'destructive' | 'outline', children?: React.ReactNode }) {
     if (value === null || typeof value === 'undefined' || value === '') return null;
@@ -86,6 +88,13 @@ export default function ProjectDetailPage() {
                 }
 
             } catch (err: any) {
+                 if (err.code === 'permission-denied') {
+                    const permissionError = new FirestorePermissionError({
+                        path: `projects/${projectId}`,
+                        operation: 'get',
+                    }, err);
+                    errorEmitter.emit('permission-error', permissionError);
+                }
                 console.error("Failed to fetch project details:", err);
                 setError("Could not load project data. You may not have permission to view it.");
             } finally {
