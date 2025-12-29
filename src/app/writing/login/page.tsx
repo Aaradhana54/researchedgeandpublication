@@ -46,7 +46,7 @@ export default function WritingLoginPage() {
             </Link>
          </Button>
         <CardHeader className="text-center pt-16">
-          <CardTitle className="text-2xl font-bold">Writing Portal Login</CardTitle>
+          <CardTitle className="text-2xl font-bold">Writer Portal Login</CardTitle>
           <CardDescription>Access your writing dashboard.</CardDescription>
         </CardHeader>
         <CardContent>

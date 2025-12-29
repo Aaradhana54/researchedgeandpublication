@@ -217,9 +217,6 @@ export default function MyTasksPage() {
                         {task.dueDate ? format(task.dueDate.toDate(), 'PPP') : 'Not set'}
                       </TableCell>
                        <TableCell className="text-right space-x-2">
-                            <Button asChild size="sm" variant="outline">
-                                <Link href={`/admin/projects/${task.projectId}`}>View Project</Link>
-                            </Button>
                              <AlertDialog>
                                 <AlertDialogTrigger asChild>
                                    <Button size="sm" variant="default">
@@ -242,6 +239,9 @@ export default function MyTasksPage() {
                                   </AlertDialogFooter>
                                 </AlertDialogContent>
                               </AlertDialog>
+                            <Button asChild size="sm" variant="outline">
+                                <Link href={`/admin/projects/${task.projectId}`}>View Details</Link>
+                            </Button>
                       </TableCell>
                     </TableRow>
                   )

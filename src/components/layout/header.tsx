@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -147,7 +148,7 @@ export function Header() {
                         </DropdownMenuItem>
                          <DropdownMenuItem onClick={() => router.push('/writing/login')}>
                           <PenTool className="mr-2 h-4 w-4" />
-                          <span>Writing Login</span>
+                          <span>Writer Login</span>
                         </DropdownMenuItem>
                     </DropdownMenuGroup>
                     <DropdownMenuSeparator />
