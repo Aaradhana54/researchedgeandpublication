@@ -1,19 +1,52 @@
+
 import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion';
+  BookCopy,
+  BookUp,
+  FileCheck2,
+  Palette,
+  Copyright,
+  Globe2,
+  Megaphone,
+} from 'lucide-react';
 import { AnimatedWrapper } from '@/components/animated-wrapper';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 const publishingServices = [
-    { title: 'Book Writing & Ghostwriting', description: 'Professional writing and ghostwriting services to bring your book idea to life.' },
-    { title: 'Academic Book Conversion', description: 'Transform your thesis, dissertation, or research into a published academic book.' },
-    { title: 'Editing & Proofreading', description: 'Meticulous editing to ensure your manuscript is polished and error-free.' },
-    { title: 'Cover Design & Interior Formatting', description: 'Creative cover design and professional interior layout for print and eBooks.' },
-    { title: 'ISBN & Copyright Assistance', description: 'We handle ISBN assignment and copyright registration to protect your work.' },
-    { title: 'Publishing & Distribution', description: 'Global distribution to major online retailers and platforms.' },
-    { title: 'Book Marketing & Branding', description: 'Strategic marketing and branding support to help your book reach its audience.' },
+  {
+    icon: <BookCopy className="w-8 h-8 text-accent" />,
+    title: 'Book Writing & Ghostwriting',
+    description: 'Professional writing and ghostwriting services to bring your book idea to life.',
+  },
+  {
+    icon: <BookUp className="w-8 h-8 text-accent" />,
+    title: 'Academic Book Conversion',
+    description: 'Transform your thesis, dissertation, or research into a published academic book.',
+  },
+  {
+    icon: <FileCheck2 className="w-8 h-8 text-accent" />,
+    title: 'Editing & Proofreading',
+    description: 'Meticulous editing to ensure your manuscript is polished and error-free.',
+  },
+  {
+    icon: <Palette className="w-8 h-8 text-accent" />,
+    title: 'Cover Design & Formatting',
+    description: 'Creative cover design and professional interior layout for print and eBooks.',
+  },
+  {
+    icon: <Copyright className="w-8 h-8 text-accent" />,
+    title: 'ISBN & Copyright',
+    description: 'We handle ISBN assignment and copyright registration to protect your work.',
+  },
+  {
+    icon: <Globe2 className="w-8 h-8 text-accent" />,
+    title: 'Publishing & Distribution',
+    description: 'Global distribution to major online retailers and platforms.',
+  },
+   {
+    icon: <Megaphone className="w-8 h-8 text-accent" />,
+    title: 'Book Marketing & Branding',
+    description: 'Strategic marketing and branding support to help your book reach its audience.',
+  },
 ];
 
 
@@ -31,22 +64,23 @@ export function BookPublishing() {
             </p>
           </div>
         </AnimatedWrapper>
-        <AnimatedWrapper delay={200}>
-          <div className="max-w-3xl mx-auto">
-            <Accordion type="single" collapsible className="w-full">
-              {publishingServices.map((service) => (
-                <AccordionItem key={service.title} value={service.title} className="bg-card shadow-soft rounded-lg mb-3 px-4 transition-shadow hover:shadow-lift">
-                  <AccordionTrigger className="text-lg font-medium hover:no-underline">
-                    {service.title}
-                  </AccordionTrigger>
-                  <AccordionContent className="text-base text-muted-foreground">
-                    {service.description}
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
-          </div>
-        </AnimatedWrapper>
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+           {publishingServices.map((service, index) => (
+            <AnimatedWrapper key={service.title} delay={index * 100}>
+              <Card className="h-full text-center shadow-soft hover:shadow-lift hover:-translate-y-2 transition-all duration-300">
+                <CardHeader className="items-center">
+                  <div className="bg-accent/10 p-4 rounded-full mb-4">
+                    {service.icon}
+                  </div>
+                  <CardTitle className="text-xl font-semibold">{service.title}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground">{service.description}</p>
+                </CardContent>
+              </Card>
+            </AnimatedWrapper>
+          ))}
+        </div>
       </div>
     </section>
   );
