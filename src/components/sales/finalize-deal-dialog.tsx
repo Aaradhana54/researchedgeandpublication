@@ -71,28 +71,27 @@ export function FinalizeDealDialog({ children, project }: { children: React.Reac
         setError('An unexpected error occurred. Missing required context.');
         return;
     }
-    if (!file) {
-        setError('Payment screenshot is required.');
-        return;
-    }
 
     setLoading(true);
     setError(null);
     setUploadProgress(0);
 
     try {
-      // 1. Upload screenshot
-      const storageRef = ref(storage, `payment_screenshots/${project.id}/${file.name}`);
-      const uploadTask = uploadBytesResumable(storageRef, file);
+      let downloadUrl = '';
+      // 1. Upload screenshot if it exists
+      if (file) {
+        const storageRef = ref(storage, `payment_screenshots/${project.id}/${file.name}`);
+        const uploadTask = uploadBytesResumable(storageRef, file);
 
-      uploadTask.on('state_changed', (snapshot) => {
-          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-          setUploadProgress(progress);
-      });
+        uploadTask.on('state_changed', (snapshot) => {
+            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+            setUploadProgress(progress);
+        });
 
-      await uploadTask;
-      const downloadUrl = await getDownloadURL(uploadTask.snapshot.ref);
-
+        await uploadTask;
+        downloadUrl = await getDownloadURL(uploadTask.snapshot.ref);
+      }
+      
       // 2. Update Firestore document
       const projectDocRef = doc(firestore, 'projects', project.id);
       await updateDoc(projectDocRef, {
@@ -192,13 +191,12 @@ export function FinalizeDealDialog({ children, project }: { children: React.Reac
                         )}
                     />
                     <div className="space-y-2">
-                        <Label htmlFor="payment-screenshot">Payment Screenshot *</Label>
+                        <Label htmlFor="payment-screenshot">Payment Screenshot (Optional)</Label>
                         <Input 
                             id="payment-screenshot"
                             type="file"
                             onChange={handleFileChange}
                             accept="image/png, image/jpeg, image/gif"
-                            required
                         />
                         {loading && uploadProgress > 0 && <Progress value={uploadProgress} />}
                     </div>

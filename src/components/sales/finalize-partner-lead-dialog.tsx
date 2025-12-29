@@ -74,27 +74,26 @@ export function FinalizePartnerLeadDialog({ children, lead }: { children: React.
         setError('An unexpected error occurred. Missing required context.');
         return;
     }
-    if (!file) {
-        setError('Payment screenshot is required.');
-        return;
-    }
 
     setLoading(true);
     setError(null);
     setUploadProgress(0);
 
     try {
-      // Step 1: Upload the screenshot and get the URL
-      const storageRef = ref(storage, `payment_screenshots/${lead.id}/${file.name}`);
-      const uploadTask = uploadBytesResumable(storageRef, file);
+      let downloadUrl = '';
+      // Step 1: Upload the screenshot if it exists
+      if (file) {
+        const storageRef = ref(storage, `payment_screenshots/${lead.id}/${file.name}`);
+        const uploadTask = uploadBytesResumable(storageRef, file);
 
-      uploadTask.on('state_changed', (snapshot) => {
-          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-          setUploadProgress(progress);
-      });
+        uploadTask.on('state_changed', (snapshot) => {
+            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+            setUploadProgress(progress);
+        });
 
-      await uploadTask;
-      const downloadUrl = await getDownloadURL(uploadTask.snapshot.ref);
+        await uploadTask;
+        downloadUrl = await getDownloadURL(uploadTask.snapshot.ref);
+      }
       
       // Step 2: Create the new Project document with all data at once
       const projectCollection = collection(firestore, 'projects');
@@ -219,13 +218,12 @@ export function FinalizePartnerLeadDialog({ children, lead }: { children: React.
                             )}
                         />
                         <div className="space-y-2">
-                            <Label htmlFor="payment-screenshot">Payment Screenshot *</Label>
+                            <Label htmlFor="payment-screenshot">Payment Screenshot (Optional)</Label>
                             <Input 
                                 id="payment-screenshot"
                                 type="file"
                                 onChange={handleFileChange}
                                 accept="image/png, image/jpeg, image/gif"
-                                required
                             />
                             {loading && uploadProgress > 0 && <Progress value={uploadProgress} />}
                         </div>
