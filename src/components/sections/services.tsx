@@ -1,21 +1,70 @@
+
 import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion';
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  CardDescription,
+} from '@/components/ui/card';
 import { AnimatedWrapper } from '@/components/animated-wrapper';
+import {
+  BookOpenText,
+  FileSignature,
+  FileText,
+  ClipboardList,
+  BarChart3,
+  ShieldCheck,
+  PenSquare,
+  Lightbulb,
+  Send,
+} from 'lucide-react';
 
 const researchServices = [
-    { title: 'Thesis & Dissertation Writing', description: 'Comprehensive support for crafting your thesis or dissertation from start to finish.' },
-    { title: 'Synopsis & Proposal Preparation', description: 'Develop a compelling research proposal and synopsis to get your project approved.' },
-    { title: 'Research Paper Writing & Publication Support', description: 'Expert assistance in writing and publishing your research in high-impact journals.' },
-    { title: 'Literature Review & Reference Management', description: 'Systematic literature reviews and precise reference management using tools like EndNote and Zotero.' },
-    { title: 'Data Analysis & Interpretation (SPSS, R, SmartPLS)', description: 'Advanced statistical analysis and clear interpretation of your research data.' },
-    { title: 'Plagiarism Checking & Removal', description: 'Ensure originality with our thorough plagiarism checks and content refinement services.' },
-    { title: 'Proofreading & Editing', description: 'Professional editing to enhance clarity, grammar, and style for a polished final document.' },
-    { title: 'Topic Selection & Research Design', description: 'Guidance in selecting a relevant topic and designing a robust research methodology.' },
-    { title: 'Journal Formatting & Submission', description: 'Formatting your manuscript according to journal guidelines and managing the submission process.' },
+  {
+    title: 'Thesis & Dissertation Writing',
+    description: 'Comprehensive support for crafting your thesis or dissertation from start to finish.',
+    icon: <BookOpenText className="w-8 h-8 text-primary" />,
+  },
+  {
+    title: 'Synopsis & Proposal Preparation',
+    description: 'Develop a compelling research proposal and synopsis to get your project approved.',
+    icon: <FileSignature className="w-8 h-8 text-primary" />,
+  },
+  {
+    title: 'Research Paper Writing & Publication Support',
+    description: 'Expert assistance in writing and publishing your research in high-impact journals.',
+    icon: <FileText className="w-8 h-8 text-primary" />,
+  },
+  {
+    title: 'Literature Review & Reference Management',
+    description: 'Systematic literature reviews and precise reference management.',
+    icon: <ClipboardList className="w-8 h-8 text-primary" />,
+  },
+  {
+    title: 'Data Analysis & Interpretation',
+    description: 'Advanced statistical analysis and clear interpretation of your research data.',
+    icon: <BarChart3 className="w-8 h-8 text-primary" />,
+  },
+  {
+    title: 'Plagiarism Checking & Removal',
+    description: 'Ensure originality with our thorough plagiarism checks and content refinement services.',
+    icon: <ShieldCheck className="w-8 h-8 text-primary" />,
+  },
+   {
+    title: 'Proofreading & Editing',
+    description: 'Professional editing to enhance clarity, grammar, and style for a polished final document.',
+    icon: <PenSquare className="w-8 h-8 text-primary" />,
+  },
+  {
+    title: 'Topic Selection & Research Design',
+    description: 'Guidance in selecting a relevant topic and designing a robust research methodology.',
+    icon: <Lightbulb className="w-8 h-8 text-primary" />,
+  },
+  {
+    title: 'Journal Formatting & Submission',
+    description: 'Formatting your manuscript according to journal guidelines and managing the submission process.',
+    icon: <Send className="w-8 h-8 text-primary" />,
+  },
 ];
 
 export function Services() {
@@ -32,22 +81,23 @@ export function Services() {
             </p>
           </div>
         </AnimatedWrapper>
-        <AnimatedWrapper delay={200}>
-          <div className="max-w-3xl mx-auto">
-            <Accordion type="single" collapsible className="w-full">
-              {researchServices.map((service) => (
-                <AccordionItem key={service.title} value={service.title} className="bg-card shadow-soft rounded-lg mb-3 px-4 transition-shadow hover:shadow-lift">
-                  <AccordionTrigger className="text-lg font-medium hover:no-underline">
-                    {service.title}
-                  </AccordionTrigger>
-                  <AccordionContent className="text-base text-muted-foreground">
-                    {service.description}
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
-          </div>
-        </AnimatedWrapper>
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {researchServices.map((service, index) => (
+            <AnimatedWrapper key={service.title} delay={index * 100}>
+              <Card className="h-full shadow-soft hover:shadow-lift hover:-translate-y-2 transition-all duration-300 flex flex-col">
+                <CardHeader>
+                    <div className="mb-4 bg-primary/10 p-3 rounded-full w-fit">
+                        {service.icon}
+                    </div>
+                    <CardTitle>{service.title}</CardTitle>
+                </CardHeader>
+                <CardContent className="flex-grow">
+                  <p className="text-muted-foreground">{service.description}</p>
+                </CardContent>
+              </Card>
+            </AnimatedWrapper>
+          ))}
+        </div>
       </div>
     </section>
   );
