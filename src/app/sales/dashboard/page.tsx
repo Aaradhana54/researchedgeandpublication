@@ -4,7 +4,7 @@
 import { useMemo } from 'react';
 import { useUser } from '@/firebase/auth/use-user';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { LoaderCircle, Users, UserCheck, UserCog } from 'lucide-react';
+import { LoaderCircle, Users, UserCheck, UserCog, CheckCircle2, DollarSign } from 'lucide-react';
 import { useCollection, useFirestore } from '@/firebase';
 import { collection, query } from 'firebase/firestore';
 import type { Project, ContactLead } from '@/lib/types';
@@ -44,7 +44,7 @@ export default function SalesDashboardPage() {
 
   const loading = userLoading || projectsLoading || contactLeadsLoading;
 
-  const { totalLeads, convertedLeads, pendingLeads } = useMemo(() => {
+  const { totalLeads, convertedLeads, pendingLeads, completedLeads, totalPayment } = useMemo(() => {
     const allProjects = projects || [];
     const allContactLeads = contactLeads || [];
 
@@ -61,7 +61,13 @@ export default function SalesDashboardPage() {
     const pendingContactLeads = allContactLeads.filter(l => l.status === 'new').length;
     const pendingLeads = pendingProjectLeads + pendingContactLeads;
     
-    return { totalLeads, convertedLeads, pendingLeads };
+    // Completed leads are projects with 'completed' status
+    const completedLeads = allProjects.filter(p => p.status === 'completed').length;
+    
+    // Total payment is the sum of dealAmount from all finalized projects
+    const totalPayment = allProjects.reduce((sum, p) => sum + (p.dealAmount || 0), 0);
+
+    return { totalLeads, convertedLeads, pendingLeads, completedLeads, totalPayment };
 
   }, [projects, contactLeads]);
 
@@ -84,10 +90,12 @@ export default function SalesDashboardPage() {
         </p>
       </div>
       
-       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         <StatCard title="Total Leads" value={totalLeads} icon={<Users className="h-4 w-4 text-muted-foreground" />} />
         <StatCard title="Converted Leads" value={convertedLeads} icon={<UserCheck className="h-4 w-4 text-muted-foreground" />} />
         <StatCard title="Pending Leads" value={pendingLeads} icon={<UserCog className="h-4 w-4 text-muted-foreground" />} />
+        <StatCard title="Completed Leads" value={completedLeads} icon={<CheckCircle2 className="h-4 w-4 text-muted-foreground" />} />
+        <StatCard title="Total Payment" value={totalPayment.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })} icon={<DollarSign className="h-4 w-4 text-muted-foreground" />} />
       </div>
     </div>
   );
