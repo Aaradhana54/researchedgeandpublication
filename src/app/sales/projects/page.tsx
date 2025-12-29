@@ -2,8 +2,8 @@
 'use client';
 
 import { useMemo } from 'react';
-import { collection, query, orderBy } from 'firebase/firestore';
-import { useCollection, useFirestore } from '@/firebase';
+import { collection, query, orderBy, where } from 'firebase/firestore';
+import { useCollection, useFirestore, useUser } from '@/firebase';
 import type { Project, UserProfile } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoaderCircle, FolderKanban } from 'lucide-react';
@@ -40,11 +40,16 @@ const getProjectStatusVariant = (status?: string): 'default' | 'secondary' | 'de
 
 export default function SalesProjectsPage() {
   const firestore = useFirestore();
+  const { user } = useUser();
 
   const projectsQuery = useMemo(() => {
-    if (!firestore) return null;
-    return query(collection(firestore, 'projects'), orderBy('createdAt', 'desc'));
-  }, [firestore]);
+    if (!firestore || !user) return null;
+    return query(
+        collection(firestore, 'projects'), 
+        where('assignedSalesId', '==', user.uid),
+        orderBy('createdAt', 'desc')
+    );
+  }, [firestore, user]);
 
   const usersQuery = useMemo(() => {
     if (!firestore) return null;
@@ -64,12 +69,12 @@ export default function SalesProjectsPage() {
   return (
     <div className="p-4 sm:p-6 lg:p-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight">All Client Leads</h1>
-        <p className="text-muted-foreground">A comprehensive list of all client-submitted leads on the platform.</p>
+        <h1 className="text-3xl font-bold tracking-tight">Your Client Leads</h1>
+        <p className="text-muted-foreground">A list of client-submitted leads assigned to you.</p>
       </div>
       <Card>
         <CardHeader>
-          <CardTitle>All Client Leads</CardTitle>
+          <CardTitle>Assigned Client Leads</CardTitle>
           <CardDescription>
             Review lead details to understand client needs and finalize deals.
           </CardDescription>
@@ -134,8 +139,8 @@ export default function SalesProjectsPage() {
           ) : (
             <div className="text-center p-12 text-muted-foreground">
                 <FolderKanban className="mx-auto w-12 h-12 mb-4" />
-                <h3 className="text-lg font-semibold">No Client Leads Found</h3>
-                <p>Clients have not submitted any project leads yet.</p>
+                <h3 className="text-lg font-semibold">No Client Leads Assigned</h3>
+                <p>You have no new client leads assigned to you at this time.</p>
             </div>
           )}
         </CardContent>

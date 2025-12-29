@@ -85,6 +85,7 @@ export default function AllLeadsPage() {
                   <TableHead>Client</TableHead>
                   <TableHead>Service</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Assigned To</TableHead>
                   <TableHead>Submitted On</TableHead>
                 </TableRow>
               </TableHeader>
@@ -92,6 +93,7 @@ export default function AllLeadsPage() {
                 {projects.map((project) => {
                   if (!project.id) return null;
                   const client = usersMap.get(project.userId);
+                  const assignedSales = project.assignedSalesId ? usersMap.get(project.assignedSalesId) : null;
                   return (
                     <TableRow key={project.id}>
                       <TableCell className="font-medium">
@@ -112,6 +114,9 @@ export default function AllLeadsPage() {
                            <Badge variant={getProjectStatusVariant(project.status)} className="capitalize">
                             {project.status || 'Pending'}
                            </Badge>
+                       </TableCell>
+                        <TableCell>
+                           {assignedSales?.name || 'Unassigned'}
                        </TableCell>
                       <TableCell>
                         {project.createdAt ? format(project.createdAt.toDate(), 'PPP') : 'N/A'}

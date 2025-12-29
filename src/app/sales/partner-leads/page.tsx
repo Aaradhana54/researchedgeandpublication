@@ -2,8 +2,8 @@
 'use client';
 
 import { useMemo } from 'react';
-import { collection, query, orderBy } from 'firebase/firestore';
-import { useCollection, useFirestore } from '@/firebase';
+import { collection, query, orderBy, where } from 'firebase/firestore';
+import { useCollection, useFirestore, useUser } from '@/firebase';
 import type { ContactLead, UserProfile } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoaderCircle, Users } from 'lucide-react';
@@ -22,15 +22,16 @@ import { Button } from '@/components/ui/button';
 
 export default function SalesPartnerLeadsPage() {
   const firestore = useFirestore();
+  const { user } = useUser();
 
-  // Fetch all leads, sorted by date. Filtering will happen on the client.
   const leadsQuery = useMemo(() => {
-    if (!firestore) return null;
+    if (!firestore || !user) return null;
     return query(
         collection(firestore, 'contact_leads'), 
+        where('assignedSalesId', '==', user.uid),
         orderBy('createdAt', 'desc')
     );
-  }, [firestore]);
+  }, [firestore, user]);
   
   const usersQuery = useMemo(() => {
     if (!firestore) return null;
@@ -58,13 +59,13 @@ export default function SalesPartnerLeadsPage() {
     <div className="p-4 sm:p-6 lg:p-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold tracking-tight">Partner Leads</h1>
-        <p className="text-muted-foreground">A list of all leads submitted by referral partners.</p>
+        <p className="text-muted-foreground">A list of all leads submitted by referral partners and assigned to you.</p>
       </div>
       <Card>
         <CardHeader>
-          <CardTitle>All Referred Leads</CardTitle>
+          <CardTitle>Your Assigned Partner Leads</CardTitle>
           <CardDescription>
-            These leads were submitted by your referral partners.
+            These leads were submitted by referral partners and assigned to you.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -124,7 +125,7 @@ export default function SalesPartnerLeadsPage() {
             <div className="text-center p-12 text-muted-foreground">
                 <Users className="mx-auto w-12 h-12 mb-4" />
                 <h3 className="text-lg font-semibold">No Partner Leads Found</h3>
-                <p>Referral partners have not submitted any leads yet.</p>
+                <p>You have no partner leads assigned to you at the moment.</p>
             </div>
           )}
         </CardContent>

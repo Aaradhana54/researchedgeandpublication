@@ -2,8 +2,8 @@
 'use client';
 
 import { useMemo } from 'react';
-import { collection, query, orderBy } from 'firebase/firestore';
-import { useCollection, useFirestore } from '@/firebase';
+import { collection, query, orderBy, where } from 'firebase/firestore';
+import { useCollection, useFirestore, useUser } from '@/firebase';
 import type { ContactLead } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoaderCircle, MessageSquare } from 'lucide-react';
@@ -22,11 +22,16 @@ import { FinalizePartnerLeadDialog } from '@/components/sales/finalize-partner-l
 
 export default function SalesWebsiteLeadsPage() {
   const firestore = useFirestore();
+  const { user } = useUser();
 
   const leadsQuery = useMemo(() => {
-    if (!firestore) return null;
-    return query(collection(firestore, 'contact_leads'), orderBy('createdAt', 'desc'));
-  }, [firestore]);
+    if (!firestore || !user) return null;
+    return query(
+        collection(firestore, 'contact_leads'), 
+        where('assignedSalesId', '==', user.uid),
+        orderBy('createdAt', 'desc')
+    );
+  }, [firestore, user]);
   
 
   const { data: allLeads, loading: loadingLeads } = useCollection<ContactLead>(leadsQuery);
@@ -40,13 +45,13 @@ export default function SalesWebsiteLeadsPage() {
     <div className="p-4 sm:p-6 lg:p-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold tracking-tight">Website Leads</h1>
-        <p className="text-muted-foreground">A list of all leads submitted from the public contact form.</p>
+        <p className="text-muted-foreground">A list of leads from the contact form assigned to you.</p>
       </div>
       <Card>
         <CardHeader>
-          <CardTitle>All Website Leads</CardTitle>
+          <CardTitle>Your Assigned Website Leads</CardTitle>
           <CardDescription>
-            These leads were submitted via the contact form on your website.
+            These leads were submitted via the contact form on your website and assigned to you.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -105,7 +110,7 @@ export default function SalesWebsiteLeadsPage() {
             <div className="text-center p-12 text-muted-foreground">
                 <MessageSquare className="mx-auto w-12 h-12 mb-4" />
                 <h3 className="text-lg font-semibold">No Website Leads Found</h3>
-                <p>No one has submitted the contact form yet.</p>
+                <p>You have no website leads assigned to you at this time.</p>
             </div>
           )}
         </CardContent>
