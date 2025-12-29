@@ -21,6 +21,8 @@ import { addDoc, collection, serverTimestamp, Timestamp, getDocs, query, where, 
 import { useFirestore, useStorage } from '@/firebase';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { Progress } from '@/components/ui/progress';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 
 const serviceDisplayNames: Record<ProjectServiceType, string> = {
@@ -158,18 +160,8 @@ export default function CreateProjectPage() {
     
     let synopsisFileUrl = '';
     
-    try {
-        if (file && storage) {
-            setUploading(true);
-            const storageRef = ref(storage, `projects/${user.uid}/${Date.now()}-${file.name}`);
-            const uploadTask = uploadBytesResumable(storageRef, file);
-
-            await uploadTask;
-            synopsisFileUrl = await getDownloadURL(uploadTask.snapshot.ref);
-            
-            setUploading(false);
-        }
-
+    // Wrap the main logic in a new async function to handle file upload first
+    const processFormSubmission = async (synopsisUrl = '') => {
         const assignedSalesId = await assignLeadToSales(firestore);
 
         const dataToSave: any = {
@@ -181,7 +173,7 @@ export default function CreateProjectPage() {
           status: 'pending',
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp(),
-          synopsisFileUrl: synopsisFileUrl,
+          synopsisFileUrl: synopsisUrl,
           assignedSalesId: assignedSalesId,
         };
         
@@ -205,24 +197,58 @@ export default function CreateProjectPage() {
         }
 
         const projectsCollection = collection(firestore, 'projects');
-        await addDoc(projectsCollection, dataToSave);
+        addDoc(projectsCollection, dataToSave)
+          .then(async () => {
+             // Send notifications to admins and sales
+            await notifyAdminsAndSales(firestore, `New client project lead: "${dataToSave.title}" from ${user.name}.`, assignedSalesId);
 
-        // Send notifications to admins and sales
-        await notifyAdminsAndSales(firestore, `New client project lead: "${dataToSave.title}" from ${user.name}.`, assignedSalesId);
+            toast({
+                title: 'Project Submitted!',
+                description: 'Your project has been successfully submitted for review.',
+            });
+            setFormKey(Date.now()); 
+            router.push('/dashboard/projects');
+          })
+          .catch((err: any) => {
+            if (err.code === 'permission-denied') {
+              const permissionError = new FirestorePermissionError({
+                path: 'projects',
+                operation: 'create',
+                requestResourceData: dataToSave,
+              }, err);
+              errorEmitter.emit('permission-error', permissionError);
+            } else {
+              console.error(err);
+              setError(err.message || 'An unknown error occurred while creating the project.');
+            }
+          })
+          .finally(() => {
+            setLoading(false);
+          });
+    };
 
-        toast({
-            title: 'Project Submitted!',
-            description: 'Your project has been successfully submitted for review.',
-        });
-        setFormKey(Date.now()); 
-        router.push('/dashboard/projects');
+    if (file && storage) {
+        setUploading(true);
+        const storageRef = ref(storage, `projects/${user.uid}/${Date.now()}-${file.name}`);
+        const uploadTask = uploadBytesResumable(storageRef, file);
 
-    } catch (err: any) {
-      console.error(err);
-      setError(err.message || 'An unknown error occurred while creating the project.');
-    } finally {
-      setLoading(false);
-      setUploading(false);
+        uploadTask.on(
+          'state_changed',
+          (snapshot) => setUploadProgress((snapshot.bytesTransferred / snapshot.totalBytes) * 100),
+          (error) => {
+            console.error("File upload error:", error);
+            setError("Failed to upload file. Please try again.");
+            setLoading(false);
+            setUploading(false);
+          },
+          async () => {
+            synopsisFileUrl = await getDownloadURL(uploadTask.snapshot.ref);
+            setUploading(false);
+            await processFormSubmission(synopsisFileUrl);
+          }
+        );
+    } else {
+      await processFormSubmission();
     }
   }
 
