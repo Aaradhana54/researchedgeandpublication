@@ -136,15 +136,15 @@ service cloud.firestore {
     }
 
     match /feedbacks/{feedbackId} {
-        // Anyone can create a new feedback entry.
-        allow create: if request.resource.data.status == 'pending';
-        // Only admins can read, update (to approve/reject), or delete feedback.
-        allow read, list, update, delete: if isAdmin();
-
-        // Approved feedback can be read by anyone.
-        match /feedbacks/{feedbackId} {
-          allow get, list: if resource.data.status == 'approved';
-        }
+      // Anyone can create new feedback.
+      allow create: if request.resource.data.status == 'pending';
+      
+      // Admins can read, update, and delete any feedback document.
+      allow update, delete: if isAdmin();
+      allow read: if isAdmin() || resource.data.status == 'approved';
+      
+      // Anyone can list APPROVED feedback. Admins can list ALL feedback.
+      allow list: if isAdmin() || (request.query.where.get('status') == 'approved');
     }
     
     // --- Admin-only Collections (with exceptions) ---
