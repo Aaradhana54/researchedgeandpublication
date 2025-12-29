@@ -45,10 +45,10 @@ export default function SalesLeadsPage() {
 
   const projectsQuery = useMemo(() => {
     if (!firestore || !user) return null;
+    // Removed orderBy to avoid composite index. Sorting is now done on the client.
     return query(
         collection(firestore, 'projects'), 
-        where('assignedSalesId', '==', user.uid),
-        orderBy('createdAt', 'desc')
+        where('assignedSalesId', '==', user.uid)
     );
   }, [firestore, user]);
 
@@ -57,8 +57,13 @@ export default function SalesLeadsPage() {
     return query(collection(firestore, 'users'));
   }, [firestore]);
 
-  const { data: projects, loading: loadingProjects } = useCollection<Project>(projectsQuery);
+  const { data: projectsData, loading: loadingProjects } = useCollection<Project>(projectsQuery);
   const { data: users, loading: loadingUsers } = useCollection<UserProfile>(usersQuery);
+
+  const projects = useMemo(() => {
+    if (!projectsData) return [];
+    return [...projectsData].sort((a, b) => b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime());
+  }, [projectsData]);
 
   const loading = loadingProjects || loadingUsers;
 
