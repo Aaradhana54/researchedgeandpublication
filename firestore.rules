@@ -34,13 +34,6 @@ service cloud.firestore {
              (request.resource.data.role == 'client' || request.resource.data.role == 'referral-partner');
     }
 
-    // A writer can read a project's details if they are on the writing team.
-    // The client-side application logic ensures they only attempt to load projects
-    // for which they have been assigned a task.
-    function isWriterAssignedToProject(projectId) {
-      return isWritingTeam();
-    }
-    
     match /users/{userId} {
       // New users can create their own profile with 'client' or 'referral-partner' role.
       // Admins can create any user with any role.
@@ -49,7 +42,7 @@ service cloud.firestore {
       // Users can read their own profile. Admins can read any profile.
       // Referral partners can read profiles of clients they referred.
       // Sales team can read any user profile.
-      allow read: if isOwner(userId) || isAdmin() || isSalesTeam() || (isReferralPartner() && resource.data.referredBy == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.referralCode);
+      allow read: if isOwner(userId) || isAdmin() || isSalesTeam() || isWritingTeam() || (isReferralPartner() && resource.data.referredBy == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.referralCode);
       
       // Admins, referral partners, and sales team can list users (will be filtered in app).
       allow list: if isAdmin() || isReferralPartner() || isSalesTeam() || isWritingTeam();
@@ -72,7 +65,7 @@ service cloud.firestore {
       // Admins, sales team can update any project. Owners can update their own.
       // Writers can update a project's status to 'completed'.
       allow update: if isOwner(resource.data.userId) || isAdmin() || isSalesTeamAssigned(resource.data.assignedSalesId) ||
-                     (isWriterAssignedToProject(projectId) && 
+                     (isWritingTeam() && 
                       request.resource.data.status == 'completed' && 
                       request.resource.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt']));
       
