@@ -6,7 +6,8 @@ import {
   LogOut,
   ChevronDown,
   FileText,
-  ClipboardList
+  ClipboardList,
+  CheckCircle2
 } from 'lucide-react';
 import React from 'react';
 import { usePathname, useRouter } from 'next/navigation';
@@ -43,6 +44,7 @@ import { useEffect } from 'react';
 const dashboardNavItems = [
   { href: '/writing/dashboard', label: 'Overview', icon: <LayoutGrid /> },
   { href: '/writing/tasks', label: 'My Tasks', icon: <ClipboardList /> },
+  { href: '/writing/completed-leads', label: 'Completed Tasks', icon: <CheckCircle2 /> },
   { href: '/writing/submissions', label: 'Submissions', icon: <FileText /> },
 ];
 

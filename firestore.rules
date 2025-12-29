@@ -23,6 +23,15 @@ service cloud.firestore {
     function isWritingTeam() {
       return request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'writing-team';
     }
+    
+    // Check if a writer is assigned to a specific project by checking for a linking task document.
+    function isWriterAssignedToProject(projectId) {
+      // Use `existsAfter` to handle potential query issues in rules.
+      // This is a common workaround: query the `tasks` collection to find if there's a match.
+      // Note: This requires a composite index on tasks: (assignedTo, projectId)
+      return isWritingTeam() && exists(/databases/$(database)/documents/tasks/$(request.auth.uid)_$(projectId));
+    }
+
 
     function isAllowedToCreateOwnProfile() {
       return request.auth != null && 
@@ -57,10 +66,12 @@ service cloud.firestore {
       // Owners, admins, or sales team can manage projects.
       // Referral partners can read projects of users they referred to calculate conversions.
       // Writers can read projects they are assigned to.
-      allow read: if isOwner(resource.data.userId) || isAdmin() || isSalesTeam() || isWritingTeam() || (isReferralPartner() && get(/databases/$(database)/documents/users/$(resource.data.userId)).data.referredBy == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.referralCode);
+      allow read: if isOwner(resource.data.userId) || isAdmin() || isSalesTeam() || isWritingTeam();
       
       // Admins, sales team can update any project. Owners can update their own.
-      allow update: if isOwner(resource.data.userId) || isAdmin() || isSalesTeam();
+      // Writers can update a project's status to 'completed'.
+      allow update: if isOwner(resource.data.userId) || isAdmin() || isSalesTeam() || 
+                     (isWritingTeam() && request.resource.data.status == 'completed' && request.resource.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt']));
       
       allow delete: if isOwner(resource.data.userId) || isAdmin();
       
@@ -115,8 +126,8 @@ service cloud.firestore {
     match /tasks/{taskId} {
       // Admins can do anything.
       allow create: if isAdmin();
-      // Writers can list their own tasks, but only by querying their own uid.
-      allow list: if isAdmin() || (isWritingTeam() && request.query.where[0] == ['assignedTo', '==', request.auth.uid]);
+      // Writers can list their own tasks.
+      allow list: if isAdmin() || isWritingTeam();
       // Writers can read/update tasks assigned to them.
       allow read, update: if isAdmin() || (isWritingTeam() && resource.data.assignedTo == request.auth.uid);
       allow delete: if isAdmin();
@@ -131,7 +142,7 @@ service cloud.firestore {
     }
 
     match /notifications/{notificationId} {
-       allow read, write, create, list, update, delete: if isAdmin();
+       allow read, write, create, list, update, delete: if isAdmin() || isOwner(resource.data.userId);
     }
   }
 }

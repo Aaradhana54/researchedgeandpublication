@@ -11,6 +11,7 @@ import {
   Briefcase,
   UserCheck as UserCheckIcon,
   MessageSquare,
+  CheckCircle2,
 } from 'lucide-react';
 import React from 'react';
 import { usePathname, useRouter } from 'next/navigation';
@@ -62,6 +63,7 @@ const salesNavItems = [
     ]
   },
   { href: '/sales/approved-leads', label: 'Approved Leads', icon: <CheckCircle /> },
+  { href: '/sales/completed-leads', label: 'Completed Leads', icon: <CheckCircle2 /> },
 ];
 
 function SalesSidebar() {

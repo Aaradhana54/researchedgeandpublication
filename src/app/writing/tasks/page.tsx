@@ -2,11 +2,11 @@
 'use client';
 
 import { useMemo, useState, useEffect } from 'react';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, writeBatch, serverTimestamp, addDoc } from 'firebase/firestore';
 import { useCollection, useFirestore, useUser } from '@/firebase';
 import type { Task, Project } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { LoaderCircle, ClipboardList, AlertCircle } from 'lucide-react';
+import { LoaderCircle, ClipboardList, AlertCircle, CheckCircle } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -19,6 +19,8 @@ import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
 
 const getTaskStatusVariant = (status?: string): 'default' | 'secondary' | 'destructive' | 'outline' => {
@@ -38,13 +40,12 @@ const getTaskStatusVariant = (status?: string): 'default' | 'secondary' | 'destr
 export default function MyTasksPage() {
   const { user, loading: userLoading } = useUser();
   const firestore = useFirestore();
+  const { toast } = useToast();
   
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loadingTasks, setLoadingTasks] = useState(true);
   const [tasksError, setTasksError] = useState<Error | null>(null);
 
-  // We need to fetch all projects to map task.projectId to project details.
-  // This is less efficient, but necessary without complex joins.
   const projectsQuery = useMemo(() => {
     if (!firestore) return null;
     return query(collection(firestore, 'projects'));
@@ -55,39 +56,38 @@ export default function MyTasksPage() {
 
   const loading = loadingTasks || loadingProjects || userLoading;
   
-  useEffect(() => {
+  const fetchTasks = async () => {
     if (!firestore || !user) {
         if (!userLoading) {
             setLoadingTasks(false);
         }
         return;
     };
+    setLoadingTasks(true);
+    setTasksError(null);
+    try {
+        const tasksQuery = query(
+            collection(firestore, 'tasks'), 
+            where('assignedTo', '==', user.uid),
+            where('status', '!=', 'completed') // Exclude completed tasks
+        );
+        const querySnapshot = await getDocs(tasksQuery);
+        const fetchedTasks = querySnapshot.docs.map(doc => ({ ...doc.data() as Task, id: doc.id }));
+        
+        fetchedTasks.sort((a, b) => b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime());
+        
+        setTasks(fetchedTasks);
+    } catch (error: any) {
+        console.error("Failed to fetch tasks:", error);
+        setTasksError(error);
+    } finally {
+        setLoadingTasks(false);
+    }
+  };
 
-    const fetchTasks = async () => {
-        setLoadingTasks(true);
-        setTasksError(null);
-        try {
-            const tasksQuery = query(
-                collection(firestore, 'tasks'), 
-                where('assignedTo', '==', user.uid)
-            );
-            const querySnapshot = await getDocs(tasksQuery);
-            const fetchedTasks = querySnapshot.docs.map(doc => ({ ...doc.data() as Task, id: doc.id }));
-            
-            // Sort client-side
-            fetchedTasks.sort((a, b) => b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime());
-            
-            setTasks(fetchedTasks);
-        } catch (error: any) {
-            console.error("Failed to fetch tasks:", error);
-            setTasksError(error);
-        } finally {
-            setLoadingTasks(false);
-        }
-    };
-    
+  useEffect(() => {
     fetchTasks();
-
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [firestore, user, userLoading]);
 
   const projectsMap = useMemo(() => {
@@ -95,6 +95,48 @@ export default function MyTasksPage() {
     return new Map(projects.map((project) => [project.id, project]));
   }, [projects]);
   
+  const handleCompleteTask = async (task: Task) => {
+      if (!firestore || !task.id || !task.projectId) return;
+
+      const batch = writeBatch(firestore);
+
+      // 1. Update task status
+      const taskRef = doc(firestore, 'tasks', task.id);
+      batch.update(taskRef, { status: 'completed', updatedAt: serverTimestamp() });
+
+      // 2. Update project status
+      const projectRef = doc(firestore, 'projects', task.projectId);
+      batch.update(projectRef, { status: 'completed', updatedAt: serverTimestamp() });
+      
+      // 3. Create notification for client
+      const projectData = projectsMap.get(task.projectId);
+      if (projectData) {
+          const notificationRef = doc(collection(firestore, 'notifications'));
+          batch.set(notificationRef, {
+              userId: projectData.userId,
+              message: `Your project "${projectData.title}" has been marked as complete.`,
+              isRead: false,
+              createdAt: serverTimestamp(),
+          });
+      }
+
+      try {
+          await batch.commit();
+          toast({
+              title: 'Project Completed!',
+              description: 'The project status has been updated.',
+          });
+          // Refresh the task list
+          fetchTasks();
+      } catch (error: any) {
+          toast({
+              variant: 'destructive',
+              title: 'Error',
+              description: `Could not complete the task: ${error.message}`,
+          });
+          console.error(error);
+      }
+  };
 
   if (!user && !userLoading) {
       return (
@@ -117,7 +159,7 @@ export default function MyTasksPage() {
     <div className="p-4 sm:p-6 lg:p-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold tracking-tight">My Tasks</h1>
-        <p className="text-muted-foreground">A list of all projects assigned to you.</p>
+        <p className="text-muted-foreground">A list of all active projects assigned to you.</p>
       </div>
       <Card>
         <CardHeader>
@@ -170,10 +212,32 @@ export default function MyTasksPage() {
                       <TableCell>
                         {task.dueDate ? format(task.dueDate.toDate(), 'PPP') : 'Not set'}
                       </TableCell>
-                       <TableCell className="text-right">
+                       <TableCell className="text-right space-x-2">
                             <Button asChild size="sm" variant="outline">
                                 <Link href={`/admin/projects/${task.projectId}`}>View Project</Link>
                             </Button>
+                             <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                   <Button size="sm" variant="default">
+                                    <CheckCircle className="mr-2 h-4 w-4" />
+                                    Complete
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      This will mark the task and the entire project as complete. This action cannot be undone.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction onClick={() => handleCompleteTask(task)}>
+                                      Yes, Mark as Complete
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
                       </TableCell>
                     </TableRow>
                   )
