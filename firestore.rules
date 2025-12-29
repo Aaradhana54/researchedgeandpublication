@@ -40,16 +40,16 @@ service cloud.firestore {
     
     function isClientCreatingOwnProject() {
       let data = request.resource.data;
-      let clientWritableFields = [
-          'userId', 'serviceType', 'title', 'wantToPublish', 'isPaperReady',
-          'status', 'createdAt', 'updatedAt', 'synopsisFileUrl', 'assignedSalesId',
-          'mobile', 'topic', 'courseLevel', 'deadline', 'referencingStyle',
-          'language', 'pageCount', 'wordCount', 'publishWhere'
+      let allowedKeys = [
+        'userId', 'title', 'mobile', 'serviceType', 'topic', 'courseLevel', 
+        'deadline', 'synopsisFileUrl', 'referencingStyle', 'pageCount', 
+        'wordCount', 'language', 'wantToPublish', 'isPaperReady', 
+        'publishWhere', 'status', 'createdAt', 'updatedAt', 'assignedSalesId'
       ];
       
       return request.auth.uid == data.userId &&
              get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'client' &&
-             data.keys().hasAll(clientWritableFields) && // Use hasAll for flexibility with optional fields
+             data.keys().hasOnly(allowedKeys) &&
              data.status == 'pending';
     }
 
