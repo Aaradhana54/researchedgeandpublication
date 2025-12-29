@@ -3,7 +3,7 @@
 
 import { AnimatedWrapper } from '@/components/animated-wrapper';
 import { Lightbulb, Calendar, Pencil, MessageSquare, CheckCircle, Send } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 
 const processSteps = [
   {
@@ -53,43 +53,25 @@ export function Process() {
           </div>
         </AnimatedWrapper>
         
-        <div className="relative">
-          {/* Vertical line */}
-          <div className="absolute left-1/2 top-0 h-full w-0.5 bg-border -translate-x-1/2" aria-hidden="true"></div>
-
-          <div className="space-y-12 md:space-y-0">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {processSteps.map((step, index) => (
-              <AnimatedWrapper key={step.title} delay={index * 150}>
-                <div className="relative flex items-center md:items-start">
-                  <div className={cn(
-                    "flex w-full items-center justify-start md:w-1/2",
-                    index % 2 === 0 ? 'md:justify-end md:pr-8' : 'md:justify-start md:pl-8 md:flex-row-reverse'
-                  )}>
-                    <div className={cn(
-                      "flex-shrink-0 w-16 h-16 rounded-full bg-background shadow-soft flex items-center justify-center relative",
-                       index % 2 === 0 ? 'md:-mr-8' : 'md:-ml-8'
-                    )}>
-                      {/* Dot on the timeline */}
-                      <div className="absolute left-1/2 top-1/2 -translate-y-1/2 bg-background p-1 rounded-full z-20">
-                         <div className="w-4 h-4 rounded-full bg-primary border-4 border-background"></div>
-                      </div>
-                      <div className="z-10">{step.icon}</div>
-                    </div>
-                    
-                    <div className={cn(
-                      "bg-card p-6 rounded-lg shadow-soft max-w-sm w-full",
-                       index % 2 === 0 ? "text-right" : "text-left"
-                    )}>
-                      <h3 className="text-xl font-bold text-foreground mb-2">{step.title}</h3>
+              <AnimatedWrapper key={step.title} delay={index * 100}>
+                 <Card className="h-full relative overflow-hidden bg-background/50 shadow-soft hover:shadow-lift transition-shadow duration-300">
+                    <span className="absolute -top-4 -right-4 text-[8rem] font-bold text-primary/5 opacity-50 select-none">
+                        {String(index + 1).padStart(2, '0')}
+                    </span>
+                    <CardHeader>
+                        <div className="bg-primary/10 p-4 rounded-full mb-4 w-fit">
+                            {step.icon}
+                        </div>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                      <h3 className="text-xl font-bold text-foreground">{step.title}</h3>
                       <p className="text-muted-foreground">{step.description}</p>
-                    </div>
-                  </div>
-                   {/* This is a spacer for mobile layout */}
-                  <div className="hidden md:block w-1/2"></div>
-                </div>
+                    </CardContent>
+                </Card>
               </AnimatedWrapper>
             ))}
-          </div>
         </div>
       </div>
     </section>
