@@ -22,7 +22,7 @@ export function Hero() {
       className="relative w-full min-h-[calc(100vh-5rem)] flex items-center justify-center text-center"
     >
       <Carousel
-        className="absolute w-full h-full -z-10"
+        className="absolute top-0 left-0 w-full h-full -z-10"
         plugins={[
           Autoplay({
             delay: 5000,
@@ -47,7 +47,7 @@ export function Hero() {
           ))}
         </CarouselContent>
       </Carousel>
-      <div className="absolute inset-0 bg-background/80 -z-10" />
+      <div className="absolute top-0 left-0 inset-0 bg-background/80 -z-10" />
 
       <div className="container mx-auto px-4">
         <AnimatedWrapper>
