@@ -9,24 +9,28 @@ const CustomLogoIcon = ({ className }: { className?: string }) => (
     fill="none"
     xmlns="http://www.w3.org/2000/svg"
     stroke="currentColor"
-    strokeWidth="3"
+    strokeWidth="2.5"
     strokeLinecap="round"
     strokeLinejoin="round"
   >
-    {/* 'R' curve */}
-    <path d="M29.5 10C35.8513 10 41 15.1487 41 21.5C41 27.8513 35.8513 33 29.5 33" />
+    {/* R Bowl */}
+    <path d="M29.5 12C35.8513 12 41 17.1487 41 23.5C41 29.8513 35.8513 35 29.5 35" />
     
     {/* Vertical Stem */}
-    <path d="M10 10V40" />
+    <path d="M10 12V38" />
 
-    {/* Horizontal bars */}
-    <path d="M10 15.5H29.5" />
-    <path d="M10 24H29.5" />
-    <path d="M10 32.5H22" />
+    {/* E horizontal bars */}
+    <path d="M10 17.5H29.5" />
+    <path d="M10 23.5H29.5" />
+    <path d="M10 29.5H29.5" />
 
-    {/* Bottom 'E'-like bars */}
-    <path d="M10 40H20" />
-    <path d="M10 36H16" />
+    {/* Bottom Prongs */}
+    <path d="M10 38H41" />
+    <path d="M15 38V42" />
+    <path d="M20.25 38V42" />
+    <path d="M25.5 38V42" />
+    <path d="M30.75 38V42" />
+    <path d="M36 38V42" />
   </svg>
 );
 
