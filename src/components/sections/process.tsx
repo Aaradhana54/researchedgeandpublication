@@ -1,3 +1,4 @@
+
 import { AnimatedWrapper } from '@/components/animated-wrapper';
 
 const processSteps = [
@@ -52,7 +53,7 @@ export function Process() {
               <AnimatedWrapper key={item.step} delay={index * 150}>
                 <div className="relative flex items-start md:items-center">
                     {/* Circle */}
-                    <div className="absolute left-6 md:left-1/2 top-0 md:top-1/2 w-12 h-12 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-bold text-xl ring-8 ring-secondary -translate-x-1/2 -translate-y-1/2 md:translate-y-0">
+                    <div className="absolute left-6 md:left-1/2 top-0 md:top-1/2 w-12 h-12 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-bold text-xl ring-8 ring-secondary -translate-x-1/2 md:-translate-y-1/2">
                         {item.step}
                     </div>
                     
