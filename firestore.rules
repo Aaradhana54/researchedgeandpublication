@@ -59,7 +59,8 @@ service cloud.firestore {
     }
     
     match /projects/{projectId} {
-      // Authenticated users can create projects for themselves. Sales team can also create projects.
+      // Authenticated users can create projects for themselves. The `userId` must match their own uid.
+      // Sales team can also create projects on behalf of users.
       allow create: if request.auth != null && (isOwner(request.resource.data.userId) || isSalesTeam());
 
       // Owners, admins, or sales team can manage projects.
