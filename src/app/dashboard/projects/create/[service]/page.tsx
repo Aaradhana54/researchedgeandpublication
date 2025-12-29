@@ -166,8 +166,6 @@ export default function CreateProjectPage() {
     
     const processFormSubmission = async (synopsisUrl = '') => {
         try {
-            const assignedSalesId = await assignLeadToSales(firestore);
-    
             const dataToSave: any = {
               userId: user.uid,
               serviceType: service,
@@ -178,7 +176,6 @@ export default function CreateProjectPage() {
               createdAt: serverTimestamp(),
               updatedAt: serverTimestamp(),
               synopsisFileUrl: synopsisUrl,
-              assignedSalesId: assignedSalesId,
             };
             
             if (rawFormData.mobile) dataToSave.mobile = rawFormData.mobile;
@@ -200,26 +197,16 @@ export default function CreateProjectPage() {
                 dataToSave.wordCount = Number(rawFormData.wordCount);
             }
 
-            // A client is creating this, so we remove the fields they are not allowed to set.
-            if (user.role === 'client') {
-              delete dataToSave.assignedSalesId;
-            }
-    
             const projectsCollection = collection(firestore, 'projects');
             const docRef = await addDoc(projectsCollection, dataToSave);
             
-            if (user.role !== 'client') {
-              await notifyAdminsAndSales(firestore, `New client project lead: "${dataToSave.title}" from ${user.name}.`, assignedSalesId);
+            const salesId = await assignLeadToSales(firestore);
+            if (salesId) {
+                const projectDocRef = doc(firestore, 'projects', docRef.id);
+                await updateDoc(projectDocRef, { assignedSalesId: salesId });
+                await notifyAdminsAndSales(firestore, `New client project lead: "${dataToSave.title}" from ${user.name}.`, salesId);
             } else {
-               // When a client signs up, we want to assign the lead. We can do this in a separate update.
-               const projectDocRef = doc(firestore, 'projects', docRef.id);
-               const salesId = await assignLeadToSales(firestore);
-               if (salesId) {
-                  await updateDoc(projectDocRef, { assignedSalesId: salesId });
-                  await notifyAdminsAndSales(firestore, `New client project lead: "${dataToSave.title}" from ${user.name}.`, salesId);
-               } else {
-                  await notifyAdminsAndSales(firestore, `New client project lead: "${dataToSave.title}" from ${user.name}.`, null);
-               }
+                await notifyAdminsAndSales(firestore, `New client project lead: "${dataToSave.title}" from ${user.name}.`, null);
             }
 
 
@@ -241,6 +228,8 @@ export default function CreateProjectPage() {
             }
             console.error(err);
             setError(err.message || 'An unknown error occurred while creating the project.');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -257,6 +246,7 @@ export default function CreateProjectPage() {
                 console.error("File upload error:", error);
                 setError("Failed to upload file. Please try again.");
                 setUploading(false);
+                setLoading(false);
               },
               async () => {
                 const downloadUrl = await getDownloadURL(uploadTask.snapshot.ref);
@@ -267,9 +257,11 @@ export default function CreateProjectPage() {
         } else {
           await processFormSubmission();
         }
-    } finally {
-      // This will be reached after the async operations in the try block are settled.
-      // We set loading to false in the processFormSubmission to avoid premature state change.
+    } catch(err) {
+       // Catch any synchronous errors during setup
+       console.error(err);
+       setError((err as Error).message || 'An error occurred.');
+       setLoading(false);
     }
   }
 
