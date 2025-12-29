@@ -197,17 +197,20 @@ export default function CreateProjectPage() {
                 dataToSave.wordCount = Number(rawFormData.wordCount);
             }
 
+            let assignedSalesId: string | null = null;
+            // Only assign a sales lead if the user is a client
+            if (user.role === 'client') {
+                assignedSalesId = await assignLeadToSales(firestore);
+                if (assignedSalesId) {
+                    dataToSave.assignedSalesId = assignedSalesId;
+                }
+            }
+
+
             const projectsCollection = collection(firestore, 'projects');
             const docRef = await addDoc(projectsCollection, dataToSave);
             
-            const salesId = await assignLeadToSales(firestore);
-            if (salesId) {
-                const projectDocRef = doc(firestore, 'projects', docRef.id);
-                await updateDoc(projectDocRef, { assignedSalesId: salesId });
-                await notifyAdminsAndSales(firestore, `New client project lead: "${dataToSave.title}" from ${user.name}.`, salesId);
-            } else {
-                await notifyAdminsAndSales(firestore, `New client project lead: "${dataToSave.title}" from ${user.name}.`, null);
-            }
+            await notifyAdminsAndSales(firestore, `New client project lead: "${dataToSave.title}" from ${user.name}.`, assignedSalesId);
 
 
             toast({
