@@ -59,11 +59,12 @@ service cloud.firestore {
         'finalizedBy', 'assignedWriterId', 'status'
       ];
       
-      return request.auth.uid == data.userId &&
-             (!userDocExists() || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'client') &&
-             request.resource.data.status == 'pending' &&
-             // Ensure no forbidden fields are being set by the client.
-             data.keys().toSet().intersection(forbiddenKeys.toSet()).size() == 0;
+      let isCreatingOwnProject = request.auth != null && request.auth.uid == data.userId;
+      let hasClientRoleOrNoDoc = !userDocExists() || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'client';
+      let isStatusPending = request.resource.data.status == 'pending';
+      let noForbiddenFields = data.keys().toSet().intersection(forbiddenKeys.toSet()).size() == 0;
+      
+      return isCreatingOwnProject && hasClientRoleOrNoDoc && isStatusPending && noForbiddenFields;
     }
 
     match /users/{userId} {
