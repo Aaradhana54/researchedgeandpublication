@@ -178,7 +178,7 @@ export default function CreateProjectPage() {
               createdAt: serverTimestamp(),
               updatedAt: serverTimestamp(),
               synopsisFileUrl: synopsisUrl,
-              assignedSalesId: assignedSalesId,
+              assignedSalesId: assignedSalesId, // This field is allowed by sales team, not clients
             };
             
             if (rawFormData.mobile) dataToSave.mobile = rawFormData.mobile;
@@ -199,11 +199,29 @@ export default function CreateProjectPage() {
             if (rawFormData.wordCount) {
                 dataToSave.wordCount = Number(rawFormData.wordCount);
             }
+
+            // A client is creating this, so we remove the fields they are not allowed to set.
+            if (user.role === 'client') {
+              delete dataToSave.assignedSalesId;
+            }
     
             const projectsCollection = collection(firestore, 'projects');
-            await addDoc(projectsCollection, dataToSave);
+            const docRef = await addDoc(projectsCollection, dataToSave);
+            
+            if (user.role !== 'client') {
+              await notifyAdminsAndSales(firestore, `New client project lead: "${dataToSave.title}" from ${user.name}.`, assignedSalesId);
+            } else {
+               // When a client signs up, we want to assign the lead. We can do this in a separate update.
+               const projectDocRef = doc(firestore, 'projects', docRef.id);
+               const salesId = await assignLeadToSales(firestore);
+               if (salesId) {
+                  await updateDoc(projectDocRef, { assignedSalesId: salesId });
+                  await notifyAdminsAndSales(firestore, `New client project lead: "${dataToSave.title}" from ${user.name}.`, salesId);
+               } else {
+                  await notifyAdminsAndSales(firestore, `New client project lead: "${dataToSave.title}" from ${user.name}.`, null);
+               }
+            }
 
-            await notifyAdminsAndSales(firestore, `New client project lead: "${dataToSave.title}" from ${user.name}.`, assignedSalesId);
 
             toast({
                 title: 'Project Submitted!',
@@ -250,7 +268,8 @@ export default function CreateProjectPage() {
           await processFormSubmission();
         }
     } finally {
-      setLoading(false);
+      // This will be reached after the async operations in the try block are settled.
+      // We set loading to false in the processFormSubmission to avoid premature state change.
     }
   }
 
