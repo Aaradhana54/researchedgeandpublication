@@ -26,8 +26,8 @@ export default function Home() {
         <InstitutionalBranding />
         <Process />
         <Testimonials />
-        <FeedbackForm />
         <Contact />
+        <FeedbackForm />
       </main>
       <Footer />
     </div>
