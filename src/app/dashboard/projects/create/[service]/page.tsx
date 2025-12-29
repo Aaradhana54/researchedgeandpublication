@@ -17,7 +17,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { FormMessage } from '@/components/ui/form';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { addDoc, collection, serverTimestamp, Timestamp, getDocs, query, where, writeBatch, doc, runTransaction } from 'firebase/firestore';
+import { addDoc, collection, serverTimestamp, Timestamp, getDocs, query, where, writeBatch, doc } from 'firebase/firestore';
 import { useFirestore, useStorage } from '@/firebase';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { Progress } from '@/components/ui/progress';
@@ -40,52 +40,15 @@ const courseLevels: { label: string, value: CourseLevel }[] = [
   { label: 'Doctorate (PhD)', value: 'phd' },
 ];
 
-async function assignLeadToSales(firestore: any): Promise<string | null> {
-    const salesTeamQuery = query(collection(firestore, 'users'), where('role', '==', 'sales-team'));
-    const salesTeamSnapshot = await getDocs(salesTeamQuery);
-    const salesTeam = salesTeamSnapshot.docs.map(doc => doc.id);
 
-    if (salesTeam.length === 0) {
-        return null; // No one to assign to
-    }
-    
-    // Use a transaction to get the current index and increment it atomically
-    const metadataRef = doc(firestore, 'metadata', 'leadAssignment');
-    let nextIndex = 0;
-
+async function notifyAdminsAndSales(firestore: any, message: string) {
     try {
-        await runTransaction(firestore, async (transaction) => {
-            const metadataDoc = await transaction.get(metadataRef);
-            if (!metadataDoc.exists()) {
-                nextIndex = 0;
-            } else {
-                const currentIndex = metadataDoc.data().salesLeadIndex || 0;
-                nextIndex = (currentIndex + 1) % salesTeam.length;
-            }
-            transaction.set(metadataRef, { salesLeadIndex: nextIndex }, { merge: true });
-        });
-    } catch (e) {
-        console.error("Lead assignment transaction failed: ", e);
-        // Fallback to random assignment if transaction fails
-        return salesTeam[Math.floor(Math.random() * salesTeam.length)];
-    }
-    
-    return salesTeam[nextIndex];
-}
-
-
-async function notifyAdminsAndSales(firestore: any, message: string, assignedSalesId: string | null = null) {
-    try {
-        const usersToNotify: ('admin' | 'sales-team')[] = ['admin'];
-        if (!assignedSalesId) {
-             usersToNotify.push('sales-team');
-        }
-
         const usersRef = collection(firestore, 'users');
-        const q = query(usersRef, where('role', 'in', usersToNotify));
+        // Notify all sales and admin users about a new unassigned lead.
+        const q = query(usersRef, where('role', 'in', ['admin', 'sales-team']));
         const querySnapshot = await getDocs(q);
 
-        if (querySnapshot.empty && !assignedSalesId) return;
+        if (querySnapshot.empty) return;
 
         const batch = writeBatch(firestore);
         const notificationsRef = collection(firestore, 'notifications');
@@ -101,18 +64,6 @@ async function notifyAdminsAndSales(firestore: any, message: string, assignedSal
             });
         });
         
-        // Notify the specifically assigned sales person
-        if (assignedSalesId) {
-            const newNotifRef = doc(notificationsRef);
-             batch.set(newNotifRef, {
-                userId: assignedSalesId,
-                message: `New client project lead assigned to you: "${message}"`,
-                isRead: false,
-                createdAt: serverTimestamp(),
-            });
-        }
-
-
         await batch.commit();
 
     } catch (error) {
@@ -196,17 +147,11 @@ export default function CreateProjectPage() {
             if (rawFormData.wordCount) {
                 dataToSave.wordCount = Number(rawFormData.wordCount);
             }
-
-            const assignedSalesId = await assignLeadToSales(firestore);
-            if (assignedSalesId) {
-                dataToSave.assignedSalesId = assignedSalesId;
-            }
-
+            
             const projectsCollection = collection(firestore, 'projects');
             const docRef = await addDoc(projectsCollection, dataToSave);
             
-            await notifyAdminsAndSales(firestore, `New client project lead: "${dataToSave.title}" from ${user.name}.`, assignedSalesId);
-
+            await notifyAdminsAndSales(firestore, `New client project lead: "${dataToSave.title}" from ${user.name}.`);
 
             toast({
                 title: 'Project Submitted!',
@@ -527,3 +472,5 @@ export default function CreateProjectPage() {
     </div>
   );
 }
+
+    

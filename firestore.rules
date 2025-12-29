@@ -56,7 +56,7 @@ service cloud.firestore {
       let forbiddenKeys = [
         'dealAmount', 'advanceReceived', 'discussionNotes', 
         'paymentScreenshotUrl', 'finalDeadline', 'finalizedAt', 
-        'finalizedBy', 'assignedWriterId'
+        'finalizedBy', 'assignedWriterId', 'assignedSalesId'
       ];
       
       let isCreatingOwnProject = request.auth != null && request.auth.uid == data.userId;
@@ -193,3 +193,5 @@ service cloud.firestore {
     }
   }
 }
+
+    
