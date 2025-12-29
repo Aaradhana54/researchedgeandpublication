@@ -33,8 +33,8 @@ export function Hero() {
       >
         <CarouselContent>
           {heroImages.map((image, index) => (
-            <CarouselItem key={image.id}>
-               <div className="relative w-full h-[100vh]">
+            <CarouselItem key={image.id} className="relative h-full">
+               <div className="relative w-full h-full">
                  <Image
                   src={image.imageUrl}
                   alt={image.description}
