@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -73,14 +74,14 @@ export function SelectProjectTypeDialog({ children }: { children: React.ReactNod
 
                 <div className="space-y-4 pt-4">
                     {view === 'main' && (
-                        <>
-                            <Button variant="outline" className="w-full h-16 text-lg" onClick={() => setView('writing')}>
+                        <div className="flex flex-col sm:flex-row gap-4">
+                            <Button variant="outline" className="w-full h-24 text-lg flex-1" onClick={() => setView('writing')}>
                                 <Edit className="w-5 h-5 mr-3" /> Writing
                             </Button>
-                             <Button variant="outline" className="w-full h-16 text-lg" onClick={() => setView('publication')}>
+                             <Button variant="outline" className="w-full h-24 text-lg flex-1" onClick={() => setView('publication')}>
                                 <Book className="w-5 h-5 mr-3" /> Publication
                             </Button>
-                        </>
+                        </div>
                     )}
 
                     {view === 'writing' && (
