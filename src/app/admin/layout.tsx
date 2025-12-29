@@ -235,7 +235,7 @@ export default function AdminLayout({
     // If we are not loading and the current page is not the login page
     if (!loading && pathname !== '/admin/login') {
       // If there is no user or the user is not an admin/sales, redirect to login
-      if (!user || !['admin', 'sales-team'].includes(user.role)) {
+      if (!user || !['admin', 'sales-team', 'writing-team'].includes(user.role)) {
         router.replace('/admin/login');
       }
     }
@@ -260,7 +260,7 @@ export default function AdminLayout({
     );
   }
   
-  if (!['admin', 'sales-team'].includes(user.role)) {
+  if (!['admin', 'sales-team', 'writing-team'].includes(user.role)) {
     return (
        <div className="flex h-screen w-full items-center justify-center bg-background">
         <p>You do not have permission to view this page.</p>
@@ -274,7 +274,7 @@ export default function AdminLayout({
       <AdminSidebar />
       <SidebarInset>
          <header className="sticky top-0 z-40 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
-            <SidebarTrigger className="sm:hidden" />
+            <SidebarTrigger />
             <div className="flex-1">
                 {/* Header content can go here if needed */}
             </div>
