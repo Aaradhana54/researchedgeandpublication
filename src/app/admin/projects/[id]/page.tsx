@@ -180,6 +180,8 @@ export default function ProjectDetailPage() {
     
     const canShowAdminControls = loggedInUser?.role === 'admin';
     const canShowDealDetails = loggedInUser?.role === 'admin' || loggedInUser?.role === 'sales-team';
+    const canShowClientDetails = loggedInUser?.role === 'admin' || loggedInUser?.role === 'sales-team';
+
 
     const getBackLink = () => {
         switch(loggedInUser?.role) {
@@ -242,7 +244,7 @@ export default function ProjectDetailPage() {
                         </CardContent>
                     </Card>
 
-                    {project.finalizedAt && canShowDealDetails && (
+                    {canShowDealDetails && project.finalizedAt && (
                         <Card>
                              <CardHeader>
                                 <CardTitle>Deal Details</CardTitle>
@@ -282,21 +284,23 @@ export default function ProjectDetailPage() {
                             </Badge>
                         </CardContent>
                     </Card>
-                     <Card>
-                        <CardHeader>
-                            <CardTitle>Client Details</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            {!user && !loading ? <p>User not found.</p> :
-                                <>
-                                    <DetailItem label="Name" value={user?.name} />
-                                    <DetailItem label="Email" value={user?.email} />
-                                    <DetailItem label="Profile Mobile No." value={user?.mobile} />
-                                    <DetailItem label="Joined On" value={user?.createdAt ? format(user.createdAt.toDate(), 'PPP') : 'N/A'} />
-                                </>
-                            }
-                        </CardContent>
-                    </Card>
+                    {canShowClientDetails && (
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Client Details</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                {!user && !loading ? <p>User not found.</p> :
+                                    <>
+                                        <DetailItem label="Name" value={user?.name} />
+                                        <DetailItem label="Email" value={user?.email} />
+                                        <DetailItem label="Profile Mobile No." value={user?.mobile} />
+                                        <DetailItem label="Joined On" value={user?.createdAt ? format(user.createdAt.toDate(), 'PPP') : 'N/A'} />
+                                    </>
+                                }
+                            </CardContent>
+                        </Card>
+                    )}
                     {project.synopsisFileUrl && (
                         <Card>
                             <CardHeader>
