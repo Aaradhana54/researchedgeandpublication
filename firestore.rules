@@ -24,15 +24,6 @@ service cloud.firestore {
       return request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'writing-team';
     }
     
-    function isWriterAssignedToProject(projectId) {
-      // Security rules cannot perform complex queries across collections to check for task assignment.
-      // Therefore, we grant read access if the user is part of the writing team.
-      // The application logic on the client-side is responsible for fetching and displaying
-      // only the projects the writer is actually assigned to via the 'tasks' collection.
-      return isWritingTeam();
-    }
-
-
     function isAllowedToCreateOwnProfile() {
       return request.auth != null && 
              request.auth.uid == request.resource.data.uid &&
@@ -66,7 +57,7 @@ service cloud.firestore {
       // Owners, admins, or sales team can manage projects.
       // Referral partners can read projects of users they referred to calculate conversions.
       // Writers can read projects they are assigned to.
-      allow read: if isOwner(resource.data.userId) || isAdmin() || isSalesTeam() || isWriterAssignedToProject(projectId);
+      allow read: if isOwner(resource.data.userId) || isAdmin() || isSalesTeam() || isWritingTeam();
       
       // Admins, sales team can update any project. Owners can update their own.
       // Writers can update a project's status to 'completed'.
