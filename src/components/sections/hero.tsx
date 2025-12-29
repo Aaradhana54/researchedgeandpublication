@@ -32,7 +32,7 @@ export function Hero() {
           loop: true,
         }}
       >
-        <CarouselContent>
+        <CarouselContent className="h-full">
           {heroImages.map((heroImage) => (
             <CarouselItem key={heroImage.id} className="relative w-full h-full">
               <Image
