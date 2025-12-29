@@ -18,7 +18,7 @@ export function Hero() {
   const heroImages = PlaceHolderImages.filter(p => p.id.startsWith('hero-background'));
   const plugin = useRef(
     Autoplay({ delay: 4000, stopOnInteraction: true })
-  )
+  );
 
   return (
     <section
