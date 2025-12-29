@@ -1,11 +1,4 @@
 
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-  CardDescription,
-} from '@/components/ui/card';
 import { AnimatedWrapper } from '@/components/animated-wrapper';
 import {
   BookOpenText,
@@ -18,56 +11,60 @@ import {
   Lightbulb,
   Send,
 } from 'lucide-react';
+import Image from 'next/image';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 const researchServices = [
   {
     title: 'Thesis & Dissertation Writing',
-    description: 'Comprehensive support for crafting your thesis or dissertation from start to finish.',
-    icon: <BookOpenText className="w-8 h-8 text-primary" />,
+    description: 'Comprehensive support from start to finish.',
+    icon: <BookOpenText className="w-6 h-6 text-primary" />,
   },
   {
     title: 'Synopsis & Proposal Preparation',
-    description: 'Develop a compelling research proposal and synopsis to get your project approved.',
-    icon: <FileSignature className="w-8 h-8 text-primary" />,
+    description: 'Develop a compelling research proposal.',
+    icon: <FileSignature className="w-6 h-6 text-primary" />,
   },
   {
-    title: 'Research Paper Writing & Publication Support',
-    description: 'Expert assistance in writing and publishing your research in high-impact journals.',
-    icon: <FileText className="w-8 h-8 text-primary" />,
+    title: 'Research Paper Writing & Publication',
+    description: 'Expert assistance for high-impact journals.',
+    icon: <FileText className="w-6 h-6 text-primary" />,
   },
   {
-    title: 'Literature Review & Reference Management',
-    description: 'Systematic literature reviews and precise reference management.',
-    icon: <ClipboardList className="w-8 h-8 text-primary" />,
+    title: 'Literature Review',
+    description: 'Systematic literature reviews and management.',
+    icon: <ClipboardList className="w-6 h-6 text-primary" />,
   },
   {
     title: 'Data Analysis & Interpretation',
-    description: 'Advanced statistical analysis and clear interpretation of your research data.',
-    icon: <BarChart3 className="w-8 h-8 text-primary" />,
+    description: 'Advanced statistical analysis for your data.',
+    icon: <BarChart3 className="w-6 h-6 text-primary" />,
   },
   {
     title: 'Plagiarism Checking & Removal',
-    description: 'Ensure originality with our thorough plagiarism checks and content refinement services.',
-    icon: <ShieldCheck className="w-8 h-8 text-primary" />,
+    description: 'Ensure originality with our refinement services.',
+    icon: <ShieldCheck className="w-6 h-6 text-primary" />,
   },
    {
     title: 'Proofreading & Editing',
-    description: 'Professional editing to enhance clarity, grammar, and style for a polished final document.',
-    icon: <PenSquare className="w-8 h-8 text-primary" />,
+    description: 'Enhance clarity, grammar, and style.',
+    icon: <PenSquare className="w-6 h-6 text-primary" />,
   },
   {
     title: 'Topic Selection & Research Design',
-    description: 'Guidance in selecting a relevant topic and designing a robust research methodology.',
-    icon: <Lightbulb className="w-8 h-8 text-primary" />,
+    description: 'Guidance on topic and methodology.',
+    icon: <Lightbulb className="w-6 h-6 text-primary" />,
   },
   {
     title: 'Journal Formatting & Submission',
-    description: 'Formatting your manuscript according to journal guidelines and managing the submission process.',
-    icon: <Send className="w-8 h-8 text-primary" />,
+    description: 'Manuscript formatting and submission process.',
+    icon: <Send className="w-6 h-6 text-primary" />,
   },
 ];
 
 export function Services() {
+  const serviceImage = PlaceHolderImages.find(p => p.id === 'services-image');
+  
   return (
     <section id="services" className="w-full py-16 md:py-24 lg:py-32">
       <div className="container mx-auto">
@@ -81,22 +78,37 @@ export function Services() {
             </p>
           </div>
         </AnimatedWrapper>
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {researchServices.map((service, index) => (
-            <AnimatedWrapper key={service.title} delay={index * 100}>
-              <Card className="h-full shadow-soft hover:shadow-lift hover:-translate-y-2 transition-all duration-300 flex flex-col">
-                <CardHeader>
-                    <div className="mb-4 bg-primary/10 p-3 rounded-full w-fit">
+        
+        <div className="grid md:grid-cols-2 gap-12 items-center">
+            <AnimatedWrapper>
+               {serviceImage && (
+                  <div className="overflow-hidden rounded-lg shadow-lift">
+                     <Image
+                      src={serviceImage.imageUrl}
+                      alt={serviceImage.description}
+                      width={600}
+                      height={800}
+                      data-ai-hint={serviceImage.imageHint}
+                      className="w-full h-auto object-cover transition-transform duration-500 hover:scale-105"
+                    />
+                  </div>
+                )}
+            </AnimatedWrapper>
+            <div className="space-y-6">
+              {researchServices.map((service, index) => (
+                <AnimatedWrapper key={service.title} delay={index * 100}>
+                  <div className="flex items-start gap-4">
+                     <div className="flex-shrink-0 bg-primary/10 p-3 rounded-full">
                         {service.icon}
                     </div>
-                    <CardTitle>{service.title}</CardTitle>
-                </CardHeader>
-                <CardContent className="flex-grow">
-                  <p className="text-muted-foreground">{service.description}</p>
-                </CardContent>
-              </Card>
-            </AnimatedWrapper>
-          ))}
+                    <div>
+                        <h3 className="text-lg font-semibold">{service.title}</h3>
+                        <p className="text-muted-foreground mt-1">{service.description}</p>
+                    </div>
+                  </div>
+                </AnimatedWrapper>
+              ))}
+            </div>
         </div>
       </div>
     </section>

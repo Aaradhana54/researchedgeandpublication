@@ -8,7 +8,7 @@
       "data": {
         "name": "Dr. Meenal Joshi",
         "designation": "Professor, XYZ University",
-        "message": "The team at Research Edge Publication provided exceptional support for my manuscript. Their attention to detail and subject matter expertise were outstanding. Highly recommended!"
+        "message": "The team at Research Edge and Publication provided exceptional support for my manuscript. Their attention to detail and subject matter expertise were outstanding. Highly recommended!"
       }
     },
     {
@@ -19,7 +19,7 @@
       "data": {
         "name": "Prof. R. Khanna",
         "designation": "Academic Head",
-        "message": "Working with Research Edge Publication has been a seamless experience. They are professional, timely, and their work is of the highest quality. Our institution will continue to partner with them."
+        "message": "Working with Research Edge and Publication has been a seamless experience. They are professional, timely, and their work is of the highest quality. Our institution will continue to partner with them."
       }
     },
     {
@@ -30,7 +30,7 @@
       "data": {
         "name": "Principal, Sunrise International School",
         "designation": "Education Sector Leader",
-        "message": "Research Edge Publication helped us develop and publish custom textbooks for our students. The quality of content and design exceeded our expectations. A truly reliable partner."
+        "message": "Research Edge and Publication helped us develop and publish custom textbooks for our students. The quality of content and design exceeded our expectations. A truly reliable partner."
       }
     },
     {
@@ -48,7 +48,7 @@
     {
       "id": "hero-background-2",
       "description": "A close-up shot of a person's hands typing on a laptop, representing the work of writing and research.",
-      "imageUrl": "https://images.unsplash.com/photo-1558769132-cb1aea458c5e?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2070&q=80",
+      "imageUrl": "https://images.unsplash.com/photo-1499750310107-5fef28a66643?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2070&q=80",
       "imageHint": "writing research"
     },
     {
@@ -62,6 +62,12 @@
       "description": "An image of a university building or campus, representing higher education and institutional services.",
       "imageUrl": "https://images.unsplash.com/photo-1607237138185-e894ee3bf38f?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1974&q=80",
       "imageHint": "university campus"
+    },
+    {
+      "id": "services-image",
+      "description": "A person sitting at a desk covered in notes and books, deeply focused on their research.",
+      "imageUrl": "https://images.unsplash.com/photo-1485217988980-11786ced9454?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wzNzEyODZ8MHwxfHNlYXJjaHw1fHxyZXNlYXJjaHxlbnwwfHx8fDE3MTc4NjYyODF8MA&ixlib=rb-4.0.3&q=80&w=1080",
+      "imageHint": "academic research"
     }
   ]
 }
