@@ -4,10 +4,10 @@
 import { useMemo } from 'react';
 import { useUser } from '@/firebase/auth/use-user';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { LoaderCircle, Users, UserCheck, FolderKanban, UserCog } from 'lucide-react';
+import { LoaderCircle, Users, UserCheck, UserCog } from 'lucide-react';
 import { useCollection, useFirestore } from '@/firebase';
-import { collection, query, where } from 'firebase/firestore';
-import type { Project, UserProfile, ContactLead } from '@/lib/types';
+import { collection, query } from 'firebase/firestore';
+import type { Project, ContactLead } from '@/lib/types';
 
 function StatCard({ title, value, icon }: { title: string, value: string | number, icon: React.ReactNode }) {
   return (
@@ -27,13 +27,7 @@ export default function SalesDashboardPage() {
   const { user, loading: userLoading } = useUser();
   const firestore = useFirestore();
 
-  // Fetch all users who are clients
-  const clientsQuery = useMemo(() => {
-    if (!firestore) return null;
-    return query(collection(firestore, 'users'), where('role', '==', 'client'));
-  }, [firestore]);
-
-  // Fetch all projects
+  // Fetch all projects (client leads)
   const projectsQuery = useMemo(() => {
       if (!firestore) return null;
       return query(collection(firestore, 'projects'));
@@ -45,39 +39,31 @@ export default function SalesDashboardPage() {
     return query(collection(firestore, 'contact_leads'));
   }, [firestore]);
 
-  const { data: clients, loading: clientsLoading } = useCollection<UserProfile>(clientsQuery);
   const { data: projects, loading: projectsLoading } = useCollection<Project>(projectsQuery);
   const { data: contactLeads, loading: contactLeadsLoading } = useCollection<ContactLead>(contactLeadsQuery);
 
-  const loading = userLoading || clientsLoading || projectsLoading || contactLeadsLoading;
+  const loading = userLoading || projectsLoading || contactLeadsLoading;
 
-  const { totalLeads, convertedLeads, pendingLeads, totalProjects } = useMemo(() => {
-    if (!clients || !projects || !contactLeads) {
-      return { totalLeads: 0, convertedLeads: 0, pendingLeads: 0, totalProjects: 0 };
-    }
+  const { totalLeads, convertedLeads, pendingLeads } = useMemo(() => {
+    const allProjects = projects || [];
+    const allContactLeads = contactLeads || [];
 
-    // Total leads are registered clients + leads from forms
-    const totalLeads = clients.length + contactLeads.length;
+    // Total leads = all client projects + all partner/website leads
+    const totalLeads = allProjects.length + allContactLeads.length;
 
-    // Converted leads from client signups (they have at least one project)
-    const projectUserIds = new Set(projects.map(p => p.userId));
-    const convertedClientLeads = clients.filter(c => projectUserIds.has(c.uid)).length;
+    // Converted leads are projects that are approved/in-progress/completed OR contact_leads that are 'converted'
+    const convertedProjectLeads = allProjects.filter(p => ['approved', 'in-progress', 'completed'].includes(p.status || '')).length;
+    const convertedContactLeads = allContactLeads.filter(l => l.status === 'converted').length;
+    const convertedLeads = convertedProjectLeads + convertedContactLeads;
 
-    // Converted leads from contact forms
-    const convertedContactLeads = contactLeads.filter(l => l.status === 'converted').length;
+    // Pending leads are projects with 'pending' status OR contact_leads with 'new' status
+    const pendingProjectLeads = allProjects.filter(p => p.status === 'pending').length;
+    const pendingContactLeads = allContactLeads.filter(l => l.status === 'new').length;
+    const pendingLeads = pendingProjectLeads + pendingContactLeads;
     
-    const convertedLeads = convertedClientLeads + convertedContactLeads;
-    
-    // Pending leads are clients without projects + 'new' status contact leads
-    const pendingClientLeads = clients.filter(c => !projectUserIds.has(c.uid)).length;
-    const pendingContactLeads = contactLeads.filter(l => l.status === 'new').length;
-    const pendingLeads = pendingClientLeads + pendingContactLeads;
+    return { totalLeads, convertedLeads, pendingLeads };
 
-    const totalProjects = projects.length;
-    
-    return { totalLeads, convertedLeads, pendingLeads, totalProjects };
-
-  }, [clients, projects, contactLeads]);
+  }, [projects, contactLeads]);
 
   if (loading || !user) {
     return (
@@ -98,10 +84,9 @@ export default function SalesDashboardPage() {
         </p>
       </div>
       
-       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <StatCard title="Total Leads" value={totalLeads} icon={<Users className="h-4 w-4 text-muted-foreground" />} />
         <StatCard title="Converted Leads" value={convertedLeads} icon={<UserCheck className="h-4 w-4 text-muted-foreground" />} />
-        <StatCard title="Total Projects" value={totalProjects} icon={<FolderKanban className="h-4 w-4 text-muted-foreground" />} />
         <StatCard title="Pending Leads" value={pendingLeads} icon={<UserCog className="h-4 w-4 text-muted-foreground" />} />
       </div>
     </div>
