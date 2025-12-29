@@ -9,6 +9,8 @@ import {
   FolderKanban,
   CheckCircle,
   Briefcase,
+  UserCheck as UserCheckIcon,
+  MessageSquare,
 } from 'lucide-react';
 import React from 'react';
 import { usePathname, useRouter } from 'next/navigation';
@@ -28,6 +30,8 @@ import {
   SidebarGroup,
   SidebarSeparator,
   SidebarInset,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
 } from '@/components/ui/sidebar';
 import { Logo } from '@/components/ui/logo';
 import { Button } from '@/components/ui/button';
@@ -41,12 +45,22 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { LoaderCircle } from 'lucide-react';
 import { useEffect } from 'react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
-const dashboardNavItems = [
+
+const salesNavItems = [
   { href: '/sales/dashboard', label: 'Overview', icon: <LayoutGrid /> },
   { href: '/sales/clients', label: 'Clients', icon: <Users /> },
-  { href: '/sales/leads', label: 'All Leads', icon: <Briefcase /> },
-  { href: '/sales/projects', label: 'Client Leads', icon: <FolderKanban /> },
+   { 
+    label: 'Leads', 
+    icon: <Briefcase />,
+    subItems: [
+        { href: '/sales/leads', label: 'All Leads', icon: <Users /> },
+        { href: '/sales/projects', label: 'Client Leads', icon: <FolderKanban /> },
+        { href: '/sales/partner-leads', label: 'Partner Leads', icon: <UserCheckIcon /> },
+        { href: '/sales/website-leads', label: 'Website Leads', icon: <MessageSquare /> },
+    ]
+  },
   { href: '/sales/approved-leads', label: 'Approved Leads', icon: <CheckCircle /> },
 ];
 
@@ -64,6 +78,9 @@ function SalesSidebar() {
     return name.split(' ').map((n) => n[0]).join('').toUpperCase();
   };
 
+  const isLeadsActive = ['/sales/leads', '/sales/projects', '/sales/partner-leads', '/sales/website-leads'].some(p => pathname.startsWith(p));
+
+
   return (
     <Sidebar>
       <SidebarHeader>
@@ -71,15 +88,45 @@ function SalesSidebar() {
       </SidebarHeader>
       <SidebarContent>
         <SidebarMenu>
-          {dashboardNavItems.map((item) => (
-            <SidebarMenuItem key={item.label}>
-              <Link href={item.href}>
-                <SidebarMenuButton isActive={pathname === item.href}>
-                  {item.icon}
-                  <span>{item.label}</span>
-                </SidebarMenuButton>
-              </Link>
-            </SidebarMenuItem>
+          {salesNavItems.map((item) => (
+             item.subItems ? (
+                 <Collapsible key={item.label} defaultOpen={isLeadsActive}>
+                    <CollapsibleTrigger asChild>
+                         <SidebarMenuButton className="w-full justify-between" isActive={isLeadsActive}>
+                           <div className="flex items-center gap-2">
+                               {item.icon}
+                               <span>{item.label}</span>
+                           </div>
+                           <ChevronDown className="h-4 w-4" />
+                        </SidebarMenuButton>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                        <SidebarMenuSub>
+                          {item.subItems.map(subItem => (
+                            <SidebarMenuItem key={subItem.label}>
+                                <Link href={subItem.href}>
+                                    <SidebarMenuSubButton asChild isActive={pathname.startsWith(subItem.href)}>
+                                        <span className="flex items-center gap-2">
+                                            {subItem.icon}
+                                            <span>{subItem.label}</span>
+                                        </span>
+                                    </SidebarMenuSubButton>
+                                </Link>
+                            </SidebarMenuItem>
+                          ))}
+                        </SidebarMenuSub>
+                    </CollapsibleContent>
+                </Collapsible>
+            ) : (
+                <SidebarMenuItem key={item.label}>
+                  <Link href={item.href!}>
+                    <SidebarMenuButton isActive={pathname.startsWith(item.href!)}>
+                      {item.icon}
+                      <span>{item.label}</span>
+                    </SidebarMenuButton>
+                  </Link>
+                </SidebarMenuItem>
+            )
           ))}
         </SidebarMenu>
       </SidebarContent>
