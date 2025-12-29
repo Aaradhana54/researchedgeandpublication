@@ -170,7 +170,19 @@ export default function ProjectDetailPage() {
     }
     
     const canShowAdminControls = loggedInUser?.role === 'admin';
-    const backLink = loggedInUser?.role === 'admin' ? '/admin/projects' : '/sales/projects';
+    const getBackLink = () => {
+        switch(loggedInUser?.role) {
+            case 'admin':
+                return '/admin/projects';
+            case 'sales-team':
+                return '/sales/projects';
+            case 'writing-team':
+                return '/writing/tasks';
+            default:
+                return '/dashboard';
+        }
+    }
+    const backLink = getBackLink();
 
     return (
         <div className="p-4 sm:p-6 lg:p-8">
