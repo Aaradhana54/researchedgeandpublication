@@ -23,12 +23,12 @@ export function Hero() {
   return (
     <section
       id="home"
-      className="relative w-full h-[calc(100vh-5rem)] overflow-hidden"
+      className="relative w-full h-[calc(100vh-5rem)] overflow-hidden bg-black"
     >
       {/* Background Carousel Layer */}
       <Carousel
         plugins={[plugin.current]}
-        className="absolute inset-0 w-full h-full z-0"
+        className="absolute inset-0 w-full h-full"
         onMouseEnter={plugin.current.stop}
         onMouseLeave={plugin.current.reset}
       >
