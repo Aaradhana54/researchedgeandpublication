@@ -14,7 +14,7 @@
     {
       "id": "testimonial-2",
       "description": "Avatar for Prof. R. Khanna.",
-      "imageUrl": "https://images.unsplash.com/photo-1734542380880-2ad85bd9be09?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxhY2FkZW1pYyUyMHBvcnRyYWl0fGVufDB8fHx8MTc2NjY1NjgzM3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1734542380880-2ad85bd9be09?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxhY2FkZW1pYyUyMHBvcnRyYWl0fGVufDB8fHx8fDE3NjY2NTY4MzN8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "academic portrait",
       "data": {
         "name": "Prof. R. Khanna",
@@ -25,7 +25,7 @@
     {
       "id": "testimonial-3",
       "description": "Avatar for Principal, Sunrise International School.",
-      "imageUrl": "https://images.unsplash.com/photo-1601655781320-205e34c94eb1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxlZHVjYXRvciUyMHBvcnRyYWl0fGVufDB8fHx8MTc2NjY1NjgzM3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1601655781320-205e34c94eb1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxlZHVjYXRvciUyMHBvcnRyYWl0fGVufDB8fHx8fDE3NjY2NTY4MzN8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "educator portrait",
       "data": {
         "name": "Principal, Sunrise International School",
@@ -41,27 +41,27 @@
     },
     {
       "id": "hero-background",
-      "description": "A vibrant and modern abstract background representing data and research.",
-      "imageUrl": "https://images.unsplash.com/photo-1554147090-e1221a04a025?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2070&q=80",
-      "imageHint": "modern research"
+      "description": "A bright, modern library with people studying, evoking a sense of knowledge and academia.",
+      "imageUrl": "https://images.unsplash.com/photo-1521587760476-6c12a4b040da?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2070&q=80",
+      "imageHint": "modern library"
     },
     {
       "id": "hero-background-2",
-      "description": "A creative workspace with a laptop and design tools.",
-      "imageUrl": "https://images.unsplash.com/photo-1655988940601-7702d8685f95?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxjcmVhdGl2ZSUyMHdvcmtzcGFjZXxlbnwwfHx8fDE3NjY4OTg3MTN8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "creative workspace"
+      "description": "A close-up shot of a person's hands typing on a laptop, representing the work of writing and research.",
+      "imageUrl": "https://images.unsplash.com/photo-1558769132-cb1aea458c5e?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2070&q=80",
+      "imageHint": "writing research"
     },
     {
       "id": "hero-background-3",
-      "description": "A library with shelves full of books.",
-      "imageUrl": "https://images.unsplash.com/photo-1588580000645-4562a6d2c839?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxsaWJyYXJ5JTIwYm9va3N8ZW58MHx8fHwxNzY2OTU1MDkyfDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "library books"
+      "description": "A stack of classic, leather-bound books, symbolizing tradition, knowledge, and publishing.",
+      "imageUrl": "https://images.unsplash.com/photo-1524995767962-b1f5b5a3a78f?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2070&q=80",
+      "imageHint": "academic books"
     },
     {
       "id": "hero-background-4",
-      "description": "A person writing in a notebook at a desk.",
-      "imageUrl": "https://images.unsplash.com/photo-1633360821222-7e8df83639fb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHx3cml0aW5nJTIwcmVzZWFyY2h8ZW58MHx8fHwxNzY3MDAxNTI1fDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "writing research"
+      "description": "An image of a university building or campus, representing higher education and institutional services.",
+      "imageUrl": "https://images.unsplash.com/photo-1607237138185-e894ee3bf38f?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1974&q=80",
+      "imageHint": "university campus"
     }
   ]
 }
