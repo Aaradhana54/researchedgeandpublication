@@ -8,49 +8,25 @@ const CustomLogoIcon = ({ className }: { className?: string }) => (
     viewBox="0 0 50 50"
     fill="none"
     xmlns="http://www.w3.org/2000/svg"
+    stroke="currentColor"
+    strokeWidth="3"
+    strokeLinecap="round"
+    strokeLinejoin="round"
   >
-    <path
-      d="M20.5 10H15V40H20.5"
-      stroke="currentColor"
-      strokeWidth="3"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <path
-      d="M15 15.5H29.5C35.0228 15.5 39.5 19.9772 39.5 25.5C39.5 31.0228 35.0228 35.5 29.5 35.5H25.5"
-      stroke="currentColor"
-      strokeWidth="3"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-     <path
-      d="M15 22.5H25.5"
-      stroke="currentColor"
-      strokeWidth="3"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <path
-      d="M15 29.5H23"
-      stroke="currentColor"
-      strokeWidth="3"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-     <path
-      d="M20.5 40V36.5H25.5"
-      stroke="currentColor"
-      strokeWidth="3"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-     <path
-      d="M29.5 35.5L34.5 40.5"
-      stroke="currentColor"
-      strokeWidth="3"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
+    {/* 'R' curve */}
+    <path d="M29.5 10C35.8513 10 41 15.1487 41 21.5C41 27.8513 35.8513 33 29.5 33" />
+    
+    {/* Vertical Stem */}
+    <path d="M10 10V40" />
+
+    {/* Horizontal bars */}
+    <path d="M10 15.5H29.5" />
+    <path d="M10 24H29.5" />
+    <path d="M10 32.5H22" />
+
+    {/* Bottom 'E'-like bars */}
+    <path d="M10 40H20" />
+    <path d="M10 36H16" />
   </svg>
 );
 
