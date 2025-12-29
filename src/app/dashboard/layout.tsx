@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -7,6 +8,7 @@ import {
   FileText,
   CreditCard,
   ChevronDown,
+  Globe,
 } from 'lucide-react';
 import React from 'react';
 import { usePathname, useRouter } from 'next/navigation';
@@ -46,6 +48,7 @@ const dashboardNavItems = [
   { href: '/dashboard/projects', label: 'My Projects', icon: <FolderKanban /> },
   { href: '/dashboard/files', label: 'Files & Deliverables', icon: <FileText /> },
   { href: '/dashboard/payments', label: 'Payment & Invoices', icon: <CreditCard /> },
+  { href: '/', label: 'Back to Site', icon: <Globe /> },
 ];
 
 function DashboardSidebar() {
@@ -72,7 +75,7 @@ function DashboardSidebar() {
           {dashboardNavItems.map((item) => (
             <SidebarMenuItem key={item.label}>
               <Link href={item.href}>
-                <SidebarMenuButton isActive={pathname === item.href}>
+                <SidebarMenuButton isActive={pathname.startsWith(item.href) && item.href !== '/'}>
                   {item.icon}
                   <span>{item.label}</span>
                 </SidebarMenuButton>

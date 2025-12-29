@@ -75,7 +75,7 @@ function PartnerSidebar() {
           {dashboardNavItems.map((item) => (
             <SidebarMenuItem key={item.label}>
               <Link href={item.href}>
-                <SidebarMenuButton isActive={pathname === item.href}>
+                <SidebarMenuButton isActive={pathname.startsWith(item.href) && item.href !== '/'}>
                   {item.icon}
                   <span>{item.label}</span>
                 </SidebarMenuButton>

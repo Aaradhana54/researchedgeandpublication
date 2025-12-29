@@ -94,9 +94,8 @@ const adminNavItems = [
   { href: '/admin/invoices', label: 'Invoices', icon: <CreditCard /> },
   { href: '/admin/notifications', label: 'Notifications', icon: <Bell /> },
   { href: '/admin/marketing', label: 'Marketing Kit', icon: <Paintbrush /> },
+  { href: '/', label: 'Back to Site', icon: <Globe /> },
 ];
-
-const siteNavItem = { href: '/', label: 'Back to Site', icon: <Globe /> };
 
 
 function AdminSidebar() {
@@ -136,7 +135,7 @@ function AdminSidebar() {
       </SidebarHeader>
       <SidebarContent>
         <SidebarMenu>
-          {[...adminNavItems, siteNavItem].map((item) => (
+          {adminNavItems.map((item) => (
             item.subItems ? (
                  <Collapsible key={item.label} defaultOpen={item.subItems.some(sub => pathname.startsWith(sub.href)) || (item.label === 'Leads' && isLeadsActive)}>
                     <CollapsibleTrigger asChild>
