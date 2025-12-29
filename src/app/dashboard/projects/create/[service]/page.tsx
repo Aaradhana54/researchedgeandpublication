@@ -282,18 +282,18 @@ export default function CreateProjectPage() {
   
   const renderResearchPublicationForm = () => (
     <>
-       {commonFields({ mobileRequired: true })}
        <div className="space-y-2">
-            <Label htmlFor="publishWhere">Where to Publish?</Label>
-            <Textarea id="publishWhere" name="publishWhere" placeholder="e.g., Scopus, SCI, specific journal name..." disabled={loading}/>
-        </div>
-        <div className="flex items-center space-x-2 pt-2">
-            <Checkbox id="isPaperReady" name="isPaperReady" disabled={loading}/>
-            <Label htmlFor="isPaperReady" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                Is your paper ready?
-            </Label>
-        </div>
-        {commonFileUpload()}
+        <Label htmlFor="publishWhere">Where to Publish?</Label>
+        <Textarea id="publishWhere" name="publishWhere" placeholder="e.g., Scopus, SCI, specific journal name..." disabled={loading}/>
+      </div>
+      <div className="flex items-center space-x-2 pt-2">
+          <Checkbox id="isPaperReady" name="isPaperReady" disabled={loading}/>
+          <Label htmlFor="isPaperReady" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+              Is your paper ready?
+          </Label>
+      </div>
+       {commonFields({ mobileRequired: true })}
+       {commonFileUpload()}
     </>
   );
 
@@ -422,37 +422,23 @@ export default function CreateProjectPage() {
 
       <div className="grid md:grid-cols-2 gap-6">
         <div className="space-y-2">
-          <Label htmlFor="pageCount">Page Count *</Label>
+          <Label htmlFor="pageCount">Total Pages *</Label>
           <Input id="pageCount" name="pageCount" type="number" placeholder="e.g., 300" disabled={loading} required/>
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="language">Language (Mode)</Label>
-          <Input id="language" name="language" placeholder="e.g., English" defaultValue="English" disabled={loading}/>
+         <div className="space-y-2">
+            {commonFields({ mobileRequired: true })}
         </div>
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="deadline">Deadline</Label>
-        <Input id="deadline" name="deadline" type="date" disabled={loading}/>
+      <div className="flex items-center space-x-2 pt-2">
+        <Checkbox id="isPaperReady" name="isPaperReady" disabled={loading}/>
+        <Label htmlFor="isPaperReady" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+            Is your book ready?
+        </Label>
       </div>
-      
-      {commonFields({ mobileRequired: true })}
+
       {commonFileUpload()}
 
-      <div className="space-y-4">
-        <div className="flex items-center space-x-2">
-          <Checkbox id="wantToPublish" name="wantToPublish" disabled={loading}/>
-          <Label htmlFor="wantToPublish" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-            Want to publish with us?
-          </Label>
-        </div>
-        
-        <div className="space-y-2">
-          <Label htmlFor="publishWhere">Where? (e.g., Amazon, B&N, IngramSpark)</Label>
-          <Input id="publishWhere" name="publishWhere" placeholder="Let us know your preferred platforms" disabled={loading}/>
-        </div>
-        
-      </div>
     </>
   );
 
@@ -504,5 +490,3 @@ export default function CreateProjectPage() {
     </div>
   );
 }
-
-    
