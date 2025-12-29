@@ -25,9 +25,10 @@ service cloud.firestore {
     }
     
     function isWriterAssignedToProject(projectId) {
-      // This function is tricky to implement correctly due to rule limitations.
-      // A more robust solution might involve duplicating some data or using custom claims.
-      // For now, we will allow writers to read projects and filter on the client.
+      // Security rules cannot perform complex queries across collections to check for task assignment.
+      // Therefore, we grant read access if the user is part of the writing team.
+      // The application logic on the client-side is responsible for fetching and displaying
+      // only the projects the writer is actually assigned to via the 'tasks' collection.
       return isWritingTeam();
     }
 
