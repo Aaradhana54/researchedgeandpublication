@@ -251,7 +251,7 @@ export default function CreateProjectPage() {
   
   const commonFileUpload = () => (
      <div className="space-y-2">
-        <Label htmlFor="synopsisFile">Synopsis/Assignment File (Optional)</Label>
+        <Label htmlFor="synopsisFile">Upload File (Optional)</Label>
         <Input 
           id="synopsisFile" 
           name="synopsisFile" 
@@ -278,6 +278,23 @@ export default function CreateProjectPage() {
           required={mobileRequired}
         />
       </div>
+  );
+  
+  const renderResearchPublicationForm = () => (
+    <>
+       {commonFields({ mobileRequired: true })}
+       <div className="space-y-2">
+            <Label htmlFor="publishWhere">Where to Publish?</Label>
+            <Textarea id="publishWhere" name="publishWhere" placeholder="e.g., Scopus, SCI, specific journal name..." disabled={loading}/>
+        </div>
+        <div className="flex items-center space-x-2 pt-2">
+            <Checkbox id="isPaperReady" name="isPaperReady" disabled={loading}/>
+            <Label htmlFor="isPaperReady" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                Is your paper ready?
+            </Label>
+        </div>
+        {commonFileUpload()}
+    </>
   );
 
 
@@ -471,7 +488,8 @@ export default function CreateProjectPage() {
             </div>
 
             {service === 'thesis-dissertation' && renderThesisForm()}
-            {(service === 'research-paper' || service === 'review-paper' || service === 'research-publication') && renderPaperForm()}
+            {(service === 'research-paper' || service === 'review-paper') && renderPaperForm()}
+            {service === 'research-publication' && renderResearchPublicationForm()}
             {(service === 'book-writing' || service === 'book-publishing') && renderBookWritingForm()}
 
             <div className="flex justify-end pt-4">
@@ -486,3 +504,5 @@ export default function CreateProjectPage() {
     </div>
   );
 }
+
+    
