@@ -178,7 +178,7 @@ export default function CreateProjectPage() {
               createdAt: serverTimestamp(),
               updatedAt: serverTimestamp(),
               synopsisFileUrl: synopsisUrl,
-              assignedSalesId: assignedSalesId, // This field is allowed by sales team, not clients
+              assignedSalesId: assignedSalesId,
             };
             
             if (rawFormData.mobile) dataToSave.mobile = rawFormData.mobile;
