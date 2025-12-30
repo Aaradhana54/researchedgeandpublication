@@ -41,27 +41,27 @@
     },
     {
       "id": "hero-1",
-      "description": "Close-up of a person writing in a notebook with a fountain pen, with soft purple lighting.",
-      "imageUrl": "https://images.unsplash.com/photo-1517842645767-c6f90405774b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wzNzEyODZ8MHwxfHNlYXJjaHwzfHxhZXN0aGV0aWMlMjB3cml0aW5nfGVufDB8fHx8fDE3MTgxODU0MTR8MA&ixlib=rb-4.0.3&q=80&w=1080",
-      "imageHint": "aesthetic writing"
+      "description": "Ethereal and soft purple and pink clouds at sunset, creating a dreamy and calming background.",
+      "imageUrl": "https://images.unsplash.com/photo-1534088568595-a066f41021a5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wzNzEyODZ8MHwxfHNlYXJjaHw1fHxwYXN0ZWwlMjBza3l8ZW58MHx8fHwxNzE4MzI4OTg3fDA&ixlib=rb-4.0.3&q=80&w=1080",
+      "imageHint": "pastel sky"
     },
     {
       "id": "hero-2",
-      "description": "A stylish interior with modern architecture, featuring curved lines and a soft, minimalist aesthetic.",
-      "imageUrl": "https://images.unsplash.com/photo-1617300350722-12349942a3a6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wzNzEyODZ8MHwxfHNlYXJjaHw1fHxtaW5pbWFsJTIwYXJjaGl0ZWN0dXJlJTIwcHVycGxlfGVufDB8fHx8fDE3MTgzMjk0Njh8MA&ixlib=rb-4.0.3&q=80&w=1080",
-      "imageHint": "modern architecture"
+      "description": "An abstract close-up of flowing lavender-colored silk fabric with soft folds and gentle light.",
+      "imageUrl": "https://images.unsplash.com/photo-1599405622158-a5a41a45749c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wzNzEyODZ8MHwxfHNlYXJjaHw0fHxhYnN0cmFjdCUyMGxhdmVuZGVyfGVufDB8fHx8fDE3MTgzMjk0MDJ8MA&ixlib=rb-4.0.3&q=80&w=1080",
+      "imageHint": "abstract lavender"
     },
     {
       "id": "hero-3",
-      "description": "A person writing in a journal with soft, ambient lighting.",
-      "imageUrl": "https://images.unsplash.com/photo-1512820790803-83ca734da794?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wzNzEyODZ8MHwxfHNlYXJjaHwyfHxyZWFkaW5nJTIwYWVzdGhldGljfGVufDB8fHx8fDE3MTgyNTg0OTF8MA&ixlib=rb-4.0.3&q=80&w=1080",
-      "imageHint": "journal writing"
+      "description": "An elegant architectural detail showing a curved wall with soft shadows, in a minimalist and aesthetic style.",
+      "imageUrl": "https://images.unsplash.com/photo-1617996423428-e79dd1821868?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wzNzEyODZ8MHwxfHNlYXJjaHwyfHxtaW5pbWFsJTIwYXJjaGl0ZWN0dXJlJTIwcHVycGxlfGVufDB8fHx8fDE3MTgzMjk0Njh8MA&ixlib=rb-4.0.3&q=80&w=1080",
+      "imageHint": "minimal architecture"
     },
     {
       "id": "hero-4",
-      "description": "A person working on a laptop in a calm, aesthetically pleasing environment.",
-      "imageUrl": "https://images.unsplash.com/photo-1515378791036-0648a3ef77b2?ixid=M3wzNzEyODZ8MHwxfHNlYXJjaHw3fHxsYXB0b3AlMjBhZXN0aGV0aWN8ZW58MHx8fHx8MTcxODMyOTU3Mnww&ixlib=rb-4.0.3&q=80&w=1080&fit=max",
-      "imageHint": "creative workspace"
+      "description": "A minimal and calming interior with a simple vase and soft, natural light, conveying an airy and peaceful mood.",
+      "imageUrl": "https://images.unsplash.com/photo-1541123437800-1bb1317badc2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wzNzEyODZ8MHwxfHNlYXJjaHw3fHxjYWxtJTIwbWluaW1hbCUyMGludGVyaW9yfGVufDB8fHx8fDE3MTgzMjk2NDB8MA&ixlib=rb-4.0.3&q=80&w=1080",
+      "imageHint": "calm interior"
     },
     {
       "id": "services-image",
