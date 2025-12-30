@@ -2,38 +2,33 @@
 'use client';
 
 import { AnimatedWrapper } from '@/components/animated-wrapper';
-import { Lightbulb, Calendar, Pencil, MessageSquare, CheckCircle, Send } from 'lucide-react';
+import { Lightbulb, Calendar, Pencil, MessageSquare, CheckCircle, Send, ArrowRight } from 'lucide-react';
 
 const processSteps = [
   {
-    icon: <Lightbulb className="w-8 h-8 text-primary" />,
+    icon: <Lightbulb className="w-8 h-8" />,
     title: 'Requirement Gathering',
     description: 'We begin with a detailed consultation to fully understand your project goals and requirements.',
   },
   {
-    icon: <Calendar className="w-8 h-8 text-primary" />,
+    icon: <Calendar className="w-8 h-8" />,
     title: 'Timeline and Plan',
     description: 'A customized plan and a clear timeline are developed and shared with you for approval.',
   },
   {
-    icon: <Pencil className="w-8 h-8 text-primary" />,
-    title: 'Writing and Development',
+    icon: <Pencil className="w-8 h-8" />,
+    title: 'Writing & Development',
     description: 'Our expert team begins the writing, editing, and development process with precision.',
   },
   {
-    icon: <MessageSquare className="w-8 h-8 text-primary" />,
+    icon: <MessageSquare className="w-8 h-8" />,
     title: 'Review and Feedback',
     description: 'You receive the first draft to provide your valuable feedback for revisions and enhancements.',
   },
   {
-    icon: <CheckCircle className="w-8 h-8 text-primary" />,
-    title: 'Finalization',
-    description: 'We incorporate your feedback and finalize the document to meet the highest quality standards.',
-  },
-  {
-    icon: <Send className="w-8 h-8 text-primary" />,
-    title: 'Delivery & Submission',
-    description: 'The completed work is delivered, with assistance for submission and publication if required.',
+    icon: <CheckCircle className="w-8 h-8" />,
+    title: 'Finalization & Delivery',
+    description: 'We incorporate your feedback and finalize the document for delivery.',
   },
 ];
 
@@ -48,39 +43,67 @@ export function Process() {
               Our Process
             </h2>
             <p className="max-w-2xl mx-auto text-lg text-muted-foreground">
-              A streamlined and transparent workflow designed for success.
+              A streamlined and transparent workflow designed for your success.
             </p>
           </div>
         </AnimatedWrapper>
         
         <div className="relative">
-            {/* The vertical line */}
-            <div className="absolute left-1/2 top-0 bottom-0 w-0.5 bg-border -translate-x-1/2 hidden md:block"></div>
+            <div className="flex items-center justify-center md:hidden text-muted-foreground text-sm">
+                <ArrowRight className="mr-2"/> Scroll to view all steps
+            </div>
+            <div className="horizontal-scroll-container overflow-x-auto overflow-y-hidden pb-8">
+                <div className="relative flex items-start justify-start w-max px-8 pt-16">
+                    
+                    {/* The connecting line path */}
+                    <svg className="absolute top-8 left-0 h-16 w-full" style={{ minWidth: `${processSteps.length * 18}rem` }}>
+                        <path
+                            d={`M 144 64 
+                                C 192 64, 192 0, 240 0 
+                                S 288 64, 336 64
+                                C 384 64, 384 0, 432 0
+                                S 480 64, 528 64
+                                C 576 64, 576 0, 624 0
+                                S 672 64, 720 64
+                                C 768 64, 768 0, 816 0
+                                S 864 64, 912 64
+                                C 960 64, 960 0, 1008 0
+                                `}
+                            fill="none"
+                            stroke="hsl(var(--border))"
+                            strokeWidth="2"
+                            className="path-animation"
+                        />
+                    </svg>
 
-            {processSteps.map((step, index) => (
-                <div key={index} className="relative mb-12 md:mb-20">
-                     <AnimatedWrapper className="flex flex-col md:flex-row items-center w-full">
-                        {/* Content */}
-                        <div className={`w-full md:w-5/12 p-6 bg-background rounded-lg shadow-soft ${index % 2 === 0 ? 'md:order-3' : 'md:order-1'}`}>
-                             <div className="flex items-center gap-4 mb-3">
-                                 <div className="bg-primary/10 p-3 rounded-full">
-                                    {step.icon}
-                                </div>
-                                <h3 className="text-xl font-bold text-foreground">{step.title}</h3>
+                    {processSteps.map((step, index) => (
+                        <AnimatedWrapper 
+                            key={index}
+                            delay={index * 150}
+                            className="relative w-72 px-4 animate-slide-in-left"
+                        >
+                            {/* Icon Badge */}
+                            <div 
+                                className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full flex items-center justify-center text-primary-foreground"
+                                style={{ background: 'linear-gradient(to top right, hsl(var(--primary)), hsl(var(--accent)))' }}
+                            >
+                                {step.icon}
                             </div>
-                            <p className="text-muted-foreground">{step.description}</p>
-                        </div>
-                        
-                        {/* Spacer */}
-                        <div className="hidden md:block w-2/12 order-2"></div>
-                        
-                        {/* Number Circle on Timeline */}
-                        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 hidden md:flex items-center justify-center w-16 h-16 bg-primary text-primary-foreground rounded-full border-4 border-background text-2xl font-bold z-10">
-                            {index + 1}
-                        </div>
-                    </AnimatedWrapper>
+                            
+                            {/* Card */}
+                            <div className="pt-12">
+                                <div className="bg-background rounded-lg shadow-soft p-6 text-center h-full">
+                                    <h3 className="font-bold text-lg text-primary mb-2">Step {String(index + 1).padStart(2, '0')}</h3>
+                                    <h4 className="font-semibold text-foreground mb-3">{step.title}</h4>
+                                    <p className="text-sm text-muted-foreground">
+                                        {step.description}
+                                    </p>
+                                </div>
+                            </div>
+                        </AnimatedWrapper>
+                    ))}
                 </div>
-            ))}
+            </div>
         </div>
       </div>
     </section>
