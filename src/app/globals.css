@@ -212,25 +212,24 @@ body {
   @keyframes fall-in {
     0% {
       opacity: 0;
-      transform: translateY(-50px) rotate(-15deg);
+      transform: translateY(-20px);
     }
     100% {
       opacity: 1;
-      transform: translateY(0) rotate(0deg);
+      transform: translateY(0);
     }
   }
 
   .hero-headline span {
     opacity: 0;
-    animation: fall-in 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+    animation: fall-in 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
   }
   
   .hero-headline {
     color: transparent;
-    background: linear-gradient(45deg, #e0c3fc, #d6d3ff, #f3e7e9);
+    background: linear-gradient(45deg, hsl(var(--primary-foreground)), hsl(var(--secondary-foreground)));
     -webkit-background-clip: text;
     background-clip: text;
-    text-shadow: 0 2px 20px rgba(255, 255, 255, 0.2);
+    text-shadow: 0 2px 20px hsla(var(--background), 0.1);
   }
 }
-

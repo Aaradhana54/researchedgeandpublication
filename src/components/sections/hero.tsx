@@ -60,23 +60,23 @@ export function Hero() {
             <span
               key={index}
               className="inline-block"
-              style={{ animationDelay: `${index * 0.05}s` }}
+              style={{ animationDelay: `${index * 0.04}s` }}
             >
               {letter === " " ? "\u00A0" : letter}
             </span>
           ))}
         </h1>
-        <AnimatedWrapper delay={headlineText.length * 50 + 100}>
+        <AnimatedWrapper delay={headlineText.length * 40 + 100}>
           <p className="mt-4 max-w-3xl mx-auto text-lg md:text-xl lg:text-2xl text-white/90">
             From Research to Publication, All in One Place
           </p>
         </AnimatedWrapper>
-        <AnimatedWrapper delay={headlineText.length * 50 + 200}>
+        <AnimatedWrapper delay={headlineText.length * 40 + 200}>
           <p className="mt-6 max-w-4xl mx-auto text-base md:text-lg text-white/80">
             India’s trusted academic and publishing partner helping students, scholars, educators, and institutions convert ideas into polished, publishable work.
           </p>
         </AnimatedWrapper>
-        <AnimatedWrapper delay={headlineText.length * 50 + 300}>
+        <AnimatedWrapper delay={headlineText.length * 40 + 300}>
           <div className="mt-10 flex justify-center gap-4">
             <Button asChild size="lg">
               <Link href="#services">Our Services</Link>
