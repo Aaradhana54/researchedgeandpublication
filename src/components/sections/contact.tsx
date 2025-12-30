@@ -85,13 +85,11 @@ export function Contact() {
   return (
     <section id="contact" className="w-full bg-background py-16 md:py-24 lg:py-32">
       <div className="container mx-auto">
-        <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold tracking-tight text-primary sm:text-4xl font-headline">Contact Us</h2>
-        </div>
         <div className="grid md:grid-cols-2 gap-12 items-center">
             <AnimatedWrapper>
                 <Card className="shadow-lift">
-                    <CardHeader className="text-center">
+                    <CardHeader>
+                        <CardTitle className="text-2xl font-bold tracking-tight text-primary sm:text-3xl font-headline">Contact Us</CardTitle>
                         <CardDescription>We'd love to hear from you. Fill out the form to get in touch.</CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -140,9 +138,9 @@ export function Contact() {
                     </CardContent>
                 </Card>
             </AnimatedWrapper>
-            <AnimatedWrapper delay={200}>
+            <AnimatedWrapper delay={200} className="h-full">
                 {contactImage && (
-                    <div className="overflow-hidden rounded-lg shadow-lift h-full max-h-[500px] md:max-h-full">
+                    <div className="overflow-hidden rounded-lg shadow-lift h-full">
                         <Image
                             src={contactImage.imageUrl}
                             alt={contactImage.description}
