@@ -3,7 +3,8 @@
 
 import { AnimatedWrapper } from '@/components/animated-wrapper';
 import { Lightbulb, Calendar, Pencil, MessageSquare, CheckCircle, Send } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ArrowRight } from 'lucide-react';
 
 const processSteps = [
   {
@@ -38,6 +39,13 @@ const processSteps = [
   },
 ];
 
+const Arrow = ({ className }: { className?: string }) => (
+    <div className={`hidden lg:flex items-center justify-center ${className}`}>
+        <ArrowRight className="w-12 h-12 text-primary/30" />
+    </div>
+);
+
+
 export function Process() {
   return (
     <section id="process" className="w-full bg-secondary py-16 md:py-24 lg:py-32">
@@ -53,37 +61,116 @@ export function Process() {
           </div>
         </AnimatedWrapper>
         
-        <div className="relative max-w-5xl mx-auto">
-          {/* Central Timeline */}
-          <div className="absolute left-1/2 top-0 h-full w-0.5 bg-border -translate-x-1/2" aria-hidden="true"></div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 items-center gap-8">
+            {/* Step 1 */}
+            <AnimatedWrapper delay={100} className="lg:col-span-1">
+                <Card className="h-full text-center shadow-soft hover:shadow-lift transition-all duration-300">
+                    <CardHeader>
+                        <div className="mx-auto bg-primary/10 p-4 rounded-full w-fit">
+                            {processSteps[0].icon}
+                        </div>
+                    </CardHeader>
+                    <CardContent>
+                        <CardTitle className="mb-2 text-xl">{processSteps[0].title}</CardTitle>
+                        <p className="text-muted-foreground">{processSteps[0].description}</p>
+                    </CardContent>
+                </Card>
+            </AnimatedWrapper>
 
-          <div className="space-y-16">
-            {processSteps.map((step, index) => (
-              <AnimatedWrapper key={step.title} delay={index * 150}>
-                <div className={cn(
-                  "relative flex items-center",
-                  index % 2 === 0 ? "justify-start" : "justify-end"
-                )}>
-                  {/* Content Box */}
-                  <div className={cn(
-                    "w-[calc(50%_+_1.5rem)] p-6 bg-background rounded-lg shadow-soft border border-transparent hover:border-primary/50 hover:shadow-lift transition-all duration-300",
-                    index % 2 === 0 ? "pr-12 text-right" : "pl-12 text-left"
-                  )}>
-                    <h3 className="text-xl font-bold text-foreground mb-2">{step.title}</h3>
-                    <p className="text-muted-foreground">{step.description}</p>
-                  </div>
+            <Arrow />
 
-                  {/* Icon and Number */}
-                  <div className="absolute left-1/2 -translate-x-1/2 bg-secondary flex flex-col items-center gap-2">
-                     <div className="flex items-center justify-center w-16 h-16 bg-background rounded-full border-2 border-primary">
-                      {step.icon}
-                    </div>
-                     <span className="font-bold text-sm text-primary">STEP {index + 1}</span>
-                  </div>
-                </div>
-              </AnimatedWrapper>
-            ))}
-          </div>
+            {/* Step 2 */}
+            <AnimatedWrapper delay={200} className="lg:col-span-1">
+                <Card className="h-full text-center shadow-soft hover:shadow-lift transition-all duration-300">
+                     <CardHeader>
+                        <div className="mx-auto bg-primary/10 p-4 rounded-full w-fit">
+                            {processSteps[1].icon}
+                        </div>
+                    </CardHeader>
+                    <CardContent>
+                        <CardTitle className="mb-2 text-xl">{processSteps[1].title}</CardTitle>
+                        <p className="text-muted-foreground">{processSteps[1].description}</p>
+                    </CardContent>
+                </Card>
+            </AnimatedWrapper>
+            
+            <Arrow />
+
+            {/* Step 3 */}
+            <AnimatedWrapper delay={300} className="lg:col-span-1">
+                <Card className="h-full text-center shadow-soft hover:shadow-lift transition-all duration-300">
+                     <CardHeader>
+                        <div className="mx-auto bg-primary/10 p-4 rounded-full w-fit">
+                            {processSteps[2].icon}
+                        </div>
+                    </CardHeader>
+                    <CardContent>
+                        <CardTitle className="mb-2 text-xl">{processSteps[2].title}</CardTitle>
+                        <p className="text-muted-foreground">{processSteps[2].description}</p>
+                    </CardContent>
+                </Card>
+            </AnimatedWrapper>
+        </div>
+        
+        {/* Connector for smaller screens */}
+        <div className="flex lg:hidden justify-center my-8">
+             <ArrowRight className="w-12 h-12 text-primary/30 rotate-90" />
+        </div>
+        
+        {/* Connector for larger screens */}
+        <div className="hidden lg:flex justify-end my-8 h-8">
+             <div className="w-1/5 border-b-2 border-l-2 border-primary/30 rounded-bl-3xl"></div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 items-center gap-8">
+            {/* Step 6 */}
+            <AnimatedWrapper delay={600} className="lg:col-span-1 order-last lg:order-first">
+                 <Card className="h-full text-center shadow-soft hover:shadow-lift transition-all duration-300">
+                     <CardHeader>
+                        <div className="mx-auto bg-primary/10 p-4 rounded-full w-fit">
+                            {processSteps[5].icon}
+                        </div>
+                    </CardHeader>
+                    <CardContent>
+                        <CardTitle className="mb-2 text-xl">{processSteps[5].title}</CardTitle>
+                        <p className="text-muted-foreground">{processSteps[5].description}</p>
+                    </CardContent>
+                </Card>
+            </AnimatedWrapper>
+            
+            <Arrow className="lg:rotate-180" />
+
+            {/* Step 5 */}
+            <AnimatedWrapper delay={500} className="lg:col-span-1 order-3 lg:order-2">
+                 <Card className="h-full text-center shadow-soft hover:shadow-lift transition-all duration-300">
+                     <CardHeader>
+                        <div className="mx-auto bg-primary/10 p-4 rounded-full w-fit">
+                            {processSteps[4].icon}
+                        </div>
+                    </CardHeader>
+                    <CardContent>
+                        <CardTitle className="mb-2 text-xl">{processSteps[4].title}</CardTitle>
+                        <p className="text-muted-foreground">{processSteps[4].description}</p>
+                    </CardContent>
+                </Card>
+            </AnimatedWrapper>
+
+             <Arrow className="lg:rotate-180" />
+
+             {/* Step 4 */}
+            <AnimatedWrapper delay={400} className="lg:col-span-1 order-first lg:order-last">
+                 <Card className="h-full text-center shadow-soft hover:shadow-lift transition-all duration-300">
+                     <CardHeader>
+                        <div className="mx-auto bg-primary/10 p-4 rounded-full w-fit">
+                            {processSteps[3].icon}
+                        </div>
+                    </CardHeader>
+                    <CardContent>
+                        <CardTitle className="mb-2 text-xl">{processSteps[3].title}</CardTitle>
+                        <p className="text-muted-foreground">{processSteps[3].description}</p>
+                    </CardContent>
+                </Card>
+            </AnimatedWrapper>
         </div>
       </div>
     </section>
