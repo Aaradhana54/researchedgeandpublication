@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { LoaderCircle, Copy, Users, CheckCircle, DollarSign, Wallet, Share2 } from 'lucide-react';
 import { useCollection, useFirestore } from '@/firebase';
 import { collection, query, where } from 'firebase/firestore';
-import type { UserProfile, Payout, Project } from '@/lib/types';
+import type { UserProfile, Payout, Project, ContactLead } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { ReferClientDialog } from '@/components/referral-partner/refer-client-dialog';
@@ -33,21 +33,29 @@ export default function ReferralDashboardPage() {
   const firestore = useFirestore();
   const { toast } = useToast();
 
-  // 1. Find all users referred by the current partner
+  // 1. Find all users referred by the current partner (direct sign-ups)
   const referredUsersQuery = useMemo(() => {
     if (!user || !firestore || !user.referralCode) return null;
     return query(collection(firestore, 'users'), where('referredBy', '==', user.referralCode));
   }, [user, firestore]);
+  
+  // 2. Find all leads submitted by the partner (manual submission)
+  const submittedLeadsQuery = useMemo(() => {
+    if (!user || !firestore) return null;
+    return query(collection(firestore, 'contact_leads'), where('referredByPartnerId', '==', user.uid));
+  }, [user, firestore]);
+
 
   const { data: referredUsers, loading: referralsLoading } = useCollection<UserProfile>(referredUsersQuery);
+  const { data: submittedLeads, loading: leadsLoading } = useCollection<ContactLead>(submittedLeadsQuery);
 
-  // 2. Get the IDs of the referred users
+  // 3. Get the IDs of the referred users
   const referredUserIds = useMemo(() => {
     if (!referredUsers || referredUsers.length === 0) return [];
     return referredUsers.map(u => u.uid);
   }, [referredUsers]);
 
-  // 3. Find all projects created by those referred users
+  // 4. Find all projects created by those referred users to calculate conversions
   const projectsOfReferredUsersQuery = useMemo(() => {
     if (!firestore || referredUserIds.length === 0) return null;
     // Firestore 'in' query is limited to 30 items. For more, you'd need a different data model.
@@ -56,7 +64,7 @@ export default function ReferralDashboardPage() {
 
   const { data: projects, loading: projectsLoading } = useCollection<Project>(projectsOfReferredUsersQuery);
 
-  // 4. Get all payouts for the current partner
+  // 5. Get all payouts for the current partner
   const payoutsQuery = useMemo(() => {
     if (!user || !firestore) return null;
     return query(collection(firestore, 'payouts'), where('userId', '==', user.uid));
@@ -64,7 +72,7 @@ export default function ReferralDashboardPage() {
 
   const { data: payouts, loading: payoutsLoading } = useCollection<Payout>(payoutsQuery);
 
-  const loading = userLoading || referralsLoading || projectsLoading || payoutsLoading;
+  const loading = userLoading || referralsLoading || projectsLoading || payoutsLoading || leadsLoading;
 
   const referralLink = useMemo(() => {
     if (typeof window === 'undefined' || !user?.referralCode) return '';
@@ -73,7 +81,8 @@ export default function ReferralDashboardPage() {
 
   // Calculate statistics based on fetched data
   const stats = useMemo(() => {
-    const totalReferred = referredUsers?.length ?? 0;
+    // Total referred is sign-ups + manual submissions
+    const totalReferred = (referredUsers?.length ?? 0) + (submittedLeads?.length ?? 0);
 
     const convertedUserIds = new Set(projects?.map(p => p.userId));
     const convertedClients = convertedUserIds.size;
@@ -92,7 +101,7 @@ export default function ReferralDashboardPage() {
       availableCommission,
       totalCommissionEarned,
     };
-  }, [referredUsers, projects, payouts]);
+  }, [referredUsers, submittedLeads, projects, payouts]);
 
   const handleCopyLink = () => {
     if (!referralLink) return;
