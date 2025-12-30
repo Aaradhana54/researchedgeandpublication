@@ -59,9 +59,9 @@
     },
     {
       "id": "hero-4",
-      "description": "A group of graduating students in caps and gowns, celebrating their academic achievement.",
-      "imageUrl": "https://images.unsplash.com/photo-1574258483164-325819075775?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wzNzEyODZ8MHwxfHNlYXJjaHwxfHxzdHVkZW50JTIwZ3JhZHVhdGlvbnxlbnwwfHx8fDE3MTgxMDExNDh8MA&ixlib=rb-4.0.3&q=80&w=1080",
-      "imageHint": "graduation students"
+      "description": "A group of diverse students collaborating around a laptop in a modern study space.",
+      "imageUrl": "https://images.unsplash.com/photo-1521737711867-e3b97375f902?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wzNzEyODZ8MHwxfHNlYXJjaHw0fHxzdHVkZW50cyUyMGNvbGxhYm9yYXRpbmd8ZW58MHx8fHwxNzE4MzA5ODgyfDA&ixlib=rb-4.0.3&q=80&w=1080",
+      "imageHint": "students collaborating"
     },
     {
       "id": "services-image",
