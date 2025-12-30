@@ -40,28 +40,28 @@
       "imageHint": "team meeting"
     },
     {
-      "id": "hero-background",
-      "description": "A scientist looking through a microscope in a laboratory, representing scientific discovery.",
-      "imageUrl": "https://images.unsplash.com/photo-1532094349884-543bc11b234d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxzY2llbnRpZmljJTIwcmVzZWFyY2h8ZW58MHx8fHwxNzY3MDA4MzAxfDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "scientific research"
+      "id": "hero-1",
+      "description": "A student writing notes in a library with a large collection of books in the background.",
+      "imageUrl": "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxsaWJyYXJ5JTIwc3R1ZGVudHxlbnwwfHx8fDE3NjcwMDgzMDB8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "library student"
     },
     {
-      "id": "hero-background-2",
-      "description": "A close-up of a printed academic journal or publication, symbolizing the final output of research.",
-      "imageUrl": "https://images.unsplash.com/photo-1707246719682-6841358980c0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxhY2FkZW1pYyUyMGpvdXJuYWx8ZW58MHx8fHwxNzY3MDA4MzAwfDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "academic journal"
+      "id": "hero-2",
+      "description": "A university lecture hall filled with students attentively listening.",
+      "imageUrl": "https://images.unsplash.com/photo-1540575467063-178a50c2df87?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxsZWN0dXJlJTIwaGFsbHxlbnwwfHx8fDE3NjcwMDgzMDF8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "lecture hall"
     },
     {
-      "id": "hero-background-3",
-      "description": "A person's hands carefully editing a manuscript, representing the writing and revision process.",
-      "imageUrl": "https://images.unsplash.com/photo-1763225037262-75d0cb46f9c2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHx3cml0aW5nJTIwbWFudXNjcmlwdHxlbnwwfHx8fDE3NjcwMDgzMDB8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "writing manuscript"
-    },
-    {
-      "id": "hero-background-4",
-      "description": "A scholar or student in a library, surrounded by books, embodying the spirit of academic pursuit.",
+      "id": "hero-3",
+      "description": "A scholar sitting at a desk in a library, surrounded by books and focused on research.",
       "imageUrl": "https://images.unsplash.com/photo-1606996704767-4d39b7820043?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHx1bml2ZXJzaXR5JTIwc2Nob2xhcnxlbnwwfHx8fDE3NjcwMDgzMDB8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "university scholar"
+    },
+    {
+      "id": "hero-4",
+      "description": "A group of graduating students in caps and gowns, celebrating their academic achievement.",
+      "imageUrl": "https://images.unsplash.com/photo-1625905326524-34c3cba0df56?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxncmFkdWF0aW9ufGVufDB8fHx8fDE3NjcwMDgzMDF8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "graduation students"
     },
     {
       "id": "services-image",
