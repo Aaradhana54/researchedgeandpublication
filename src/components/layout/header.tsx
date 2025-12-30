@@ -65,9 +65,10 @@ export function Header() {
       if (!user) return '/';
       switch (user.role) {
           case 'admin':
+              return '/admin/dashboard';
           case 'sales-team':
           case 'sales-manager':
-              return '/admin/dashboard';
+              return '/sales/dashboard';
           case 'client': return '/dashboard';
           case 'referral-partner': return '/referral-partner/dashboard';
           case 'writing-team': return '/writing/dashboard';
@@ -159,7 +160,7 @@ export function Header() {
                           <Users className="mr-2 h-4 w-4" />
                           <span>Referral Partner</span>
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => router.push('/admin/login')}>
+                        <DropdownMenuItem onClick={() => router.push('/sales/login')}>
                           <TrendingUp className="mr-2 h-4 w-4" />
                           <span>Sales Manager Login</span>
                         </DropdownMenuItem>
