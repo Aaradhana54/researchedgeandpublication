@@ -21,19 +21,21 @@ import {
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 
-const COMMISSION_PER_PROJECT = 50; // Example commission amount
+const COMMISSION_PER_PROJECT = 5000;
 
 export default function PayoutsPage() {
   const { user, loading: userLoading } = useUser();
   const firestore = useFirestore();
 
+  // Get all payouts for the current partner
   const payoutsQuery = useMemo(() => {
     if (!user || !firestore) return null;
-    return query(collection(firestore, 'payouts'), where('userId', '==', user.uid));
+    return query(collection(firestore, 'payouts'), where('userId', '==', user.uid), orderBy('requestDate', 'desc'));
   }, [user, firestore]);
 
   const { data: payouts, loading: payoutsLoading } = useCollection<Payout>(payoutsQuery);
 
+  // Find all users referred by the current partner
   const referredUsersQuery = useMemo(() => {
     if (!user || !firestore || !user.referralCode) return null;
     return query(collection(firestore, 'users'), where('referredBy', '==', user.referralCode));
@@ -41,22 +43,29 @@ export default function PayoutsPage() {
 
   const { data: referredUsers, loading: referralsLoading } = useCollection<UserProfile>(referredUsersQuery);
 
+  // Get the IDs of the referred users
   const referredUserIds = useMemo(() => {
-    return referredUsers ? referredUsers.map(u => u.uid) : [];
+    if (!referredUsers || referredUsers.length === 0) return [];
+    return referredUsers.map(u => u.uid);
   }, [referredUsers]);
 
-  const projectsQuery = useMemo(() => {
-      if (!firestore || referredUserIds.length === 0) return null;
-      return query(collection(firestore, 'projects'), where('userId', 'in', referredUserIds));
+  // Find all projects created by those referred users
+  const projectsOfReferredUsersQuery = useMemo(() => {
+    if (!firestore || referredUserIds.length === 0) return null;
+    return query(collection(firestore, 'projects'), where('userId', 'in', referredUserIds));
   }, [firestore, referredUserIds]);
 
-  const { data: projects, loading: projectsLoading } = useCollection<Project>(projectsQuery);
+  const { data: projects, loading: projectsLoading } = useCollection<Project>(projectsOfReferredUsersQuery);
 
   const loading = userLoading || payoutsLoading || projectsLoading || referralsLoading;
 
-  const totalCommissionEarned = (projects?.length ?? 0) * COMMISSION_PER_PROJECT;
-  const totalPaidOut = payouts?.filter(p => p.status === 'paid').reduce((acc, p) => acc + p.amount, 0) ?? 0;
-  const pendingCommission = totalCommissionEarned - totalPaidOut;
+  // Calculate commission based on fetched data
+  const availableCommission = useMemo(() => {
+    const commissionableProjects = projects?.filter(p => p.status === 'approved' || p.status === 'in-progress' || p.status === 'completed').length ?? 0;
+    const totalCommissionEarned = commissionableProjects * COMMISSION_PER_PROJECT;
+    const totalPaidOut = payouts?.filter(p => p.status === 'paid').reduce((acc, p) => acc + p.amount, 0) ?? 0;
+    return totalCommissionEarned - totalPaidOut;
+  }, [projects, payouts]);
 
 
   if (loading) {
@@ -74,8 +83,8 @@ export default function PayoutsPage() {
             <h1 className="text-3xl font-bold tracking-tight">Payouts</h1>
             <p className="text-muted-foreground">Request and track your commission payouts.</p>
         </div>
-        <RequestPayoutDialog currentBalance={pendingCommission}>
-            <Button variant="outline" disabled={pendingCommission < 1000}>
+        <RequestPayoutDialog currentBalance={availableCommission}>
+            <Button variant="outline" disabled={availableCommission < 1000}>
                 <Banknote className="mr-2 h-4 w-4" />
                 Request Payout
             </Button>

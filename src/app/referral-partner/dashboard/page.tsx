@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { ReferClientDialog } from '@/components/referral-partner/refer-client-dialog';
 
-const COMMISSION_PER_PROJECT = 50; // Example commission amount
+const COMMISSION_PER_PROJECT = 5000; 
 
 function StatCard({ title, value, icon }: { title: string, value: string | number, icon: React.ReactNode }) {
   return (
@@ -33,6 +33,7 @@ export default function ReferralDashboardPage() {
   const firestore = useFirestore();
   const { toast } = useToast();
 
+  // 1. Find all users referred by the current partner
   const referredUsersQuery = useMemo(() => {
     if (!user || !firestore || !user.referralCode) return null;
     return query(collection(firestore, 'users'), where('referredBy', '==', user.referralCode));
@@ -40,17 +41,22 @@ export default function ReferralDashboardPage() {
 
   const { data: referredUsers, loading: referralsLoading } = useCollection<UserProfile>(referredUsersQuery);
 
+  // 2. Get the IDs of the referred users
   const referredUserIds = useMemo(() => {
-    return referredUsers ? referredUsers.map(u => u.uid) : [];
+    if (!referredUsers || referredUsers.length === 0) return [];
+    return referredUsers.map(u => u.uid);
   }, [referredUsers]);
 
-  const projectsQuery = useMemo(() => {
-      if (!firestore || referredUserIds.length === 0) return null;
-      return query(collection(firestore, 'projects'), where('userId', 'in', referredUserIds));
+  // 3. Find all projects created by those referred users
+  const projectsOfReferredUsersQuery = useMemo(() => {
+    if (!firestore || referredUserIds.length === 0) return null;
+    // Firestore 'in' query is limited to 30 items. For more, you'd need a different data model.
+    return query(collection(firestore, 'projects'), where('userId', 'in', referredUserIds));
   }, [firestore, referredUserIds]);
 
-  const { data: projects, loading: projectsLoading } = useCollection<Project>(projectsQuery);
+  const { data: projects, loading: projectsLoading } = useCollection<Project>(projectsOfReferredUsersQuery);
 
+  // 4. Get all payouts for the current partner
   const payoutsQuery = useMemo(() => {
     if (!user || !firestore) return null;
     return query(collection(firestore, 'payouts'), where('userId', '==', user.uid));
@@ -58,12 +64,35 @@ export default function ReferralDashboardPage() {
 
   const { data: payouts, loading: payoutsLoading } = useCollection<Payout>(payoutsQuery);
 
-  const loading = userLoading || referralsLoading || payoutsLoading || projectsLoading;
+  const loading = userLoading || referralsLoading || projectsLoading || payoutsLoading;
 
   const referralLink = useMemo(() => {
     if (typeof window === 'undefined' || !user?.referralCode) return '';
     return `${window.location.origin}/signup?ref=${user.referralCode}`;
   }, [user?.referralCode]);
+
+  // Calculate statistics based on fetched data
+  const stats = useMemo(() => {
+    const totalLeads = referredUsers?.length ?? 0;
+
+    const convertedUserIds = new Set(projects?.map(p => p.userId));
+    const convertedLeads = convertedUserIds.size;
+
+    // Commission is earned for every approved or completed project from a referred user
+    const commissionableProjects = projects?.filter(p => p.status === 'approved' || p.status === 'in-progress' || p.status === 'completed').length ?? 0;
+    const totalCommissionEarned = commissionableProjects * COMMISSION_PER_PROJECT;
+
+    const totalPaidOut = payouts?.filter(p => p.status === 'paid').reduce((acc, p) => acc + p.amount, 0) ?? 0;
+    
+    const availableCommission = totalCommissionEarned - totalPaidOut;
+
+    return {
+      totalLeads,
+      convertedLeads,
+      availableCommission,
+      totalCommissionEarned,
+    };
+  }, [referredUsers, projects, payouts]);
 
   const handleCopyLink = () => {
     if (!referralLink) return;
@@ -73,18 +102,6 @@ export default function ReferralDashboardPage() {
       description: 'Your referral link has been copied.',
     });
   };
-  
-  const totalLeads = referredUsers?.length ?? 0;
-  const convertedLeads = useMemo(() => {
-    if (!projects || !referredUsers) return 0;
-    const projectUserIds = new Set(projects.map(p => p.userId));
-    return referredUsers.filter(u => projectUserIds.has(u.uid)).length;
-  }, [projects, referredUsers]);
-
-  const totalCommissionEarned = (projects?.length ?? 0) * COMMISSION_PER_PROJECT;
-  const totalPaidOut = payouts?.filter(p => p.status === 'paid').reduce((acc, p) => acc + p.amount, 0) ?? 0;
-  const pendingCommission = totalCommissionEarned - totalPaidOut;
-
 
   if (loading || !user) {
     return (
@@ -139,13 +156,11 @@ export default function ReferralDashboardPage() {
         </div>
       
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <StatCard title="Total Leads" value={totalLeads} icon={<Users className="h-4 w-4 text-muted-foreground" />} />
-        <StatCard title="Converted Clients" value={convertedLeads} icon={<CheckCircle className="h-4 w-4 text-muted-foreground" />} />
-        <StatCard title="Available Commission" value={pendingCommission.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })} icon={<Wallet className="h-4 w-4 text-muted-foreground" />} />
-        <StatCard title="Total Earnings" value={totalCommissionEarned.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })} icon={<DollarSign className="h-4 w-4 text-muted-foreground" />} />
+        <StatCard title="Total Leads" value={stats.totalLeads} icon={<Users className="h-4 w-4 text-muted-foreground" />} />
+        <StatCard title="Converted Clients" value={stats.convertedLeads} icon={<CheckCircle className="h-4 w-4 text-muted-foreground" />} />
+        <StatCard title="Available Commission" value={stats.availableCommission.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })} icon={<Wallet className="h-4 w-4 text-muted-foreground" />} />
+        <StatCard title="Total Earnings" value={stats.totalCommissionEarned.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })} icon={<DollarSign className="h-4 w-4 text-muted-foreground" />} />
       </div>
     </div>
   );
 }
-
-    
