@@ -2,11 +2,11 @@
 'use client';
 
 import { useMemo } from 'react';
-import { collection, query, where } from 'firebase/firestore';
-import { useCollection, useFirestore, useUser } from '@/firebase';
+import { collection, query, where, orderBy } from 'firebase/firestore';
+import { useCollection, useFirestore } from '@/firebase';
 import type { Project, UserProfile, ContactLead } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { LoaderCircle, FolderKanban, Users, MessageSquare } from 'lucide-react';
+import { LoaderCircle, UserCheck } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -18,192 +18,24 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import Link from 'next/link';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-const getProjectStatusVariant = (status?: string): 'default' | 'secondary' | 'destructive' | 'outline' => {
-  switch (status) {
-    case 'approved': return 'default';
-    case 'in-progress': return 'secondary';
-    case 'completed': return 'default';
-    case 'rejected': return 'destructive';
-    case 'pending': return 'outline';
-    default: return 'outline';
-  }
+type CombinedLead = (Project | ContactLead) & {
+  leadType: 'Project' | 'Contact';
+  clientName: string;
 };
-
-const getLeadStatusVariant = (status?: string): 'default' | 'secondary' | 'destructive' | 'outline' => {
-    switch(status) {
-        case 'new': return 'outline';
-        case 'contacted': return 'secondary';
-        case 'converted': return 'default';
-        default: return 'outline';
-    }
-}
-
-
-function ClientLeadsTable({ projects, usersMap }: { projects: Project[], usersMap: Map<string, UserProfile>}) {
-    if (projects.length === 0) {
-        return (
-            <div className="text-center p-12 text-muted-foreground">
-                <FolderKanban className="mx-auto w-12 h-12 mb-4" />
-                <h3 className="text-lg font-semibold">No Assigned Client Leads</h3>
-                <p>You have not been assigned any leads from clients yet.</p>
-            </div>
-        );
-    }
-    return (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Project Title</TableHead>
-              <TableHead>Client</TableHead>
-              <TableHead>Service</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Submitted On</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {projects.map((project) => {
-              const client = usersMap.get(project.userId);
-              return (
-                <TableRow key={project.id}>
-                  <TableCell className="font-medium">
-                    <Link href={`/admin/projects/${project.id}`} className="hover:underline text-primary">
-                      {project.title}
-                    </Link>
-                  </TableCell>
-                  <TableCell>
-                    <div className="font-medium">{client?.name || 'Unknown User'}</div>
-                    <div className="text-sm text-muted-foreground">{client?.email}</div>
-                  </TableCell>
-                   <TableCell>
-                       <Badge variant="secondary" className="capitalize">
-                        {project.serviceType.replace(/-/g, ' ')}
-                       </Badge>
-                   </TableCell>
-                   <TableCell>
-                       <Badge variant={getProjectStatusVariant(project.status)} className="capitalize">
-                        {project.status || 'Pending'}
-                       </Badge>
-                   </TableCell>
-                  <TableCell>
-                    {project.createdAt ? format(project.createdAt.toDate(), 'PPP') : 'N/A'}
-                  </TableCell>
-                </TableRow>
-              )
-            })}
-          </TableBody>
-        </Table>
-    );
-}
-
-
-function PartnerLeadsTable({ leads, usersMap }: { leads: ContactLead[], usersMap: Map<string, UserProfile>}) {
-     if (leads.length === 0) {
-        return (
-            <div className="text-center p-12 text-muted-foreground">
-                <Users className="mx-auto w-12 h-12 mb-4" />
-                <h3 className="text-lg font-semibold">No Assigned Partner Leads</h3>
-                <p>You have not been assigned any leads from partners yet.</p>
-            </div>
-        );
-    }
-    return (
-        <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Client Name</TableHead>
-                  <TableHead>Contact</TableHead>
-                  <TableHead>Referred By</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Submitted On</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {leads.map((lead) => {
-                  const partner = usersMap.get(lead.referredByPartnerId!);
-                  return (
-                    <TableRow key={lead.id}>
-                      <TableCell className="font-medium">{lead.name}</TableCell>
-                      <TableCell>
-                        <div className="font-medium">{lead.email}</div>
-                        <div className="text-sm text-muted-foreground">{lead.phone}</div>
-                      </TableCell>
-                      <TableCell>{partner?.name || 'Unknown Partner'}</TableCell>
-                       <TableCell>
-                           <Badge variant={getLeadStatusVariant(lead.status)} className="capitalize">
-                            {lead.status}
-                           </Badge>
-                       </TableCell>
-                      <TableCell>
-                        {lead.createdAt ? format(lead.createdAt.toDate(), 'PPP') : 'N/A'}
-                      </TableCell>
-                    </TableRow>
-                  )
-                })}
-              </TableBody>
-            </Table>
-    );
-}
-
-function WebsiteLeadsTable({ leads }: { leads: ContactLead[]}) {
-     if (leads.length === 0) {
-        return (
-            <div className="text-center p-12 text-muted-foreground">
-                <MessageSquare className="mx-auto w-12 h-12 mb-4" />
-                <h3 className="text-lg font-semibold">No Assigned Website Leads</h3>
-                <p>You have not been assigned any leads from the website yet.</p>
-            </div>
-        );
-    }
-    return (
-        <Table>
-            <TableHeader>
-                <TableRow>
-                  <TableHead>Client Name</TableHead>
-                  <TableHead>Contact</TableHead>
-                  <TableHead>Service of Interest</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Submitted On</TableHead>
-                </TableRow>
-            </TableHeader>
-            <TableBody>
-            {leads.map((lead) => (
-                <TableRow key={lead.id}>
-                    <TableCell className="font-medium">{lead.name}</TableCell>
-                    <TableCell>
-                    <div className="font-medium">{lead.email}</div>
-                    <div className="text-sm text-muted-foreground">{lead.phone}</div>
-                    </TableCell>
-                    <TableCell>{lead.serviceType || 'Not specified'}</TableCell>
-                    <TableCell>
-                        <Badge variant={getLeadStatusVariant(lead.status)} className="capitalize">
-                        {lead.status}
-                        </Badge>
-                    </TableCell>
-                    <TableCell>
-                    {lead.createdAt ? format(lead.createdAt.toDate(), 'PPP') : 'N/A'}
-                    </TableCell>
-                </TableRow>
-            ))}
-            </TableBody>
-        </Table>
-    );
-}
 
 export default function AssignedLeadsPage() {
   const firestore = useFirestore();
-  const { user } = useUser();
 
   const projectsQuery = useMemo(() => {
-    if (!firestore || !user) return null;
-    return query(collection(firestore, 'projects'), where('assignedSalesId', '==', user.uid));
-  }, [firestore, user]);
+    if (!firestore) return null;
+    return query(collection(firestore, 'projects'), where('assignedSalesId', '!=', null));
+  }, [firestore]);
 
   const contactLeadsQuery = useMemo(() => {
-    if (!firestore || !user) return null;
-    return query(collection(firestore, 'contact_leads'), where('assignedSalesId', '==', user.uid));
-  }, [firestore, user]);
+    if (!firestore) return null;
+    return query(collection(firestore, 'contact_leads'), where('assignedSalesId', '!=', null));
+  }, [firestore]);
 
   const usersQuery = useMemo(() => {
     if (!firestore) return null;
@@ -214,41 +46,48 @@ export default function AssignedLeadsPage() {
   const { data: contactLeads, loading: loadingContactLeads } = useCollection<ContactLead>(contactLeadsQuery);
   const { data: users, loading: loadingUsers } = useCollection<UserProfile>(usersQuery);
 
-  const loading = loadingProjects || loadingUsers || loadingContactLeads;
+  const loading = loadingProjects || loadingContactLeads || loadingUsers;
 
   const usersMap = useMemo(() => {
     if (!users) return new Map<string, UserProfile>();
     return new Map(users.map((user) => [user.uid, user]));
   }, [users]);
-
-  const clientLeads = useMemo(() => {
-      if(!projects) return [];
-      return projects.filter(p => !p.userId.startsWith('unregistered_'));
-  }, [projects]);
   
-  const partnerLeads = useMemo(() => {
-      if(!contactLeads) return [];
-      return contactLeads.filter(l => !!l.referredByPartnerId);
-  }, [contactLeads]);
+  const combinedLeads = useMemo(() => {
+    const allLeads: CombinedLead[] = [];
+    
+    projects?.forEach(p => {
+      allLeads.push({ 
+        ...p, 
+        leadType: 'Project',
+        clientName: usersMap.get(p.userId)?.name || 'Unknown Client',
+      });
+    });
 
-  const websiteLeads = useMemo(() => {
-      if(!contactLeads) return [];
-      return contactLeads.filter(l => !l.referredByPartnerId);
-  }, [contactLeads]);
-  
-  const allLeadsCount = (projects?.length || 0) + (contactLeads?.length || 0);
+    contactLeads?.forEach(l => {
+        allLeads.push({
+            ...l,
+            leadType: 'Contact',
+            clientName: l.name,
+        });
+    });
+
+    // Sort by whichever date is available, createdAt is on both
+    return allLeads.sort((a, b) => b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime());
+  }, [projects, contactLeads, usersMap]);
+
 
   return (
     <div className="p-4 sm:p-6 lg:p-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold tracking-tight">Assigned Leads</h1>
-        <p className="text-muted-foreground">A list of all leads currently assigned to you.</p>
+        <p className="text-muted-foreground">A list of all leads currently assigned to the sales team.</p>
       </div>
       <Card>
         <CardHeader>
-          <CardTitle>Your Leads</CardTitle>
+          <CardTitle>Delegated Leads</CardTitle>
           <CardDescription>
-            This is a master list of every lead assigned to you.
+            Track the progress of leads that have been assigned to salespersons.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -256,27 +95,48 @@ export default function AssignedLeadsPage() {
             <div className="flex justify-center items-center h-48">
               <LoaderCircle className="w-8 h-8 animate-spin text-primary" />
             </div>
+          ) : combinedLeads && combinedLeads.length > 0 ? (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Client / Project</TableHead>
+                  <TableHead>Lead Type</TableHead>
+                  <TableHead>Assigned To</TableHead>
+                  <TableHead>Date Assigned</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {combinedLeads.map((lead) => {
+                  const assignedToUser = usersMap.get(lead.assignedSalesId!);
+                  return (
+                    <TableRow key={`${lead.leadType}-${lead.id}`}>
+                      <TableCell className="font-medium">
+                        <Link href={`/sales-manager/projects/${lead.id}`} className="hover:underline text-primary">
+                          {(lead as Project).title || lead.clientName}
+                        </Link>
+                         <div className="text-sm text-muted-foreground">{lead.leadType === 'Project' ? lead.clientName : (lead as ContactLead).email}</div>
+                      </TableCell>
+                       <TableCell>
+                           <Badge variant="secondary" className="capitalize">
+                            {lead.leadType}
+                           </Badge>
+                       </TableCell>
+                       <TableCell>{assignedToUser?.name || 'Unknown'}</TableCell>
+                      <TableCell>
+                        {/* Note: This shows creation date as we don't have an "assignedAt" timestamp */}
+                        {lead.createdAt ? format(lead.createdAt.toDate(), 'PPP') : 'N/A'}
+                      </TableCell>
+                    </TableRow>
+                  )
+                })}
+              </TableBody>
+            </Table>
           ) : (
-            <Tabs defaultValue="all">
-                <TabsList>
-                    <TabsTrigger value="all">All ({allLeadsCount})</TabsTrigger>
-                    <TabsTrigger value="clients">Client Leads ({clientLeads.length})</TabsTrigger>
-                    <TabsTrigger value="partners">Partner Leads ({partnerLeads.length})</TabsTrigger>
-                    <TabsTrigger value="website">Website Leads ({websiteLeads.length})</TabsTrigger>
-                </TabsList>
-                <TabsContent value="all">
-                    <ClientLeadsTable projects={clientLeads} usersMap={usersMap} />
-                </TabsContent>
-                <TabsContent value="clients">
-                    <ClientLeadsTable projects={clientLeads} usersMap={usersMap} />
-                </TabsContent>
-                <TabsContent value="partners">
-                    <PartnerLeadsTable leads={partnerLeads} usersMap={usersMap} />
-                </TabsContent>
-                <TabsContent value="website">
-                    <WebsiteLeadsTable leads={websiteLeads} />
-                </TabsContent>
-            </Tabs>
+            <div className="text-center p-12 text-muted-foreground">
+                <UserCheck className="mx-auto w-12 h-12 mb-4" />
+                <h3 className="text-lg font-semibold">No Leads Assigned</h3>
+                <p>No leads have been assigned to the sales team yet.</p>
+            </div>
           )}
         </CardContent>
       </Card>
