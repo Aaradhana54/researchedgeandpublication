@@ -44,7 +44,13 @@ export default function ConvertedLeadsPage() {
   }, [firestore]);
 
   const { data: allProjects, loading: projectsLoading } = useCollection<Project>(allProjectsQuery);
-  const { data: allUsers, loading: usersLoading } = useCollection<UserProfile>(query(collection(firestore, 'users')));
+  
+  // We need all users to map IDs to names for unregistered clients
+  const usersQuery = useMemo(() => {
+      if (!firestore) return null;
+      return query(collection(firestore, 'users'));
+  },[firestore]);
+  const { data: allUsers, loading: usersLoading } = useCollection<UserProfile>(usersQuery);
 
 
   const loading = userLoading || referralsLoading || projectsLoading || usersLoading;
@@ -54,7 +60,7 @@ export default function ConvertedLeadsPage() {
     
     // Filter projects that are either from a registered referred user OR from a manually converted lead
     const partnerProjects = allProjects.filter(p => 
-      (referredUserIds.includes(p.userId)) || 
+      (referredUserIds.length > 0 && referredUserIds.includes(p.userId)) || 
       (p.referredByPartnerId === user.uid)
     );
 
@@ -108,7 +114,7 @@ export default function ConvertedLeadsPage() {
                                         </Link>
                                     </TableCell>
                                     <TableCell>
-                                        {client?.name || 'Unregistered Client'}
+                                        {client?.name || `Unregistered Client (${project.userId.split('_')[1].substring(0,6)}...)` }
                                     </TableCell>
                                     <TableCell>
                                         {project.finalizedAt ? format(project.finalizedAt.toDate(), 'PPP') : 'N/A'}
