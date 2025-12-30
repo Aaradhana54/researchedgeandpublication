@@ -42,8 +42,8 @@ import { LoaderCircle } from 'lucide-react';
 import { useEffect } from 'react';
 
 const dashboardNavItems = [
-  { href: '/sales-manager/dashboard', label: 'Dashboard', icon: <LayoutGrid /> },
-  { href: '/sales-manager/assigned-leads', label: 'Assigned Leads', icon: <FolderKanban /> },
+  { href: '/sales-manager/dashboard', label: 'Overview', icon: <LayoutGrid /> },
+  { href: '/sales-manager/leads', label: 'All Leads', icon: <FolderKanban /> },
   { href: '/sales-manager/approved-leads', label: 'Approved Leads', icon: <CheckCircle /> },
 ];
 
