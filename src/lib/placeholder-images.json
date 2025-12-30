@@ -92,6 +92,48 @@
       "description": "A person looking through a telescope at a starry night sky, representing foresight and discovery.",
       "imageUrl": "https://images.unsplash.com/photo-1534970028765-38ce47ef7d8d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wzNzEyODZ8MHwxfHNlYXJjaHwxfHx0ZWxlc2NvcGV8ZW58MHx8fHwxNzIxODQ3NTc0fDA&ixlib=rb-4.0.3&q=80&w=1080",
       "imageHint": "telescope stars"
+    },
+    {
+      "id": "publishing-writing",
+      "description": "A person writing in a notebook with a fountain pen.",
+      "imageUrl": "https://images.unsplash.com/photo-1712229462114-dae7fa1d1bf1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHx3cml0aW5nJTIwZ2hvc3R3cml0aW5nfGVufDB8fHx8MTc2NzA4Nzk3NXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "writing ghostwriting"
+    },
+    {
+      "id": "publishing-conversion",
+      "description": "A stack of academic papers next to a bound book.",
+      "imageUrl": "https://images.unsplash.com/photo-1760840414854-36cd365d14f1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxhY2FkZW1pYyUyMGJvb2t8ZW58MHx8fHwxNzY3MDg3OTc1fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "academic book"
+    },
+    {
+      "id": "publishing-editing",
+      "description": "A person's hands marking up a manuscript with a red pen.",
+      "imageUrl": "https://images.unsplash.com/photo-1608536213146-b869c077d6ff?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxlZGl0aW5nJTIwcHJvb2ZyZWFkaW5nfGVufDB8fHx8MTc2NzA4Nzk3NXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "editing proofreading"
+    },
+    {
+      "id": "publishing-design",
+      "description": "A graphic designer working on a book cover on a computer.",
+      "imageUrl": "https://images.unsplash.com/photo-1753526456624-9c3cadd6760d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxjb3ZlciUyMGRlc2lnbnxlbnwwfHx8fDE3NjcwODc5NzZ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "cover design"
+    },
+    {
+      "id": "publishing-copyright",
+      "description": "A close-up of a copyright symbol on a document.",
+      "imageUrl": "https://images.unsplash.com/photo-1501865363778-47f8f644b67a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxjb3B5cmlnaHQlMjBzeW1ib2x8ZW58MHx8fHwxNzY3MDg3OTc2fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "copyright symbol"
+    },
+    {
+      "id": "publishing-distribution",
+      "description": "A map of the world with lines connecting different countries.",
+      "imageUrl": "https://images.unsplash.com/photo-1703194531119-e8b98a555cb6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxnbG9iYWwlMjBkaXN0cmlidXRpb258ZW58MHx8fHwxNzY3MDg3OTc1fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "global distribution"
+    },
+    {
+      "id": "publishing-marketing",
+      "description": "A megaphone and social media icons.",
+      "imageUrl": "https://images.unsplash.com/photo-1667039487342-bb590d533429?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxib29rJTIwbWFya2V0aW5nfGVufDB8fHx8MTc2NzA4Nzk3NXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "book marketing"
     }
   ]
 }

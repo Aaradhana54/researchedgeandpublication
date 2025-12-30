@@ -18,36 +18,43 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 const publishingServices = [
   {
     icon: <BookCopy className="w-8 h-8 text-primary" />,
+    imageId: 'publishing-writing',
     title: 'Book Writing & Ghostwriting',
     description: 'Professional writing and ghostwriting services to bring your book idea to life, from initial concept to a complete manuscript.',
   },
   {
     icon: <BookUp className="w-8 h-8 text-primary" />,
+    imageId: 'publishing-conversion',
     title: 'Academic Book Conversion',
     description: 'Expertly transform your thesis, dissertation, or extensive research into a polished and publishable academic book.',
   },
   {
     icon: <FileCheck2 className="w-8 h-8 text-primary" />,
+    imageId: 'publishing-editing',
     title: 'Editing & Proofreading',
     description: 'Meticulous developmental editing, copy-editing, and proofreading to ensure your manuscript is polished and error-free.',
   },
   {
     icon: <Palette className="w-8 h-8 text-primary" />,
+    imageId: 'publishing-design',
     title: 'Cover Design & Formatting',
     description: 'Creative cover design and professional interior layout services for both print and digital eBook formats.',
   },
   {
     icon: <Copyright className="w-8 h-8 text-primary" />,
+    imageId: 'publishing-copyright',
     title: 'ISBN & Copyright',
     description: 'We handle the entire process of ISBN assignment and copyright registration to officially protect your intellectual property.',
   },
   {
     icon: <Globe2 className="w-8 h-8 text-primary" />,
+    imageId: 'publishing-distribution',
     title: 'Global Publishing & Distribution',
     description: 'We manage the publishing process and ensure your book is distributed globally to major online retailers and platforms.',
   },
    {
     icon: <Megaphone className="w-8 h-8 text-primary" />,
+    imageId: 'publishing-marketing',
     title: 'Book Marketing & Branding',
     description: 'Strategic marketing and author branding support to help your book connect with its intended audience and achieve success.',
   },
@@ -76,14 +83,27 @@ export function BookPublishing() {
             <div className="absolute left-1/2 top-0 h-full w-0.5 bg-border -translate-x-1/2" aria-hidden="true"></div>
 
             <div className="space-y-16">
-                 {publishingServices.map((service, index) => (
+                 {publishingServices.map((service, index) => {
+                   const serviceImage = PlaceHolderImages.find(p => p.id === service.imageId);
+                   return(
                     <AnimatedWrapper key={index} delay={index * 150}>
                         <div className={`relative flex items-center ${index % 2 === 0 ? 'justify-start' : 'justify-end'}`}>
                             
                             <div className={`w-1/2 p-6 ${index % 2 === 0 ? 'pr-12' : 'pl-12'}`}>
-                                <div className="space-y-3">
+                                <div className="space-y-3 bg-background p-6 rounded-lg shadow-soft">
+                                    {serviceImage && (
+                                        <div className="relative h-40 w-full mb-4 rounded-md overflow-hidden">
+                                            <Image
+                                                src={serviceImage.imageUrl}
+                                                alt={serviceImage.description}
+                                                fill
+                                                className="object-cover"
+                                                data-ai-hint={serviceImage.imageHint}
+                                            />
+                                        </div>
+                                    )}
                                     <div className={`flex items-center gap-4 ${index % 2 !== 0 ? 'justify-end flex-row-reverse' : ''}`}>
-                                        <div className="p-3 bg-background rounded-full shadow-soft">
+                                        <div className="p-3 bg-secondary rounded-full shadow-inner">
                                             {service.icon}
                                         </div>
                                         <h3 className="text-xl font-bold text-foreground">{service.title}</h3>
@@ -96,7 +116,7 @@ export function BookPublishing() {
                             <div className="absolute left-1/2 -translate-x-1/2 w-4 h-4 bg-background rounded-full border-4 border-primary"></div>
                         </div>
                     </AnimatedWrapper>
-                 ))}
+                 )})}
             </div>
         </div>
       </div>
