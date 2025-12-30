@@ -68,8 +68,9 @@ export function Header() {
           case 'admin':
               return '/admin/dashboard';
           case 'sales-team':
-          case 'sales-manager':
               return '/sales/dashboard';
+          case 'sales-manager':
+              return '/sales-manager/dashboard';
           case 'client': return '/dashboard';
           case 'referral-partner': return '/referral-partner/dashboard';
           case 'writing-team': return '/writing/dashboard';
@@ -153,6 +154,14 @@ export function Header() {
                           <Shield className="mr-2 h-4 w-4" />
                           <span>Admin Login</span>
                         </DropdownMenuItem>
+                         <DropdownMenuItem onClick={() => router.push('/sales-manager/login')}>
+                          <TrendingUp className="mr-2 h-4 w-4" />
+                          <span>Sales Manager Login</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => router.push('/sales/login')}>
+                          <TrendingUp className="mr-2 h-4 w-4" />
+                          <span>Sales Team Login</span>
+                        </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => router.push('/login')}>
                           <Briefcase className="mr-2 h-4 w-4" />
                           <span>Client Login</span>
@@ -160,10 +169,6 @@ export function Header() {
                          <DropdownMenuItem onClick={() => router.push('/referral-partner/login')}>
                           <Users className="mr-2 h-4 w-4" />
                           <span>Referral Partner</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => router.push('/sales/login')}>
-                          <TrendingUp className="mr-2 h-4 w-4" />
-                          <span>Sales Login</span>
                         </DropdownMenuItem>
                          <DropdownMenuItem onClick={() => router.push('/writing/login')}>
                           <PenTool className="mr-2 h-4 w-4" />

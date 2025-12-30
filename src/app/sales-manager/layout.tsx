@@ -42,12 +42,12 @@ import { LoaderCircle } from 'lucide-react';
 import { useEffect } from 'react';
 
 const dashboardNavItems = [
-  { href: '/sales/dashboard', label: 'Dashboard', icon: <LayoutGrid /> },
-  { href: '/sales/assigned-leads', label: 'Assigned Leads', icon: <FolderKanban /> },
-  { href: '/sales/approved-leads', label: 'Approved Leads', icon: <CheckCircle /> },
+  { href: '/sales-manager/dashboard', label: 'Dashboard', icon: <LayoutGrid /> },
+  { href: '/sales-manager/assigned-leads', label: 'Assigned Leads', icon: <FolderKanban /> },
+  { href: '/sales-manager/approved-leads', label: 'Approved Leads', icon: <CheckCircle /> },
 ];
 
-function SalesSidebar() {
+function SalesManagerSidebar() {
   const pathname = usePathname();
   const { user } = useUser();
   const router = useRouter();
@@ -71,7 +71,7 @@ function SalesSidebar() {
           {dashboardNavItems.map((item) => (
             <SidebarMenuItem key={item.label}>
               <Link href={item.href}>
-                <SidebarMenuButton isActive={pathname === item.href}>
+                <SidebarMenuButton isActive={pathname.startsWith(item.href)}>
                   {item.icon}
                   <span>{item.label}</span>
                 </SidebarMenuButton>
@@ -118,7 +118,7 @@ function SalesSidebar() {
   );
 }
 
-export default function SalesLayout({
+export default function SalesManagerLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -127,20 +127,20 @@ export default function SalesLayout({
   const router = useRouter();
   const pathname = usePathname();
 
-  const allowedRoles = ['sales-team'];
+  const allowedRoles = ['sales-manager'];
 
   useEffect(() => {
-    if (!loading && pathname !== '/sales/login') {
+    if (!loading && pathname !== '/sales-manager/login') {
       if (!user || !allowedRoles.includes(user.role)) {
-        router.replace('/sales/login');
+        router.replace('/sales-manager/login');
       }
     }
-    if (!loading && user && allowedRoles.includes(user.role) && pathname === '/sales/login') {
-      router.replace('/sales/dashboard');
+    if (!loading && user && allowedRoles.includes(user.role) && pathname === '/sales-manager/login') {
+      router.replace('/sales-manager/dashboard');
     }
   }, [user, loading, router, pathname]);
 
-  if (pathname === '/sales/login') {
+  if (pathname === '/sales-manager/login') {
     return <>{children}</>;
   }
 
@@ -162,7 +162,7 @@ export default function SalesLayout({
 
   return (
     <SidebarProvider>
-      <SalesSidebar />
+      <SalesManagerSidebar />
       <SidebarInset>
          <header className="sticky top-0 z-40 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
             <SidebarTrigger />
