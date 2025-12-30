@@ -83,13 +83,13 @@ export default function ReferralDashboardPage() {
   const stats = useMemo(() => {
     // Total referred is sign-ups + manual submissions
     const totalReferred = (referredUsers?.length ?? 0) + (submittedLeads?.length ?? 0);
-
-    const convertedUserIds = new Set(projects?.map(p => p.userId));
+    
+    // A client is converted if they have a project that is approved, in-progress, or completed.
+    const commissionableProjects = projects?.filter(p => ['approved', 'in-progress', 'completed'].includes(p.status || ''));
+    const convertedUserIds = new Set(commissionableProjects?.map(p => p.userId));
     const convertedClients = convertedUserIds.size;
-
-    // Commission is earned for every approved or completed project from a referred user
-    const commissionableProjects = projects?.filter(p => p.status === 'approved' || p.status === 'in-progress' || p.status === 'completed').length ?? 0;
-    const totalCommissionEarned = commissionableProjects * COMMISSION_PER_PROJECT;
+    
+    const totalCommissionEarned = (commissionableProjects?.length ?? 0) * COMMISSION_PER_PROJECT;
 
     const totalPaidOut = payouts?.filter(p => p.status === 'paid').reduce((acc, p) => acc + p.amount, 0) ?? 0;
     

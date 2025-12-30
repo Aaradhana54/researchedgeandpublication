@@ -47,9 +47,8 @@ export default function ReferredClientsPage() {
   // 3. Find all projects to determine which users are "converted"
   const projectsQuery = useMemo(() => {
     if (!firestore) return null;
-    // We can fetch all projects and filter on the client, or try to be more specific
-    // For simplicity and to avoid complex indexes, we'll fetch all and map.
-    return query(collection(firestore, 'projects'));
+    // We fetch all projects with a status beyond 'pending' to check for conversions.
+    return query(collection(firestore, 'projects'), where('status', 'in', ['approved', 'in-progress', 'completed']));
   }, [firestore]);
 
 
@@ -77,8 +76,7 @@ export default function ReferredClientsPage() {
 
     // Process leads submitted by partner
     submittedLeads?.forEach(l => {
-        // We assume a submitted lead that hasn't signed up is not 'converted' yet.
-        // A more complex logic could link contact_leads to users upon conversion.
+        // A submitted lead is not yet linked to a user account, so it can't be 'Converted' here.
         referrals.push({
             id: l.id!,
             name: l.name,
