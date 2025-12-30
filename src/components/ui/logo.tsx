@@ -5,20 +5,38 @@ import { cn } from '@/lib/utils';
 const CustomLogoIcon = ({ className }: { className?: string }) => (
   <svg
     className={className}
-    viewBox="0 0 50 50"
+    viewBox="0 0 100 100"
     fill="none"
     xmlns="http://www.w3.org/2000/svg"
-    stroke="currentColor"
-    strokeWidth="3"
-    strokeLinecap="round"
-    strokeLinejoin="round"
   >
-    {/* Open Book Shape */}
-    <path d="M10 38V12C10 9.23858 12.2386 7 15 7H35C37.7614 7 40 9.23858 40 12V38" />
-    <path d="M10 38H40" />
-    {/* Arrow indicating 'Edge' and 'Publication' */}
-    <path d="M25 28L35 18" />
-    <path d="M25 18H35V28" />
+    <path
+      d="M50 85V20C50 14.4772 45.5228 10 40 10H15"
+      stroke="currentColor"
+      strokeWidth="8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M50 45C58.2843 45 65 38.2843 65 30C65 21.7157 58.2843 15 50 15"
+      stroke="currentColor"
+      strokeWidth="8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M50 85C50 85 85 85 85 70C85 55 50 55 50 55"
+      stroke="currentColor"
+      strokeWidth="8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M15 10V90H85V70"
+      stroke="currentColor"
+      strokeWidth="8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
   </svg>
 );
 
