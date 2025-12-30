@@ -3,6 +3,7 @@
 
 import { AnimatedWrapper } from '@/components/animated-wrapper';
 import { Lightbulb, Calendar, Pencil, MessageSquare, CheckCircle, Send, ArrowRight } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 const processSteps = [
   {
@@ -35,7 +36,7 @@ const processSteps = [
 
 export function Process() {
   return (
-    <section id="process" className="w-full bg-secondary py-16 md:py-24 lg:py-32">
+    <section id="process" className="w-full bg-secondary py-16 md:py-24 lg:py-32 overflow-hidden">
       <div className="container mx-auto">
         <AnimatedWrapper>
           <div className="text-center space-y-4 mb-16">
@@ -52,27 +53,24 @@ export function Process() {
             <div className="flex items-center justify-center md:hidden text-muted-foreground text-sm">
                 <ArrowRight className="mr-2"/> Scroll to view all steps
             </div>
-            <div className="horizontal-scroll-container overflow-x-auto overflow-y-hidden pb-8">
-                <div className="relative flex items-start justify-start w-max px-8 pt-16">
+            <div className="horizontal-scroll-container overflow-x-auto overflow-y-hidden pb-8 -mb-8">
+                <div className="relative flex items-start justify-start w-max px-8 pt-24 pb-12" style={{ minWidth: `${processSteps.length * 18}rem` }}>
                     
                     {/* The connecting line path */}
-                    <svg className="absolute top-8 left-0 h-16 w-full" style={{ minWidth: `${processSteps.length * 18}rem` }}>
+                    <svg className="absolute top-0 left-0 h-full w-full" >
                         <path
-                            d={`M 144 64 
-                                C 192 64, 192 0, 240 0 
-                                S 288 64, 336 64
-                                C 384 64, 384 0, 432 0
-                                S 480 64, 528 64
-                                C 576 64, 576 0, 624 0
-                                S 672 64, 720 64
-                                C 768 64, 768 0, 816 0
-                                S 864 64, 912 64
-                                C 960 64, 960 0, 1008 0
-                                `}
+                            d="M 160 80 
+                               C 220 80, 220 160, 280 160 
+                               C 340 160, 340 80, 400 80
+                               C 460 80, 460 160, 520 160
+                               C 580 160, 580 80, 640 80
+                               C 700 80, 700 160, 760 160
+                               C 820 160, 820 80, 880 80"
                             fill="none"
-                            stroke="hsl(var(--border))"
-                            strokeWidth="2"
+                            stroke="hsl(var(--primary))"
+                            strokeWidth="3"
                             className="path-animation"
+                            strokeLinecap="round"
                         />
                     </svg>
 
@@ -80,19 +78,25 @@ export function Process() {
                         <AnimatedWrapper 
                             key={index}
                             delay={index * 150}
-                            className="relative w-72 px-4 animate-slide-in-left"
+                            className={cn(
+                                "relative w-72 px-4 animate-slide-in-left",
+                                index % 2 === 1 ? 'top-20' : '-top-8'
+                            )}
                         >
                             {/* Icon Badge */}
                             <div 
-                                className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full flex items-center justify-center text-primary-foreground"
+                                className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full flex items-center justify-center text-primary-foreground shadow-lg"
                                 style={{ background: 'linear-gradient(to top right, hsl(var(--primary)), hsl(var(--accent)))' }}
                             >
                                 {step.icon}
                             </div>
+                             <div className="absolute top-1/2 -translate-y-1/2 flex items-center justify-center">
+                                {index > 0 && <ArrowRight className="w-5 h-5 text-muted-foreground -ml-11" />}
+                            </div>
                             
                             {/* Card */}
-                            <div className="pt-12">
-                                <div className="bg-background rounded-lg shadow-soft p-6 text-center h-full">
+                            <div className="pt-8">
+                                <div className="bg-background rounded-lg shadow-soft p-6 text-center h-full border">
                                     <h3 className="font-bold text-lg text-primary mb-2">Step {String(index + 1).padStart(2, '0')}</h3>
                                     <h4 className="font-semibold text-foreground mb-3">{step.title}</h4>
                                     <p className="text-sm text-muted-foreground">
