@@ -30,10 +30,17 @@ export default function PayoutsPage() {
   // Get all payouts for the current partner
   const payoutsQuery = useMemo(() => {
     if (!user || !firestore) return null;
-    return query(collection(firestore, 'payouts'), where('userId', '==', user.uid), orderBy('requestDate', 'desc'));
+    // Remove orderBy from the query to avoid needing a composite index
+    return query(collection(firestore, 'payouts'), where('userId', '==', user.uid));
   }, [user, firestore]);
 
   const { data: payouts, loading: payoutsLoading } = useCollection<Payout>(payoutsQuery);
+  
+  // Sort the payouts on the client side
+  const sortedPayouts = useMemo(() => {
+    if (!payouts) return [];
+    return [...payouts].sort((a, b) => b.requestDate.toDate().getTime() - a.requestDate.toDate().getTime());
+  }, [payouts]);
 
   // Find all users referred by the current partner
   const referredUsersQuery = useMemo(() => {
@@ -97,7 +104,7 @@ export default function PayoutsPage() {
               <CardDescription>A record of your past and pending commission payouts.</CardDescription>
           </CardHeader>
           <CardContent>
-              {payouts && payouts.length > 0 ? (
+              {sortedPayouts && sortedPayouts.length > 0 ? (
                   <Table>
                       <TableHeader>
                           <TableRow>
@@ -107,7 +114,7 @@ export default function PayoutsPage() {
                           </TableRow>
                       </TableHeader>
                       <TableBody>
-                          {payouts.map(payout => (
+                          {sortedPayouts.map(payout => (
                               <TableRow key={payout.id}>
                                   <TableCell className="font-medium">{format(payout.requestDate.toDate(), 'PPP')}</TableCell>
                                   <TableCell>{payout.amount.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}</TableCell>
