@@ -1,37 +1,18 @@
 
-
 'use client';
 
 import {
-  FolderKanban,
   LayoutGrid,
   LogOut,
-  Users,
-  Wallet,
-  DollarSign,
   ChevronDown,
-  Bell,
-  CreditCard,
-  ClipboardCheck,
-  Briefcase,
-  PenTool,
-  TrendingUp,
-  BookCheck,
-  Banknote,
-  Paintbrush,
-  MessageSquare,
-  Star,
-  UserCog,
+  FolderKanban,
   CheckCircle,
 } from 'lucide-react';
 import React from 'react';
-import { useEffect, useMemo } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useUser, useCollection, useFirestore } from '@/firebase';
+import { useUser } from '@/firebase/auth/use-user';
 import { logout } from '@/firebase/auth';
-import type { Notification } from '@/lib/types';
-import { collection, query, where } from 'firebase/firestore';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
   Sidebar,
@@ -45,9 +26,6 @@ import {
   SidebarGroup,
   SidebarSeparator,
   SidebarInset,
-  SidebarMenuSub,
-  SidebarMenuSubButton,
-  SidebarMenuBadge,
   SidebarTrigger,
 } from '@/components/ui/sidebar';
 import { Logo } from '@/components/ui/logo';
@@ -61,32 +39,22 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { LoaderCircle } from 'lucide-react';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { useEffect } from 'react';
 
-const adminNavItems = [
-  { href: '/admin/dashboard', label: 'Overview', icon: <LayoutGrid /> },
-  { href: '/admin/users', label: 'User Management', icon: <Users /> },
-  { href: '/admin/team', label: 'Team Management', icon: <Briefcase /> },
-  { href: '/admin/leads', label: 'Leads', icon: <FolderKanban /> },
-  { href: '/admin/approved-leads', label: 'Approved Leads', icon: <CheckCircle /> },
-  { href: '/admin/feedback', label: 'Feedback', icon: <Star /> },
-  { href: '/admin/accounts', label: 'Accounts', icon: <Wallet /> },
-  { href: '/admin/sales', label: 'Sales', icon: <DollarSign /> },
-  { href: '/admin/payouts', label: 'Payouts', icon: <ClipboardCheck /> },
-  { href: '/admin/invoices', label: 'Invoices', icon: <CreditCard /> },
-  { href: '/admin/marketing', label: 'Marketing Kit', icon: <Paintbrush /> },
-  { href: '/', label: 'Back to Site', icon: <MessageSquare /> },
+const dashboardNavItems = [
+  { href: '/sales/dashboard', label: 'Dashboard', icon: <LayoutGrid /> },
+  { href: '/sales/assigned-leads', label: 'Assigned Leads', icon: <FolderKanban /> },
+  { href: '/sales/approved-leads', label: 'Approved Leads', icon: <CheckCircle /> },
 ];
 
-
-function AdminSidebar() {
+function SalesSidebar() {
   const pathname = usePathname();
   const { user } = useUser();
   const router = useRouter();
-  
+
   const handleLogout = async () => {
     await logout();
-    router.push('/admin/login');
+    router.push('/');
   };
 
   const getInitials = (name = '') => {
@@ -100,14 +68,12 @@ function AdminSidebar() {
       </SidebarHeader>
       <SidebarContent>
         <SidebarMenu>
-          {adminNavItems.map((item) => (
+          {dashboardNavItems.map((item) => (
             <SidebarMenuItem key={item.label}>
-              <Link href={item.href!}>
-                <SidebarMenuButton isActive={pathname.startsWith(item.href!)}>
-                   <div className="flex items-center gap-2">
-                     {item.icon}
-                     <span>{item.label}</span>
-                   </div>
+              <Link href={item.href}>
+                <SidebarMenuButton isActive={pathname === item.href}>
+                  {item.icon}
+                  <span>{item.label}</span>
                 </SidebarMenuButton>
               </Link>
             </SidebarMenuItem>
@@ -118,7 +84,7 @@ function AdminSidebar() {
         <SidebarSeparator />
         <SidebarGroup>
           {user && (
-             <DropdownMenu>
+            <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="w-full justify-start h-auto px-2 py-2">
                   <div className="flex items-center gap-3 w-full">
@@ -152,8 +118,7 @@ function AdminSidebar() {
   );
 }
 
-
-export default function AdminLayout({
+export default function SalesLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -162,24 +127,22 @@ export default function AdminLayout({
   const router = useRouter();
   const pathname = usePathname();
 
-  const allowedRoles = ['admin'];
+  const allowedRoles = ['sales-team', 'sales-manager'];
 
   useEffect(() => {
-    if (!loading && pathname !== '/admin/login') {
+    if (!loading && pathname !== '/sales/login') {
       if (!user || !allowedRoles.includes(user.role)) {
-        router.replace('/admin/login');
+        router.replace('/sales/login');
       }
     }
-    if (!loading && user && allowedRoles.includes(user.role) && pathname === '/admin/login') {
-        router.replace('/admin/dashboard');
+    if (!loading && user && allowedRoles.includes(user.role) && pathname === '/sales/login') {
+      router.replace('/sales/dashboard');
     }
-
   }, [user, loading, router, pathname]);
 
-  if (pathname === '/admin/login') {
-      return <>{children}</>;
+  if (pathname === '/sales/login') {
+    return <>{children}</>;
   }
-
 
   if (loading || !user) {
     return (
@@ -188,19 +151,18 @@ export default function AdminLayout({
       </div>
     );
   }
-  
+
   if (!allowedRoles.includes(user.role)) {
     return (
-       <div className="flex h-screen w-full items-center justify-center bg-background">
+      <div className="flex h-screen w-full items-center justify-center bg-background">
         <p>You do not have permission to view this page.</p>
       </div>
     );
   }
 
-
   return (
-     <SidebarProvider>
-      <AdminSidebar />
+    <SidebarProvider>
+      <SalesSidebar />
       <SidebarInset>
          <header className="sticky top-0 z-40 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
             <SidebarTrigger />
