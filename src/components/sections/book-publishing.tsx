@@ -13,6 +13,7 @@ import {
 import { AnimatedWrapper } from '@/components/animated-wrapper';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 
 
 const publishingServices = [
@@ -78,46 +79,43 @@ export function BookPublishing() {
             </div>
         </AnimatedWrapper>
         
-        <div className="relative">
-             {/* Central Timeline */}
-            <div className="absolute left-1/2 top-0 h-full w-0.5 bg-border -translate-x-1/2" aria-hidden="true"></div>
-
-            <div className="space-y-16">
-                 {publishingServices.map((service, index) => {
-                   const serviceImage = PlaceHolderImages.find(p => p.id === service.imageId);
-                   return(
-                    <AnimatedWrapper key={index} delay={index * 150}>
-                        <div className={`relative flex items-center ${index % 2 === 0 ? 'justify-start' : 'justify-end'}`}>
-                            
-                            <div className={`w-1/2 p-6 ${index % 2 === 0 ? 'pr-12' : 'pl-12'}`}>
-                                <div className="space-y-3 bg-background p-6 rounded-lg shadow-soft">
-                                    {serviceImage && (
-                                        <div className="relative h-40 w-full mb-4 rounded-md overflow-hidden">
-                                            <Image
-                                                src={serviceImage.imageUrl}
-                                                alt={serviceImage.description}
-                                                fill
-                                                className="object-cover"
-                                                data-ai-hint={serviceImage.imageHint}
-                                            />
-                                        </div>
-                                    )}
-                                    <div className={`flex items-center gap-4 ${index % 2 !== 0 ? 'justify-end flex-row-reverse' : ''}`}>
-                                        <div className="p-3 bg-secondary rounded-full shadow-inner">
-                                            {service.icon}
-                                        </div>
-                                        <h3 className="text-xl font-bold text-foreground">{service.title}</h3>
-                                    </div>
-                                    <p className={`text-muted-foreground ${index % 2 !== 0 ? 'text-right' : ''}`}>{service.description}</p>
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {publishingServices.map((service, index) => {
+                 const serviceImage = PlaceHolderImages.find(p => p.id === service.imageId);
+                 return (
+                    <AnimatedWrapper key={index} delay={index * 100}>
+                        <Card className="h-full overflow-hidden shadow-soft hover:shadow-lift transition-all duration-300 group">
+                            <div className="relative">
+                                {serviceImage && (
+                                     <div className="relative h-48 w-full">
+                                        <Image
+                                            src={serviceImage.imageUrl}
+                                            alt={serviceImage.description}
+                                            fill
+                                            className="object-cover transition-transform duration-500 group-hover:scale-105"
+                                            data-ai-hint={serviceImage.imageHint}
+                                        />
+                                     </div>
+                                )}
+                                <div className="absolute top-2 right-2 bg-background/80 text-primary font-bold text-lg rounded-md px-3 py-1 shadow-md">
+                                    {String(index + 1).padStart(2, '0')}
                                 </div>
                             </div>
-                            
-                            {/* Dot on Timeline */}
-                            <div className="absolute left-1/2 -translate-x-1/2 w-4 h-4 bg-background rounded-full border-4 border-primary"></div>
-                        </div>
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-3">
+                                    <div className="bg-primary/10 p-2 rounded-full">
+                                        {service.icon}
+                                    </div>
+                                    <span>{service.title}</span>
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <p className="text-muted-foreground">{service.description}</p>
+                            </CardContent>
+                        </Card>
                     </AnimatedWrapper>
-                 )})}
-            </div>
+                 )
+            })}
         </div>
       </div>
     </section>
