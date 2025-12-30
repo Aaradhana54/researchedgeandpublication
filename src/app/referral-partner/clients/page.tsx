@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { LoaderCircle, Users } from 'lucide-react';
 import { useCollection, useFirestore } from '@/firebase';
 import { collection, query, where } from 'firebase/firestore';
-import type { ContactLead } from '@/lib/types';
+import type { UserProfile, Project } from '@/lib/types';
 import {
   Table,
   TableBody,
@@ -23,22 +23,40 @@ export default function ReferredClientsPage() {
   const { user, loading: userLoading } = useUser();
   const firestore = useFirestore();
 
-  const submittedLeadsQuery = useMemo(() => {
-    if (!user || !firestore) return null;
-    return query(
-        collection(firestore, 'contact_leads'), 
-        where('referredByPartnerId', '==', user.uid)
-    );
+  // 1. Find all users referred by the current partner
+  const referredUsersQuery = useMemo(() => {
+    if (!user || !firestore || !user.referralCode) return null;
+    return query(collection(firestore, 'users'), where('referredBy', '==', user.referralCode));
   }, [user, firestore]);
 
-  const { data: submittedLeads, loading: leadsLoading } = useCollection<ContactLead>(submittedLeadsQuery);
+  const { data: referredUsers, loading: referralsLoading } = useCollection<UserProfile>(referredUsersQuery);
   
-  const loading = userLoading || leadsLoading;
+  // 2. Get the IDs of the referred users
+  const referredUserIds = useMemo(() => {
+    if (!referredUsers || referredUsers.length === 0) return [];
+    return referredUsers.map(u => u.uid);
+  }, [referredUsers]);
 
-  const sortedLeads = useMemo(() => {
-    if (!submittedLeads) return [];
-    return [...submittedLeads].sort((a, b) => b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime());
-  }, [submittedLeads]);
+  // 3. Find all projects created by those referred users to check for conversion
+  const projectsOfReferredUsersQuery = useMemo(() => {
+    if (!firestore || referredUserIds.length === 0) return null;
+    return query(collection(firestore, 'projects'), where('userId', 'in', referredUserIds));
+  }, [firestore, referredUserIds]);
+
+  const { data: projects, loading: projectsLoading } = useCollection<Project>(projectsOfReferredUsersQuery);
+
+  const loading = userLoading || referralsLoading || projectsLoading;
+
+  const convertedUserIds = useMemo(() => {
+    if (!projects) return new Set();
+    return new Set(projects.map(p => p.userId));
+  }, [projects]);
+
+  const sortedUsers = useMemo(() => {
+    if (!referredUsers) return [];
+    return [...referredUsers].sort((a, b) => b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime());
+  }, [referredUsers]);
+
 
   if (loading) {
     return (
@@ -52,40 +70,39 @@ export default function ReferredClientsPage() {
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight">Submitted Leads</h1>
-        <p className="text-muted-foreground">A list of all leads you have submitted to the sales team.</p>
+        <h1 className="text-3xl font-bold tracking-tight">Referred Clients</h1>
+        <p className="text-muted-foreground">A list of all clients who have signed up using your referral code.</p>
       </div>
        <Card>
             <CardHeader>
-                <CardTitle>All Submitted Leads</CardTitle>
-                <CardDescription>This table shows every lead you have submitted.</CardDescription>
+                <CardTitle>Your Referred Clients</CardTitle>
+                <CardDescription>This table shows every client who has joined via your referral link.</CardDescription>
             </CardHeader>
             <CardContent>
-                {sortedLeads && sortedLeads.length > 0 ? (
+                {sortedUsers && sortedUsers.length > 0 ? (
                     <Table>
                         <TableHeader>
                             <TableRow>
                                 <TableHead>Client Name</TableHead>
-                                <TableHead>Contact</TableHead>
-                                <TableHead>Service</TableHead>
-                                <TableHead>Date Submitted</TableHead>
+                                <TableHead>Email</TableHead>
+                                <TableHead>Date Joined</TableHead>
                                 <TableHead>Status</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {sortedLeads.map(lead => (
-                                <TableRow key={lead.id}>
-                                    <TableCell className="font-medium">{lead.name}</TableCell>
+                            {sortedUsers.map(client => (
+                                <TableRow key={client.uid}>
+                                    <TableCell className="font-medium">{client.name}</TableCell>
                                     <TableCell>
-                                        <div>{lead.email}</div>
-                                        <div className="text-sm text-muted-foreground">{lead.phone}</div>
+                                        <div>{client.email}</div>
                                     </TableCell>
-                                    <TableCell>
-                                        <Badge variant="secondary">{lead.serviceType || 'Not specified'}</Badge>
-                                    </TableCell>
-                                    <TableCell>{lead.createdAt ? format(lead.createdAt.toDate(), 'PPP') : 'N/A'}</TableCell>
+                                    <TableCell>{client.createdAt ? format(client.createdAt.toDate(), 'PPP') : 'N/A'}</TableCell>
                                      <TableCell>
-                                         <Badge variant="outline" className="capitalize">{lead.status}</Badge>
+                                         {convertedUserIds.has(client.uid) ? (
+                                             <Badge variant="default" className="capitalize">Converted</Badge>
+                                         ) : (
+                                            <Badge variant="secondary" className="capitalize">Signed Up</Badge>
+                                         )}
                                      </TableCell>
                                 </TableRow>
                             ))}
@@ -94,8 +111,8 @@ export default function ReferredClientsPage() {
                 ) : (
                      <div className="text-center p-12 text-muted-foreground">
                         <Users className="mx-auto w-10 h-10 mb-4" />
-                        <h3 className="text-lg font-semibold">No Leads Submitted Yet</h3>
-                        <p className="text-sm">Use the "Refer a Client" button on your dashboard to submit your first lead.</p>
+                        <h3 className="text-lg font-semibold">No Clients Referred Yet</h3>
+                        <p className="text-sm">Share your referral link from the dashboard to start earning commissions.</p>
                     </div>
                 )}
             </CardContent>
