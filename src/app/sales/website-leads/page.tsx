@@ -2,7 +2,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { collection, query, orderBy, where, limit } from 'firebase/firestore';
+import { collection, query, where } from 'firebase/firestore';
 import { useCollection, useFirestore } from '@/firebase';
 import type { ContactLead } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -27,16 +27,21 @@ export default function SalesWebsiteLeadsPage() {
     if (!firestore) return null;
     // Query for all unassigned website leads
     // Website leads are identified by referredByPartnerId being null
+    // Removing orderBy to prevent composite index requirement. Sorting will be done on client.
     return query(
         collection(firestore, 'contact_leads'), 
         where('referredByPartnerId', '==', null),
-        where('assignedSalesId', '==', null),
-        orderBy('createdAt', 'desc')
+        where('assignedSalesId', '==', null)
     );
   }, [firestore]);
   
 
-  const { data: websiteLeads, loading: loadingLeads } = useCollection<ContactLead>(leadsQuery);
+  const { data, loading: loadingLeads } = useCollection<ContactLead>(leadsQuery);
+
+  const websiteLeads = useMemo(() => {
+      if (!data) return [];
+      return [...data].sort((a,b) => b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime());
+  }, [data]);
 
   return (
     <div className="p-4 sm:p-6 lg:p-8">
