@@ -25,24 +25,24 @@ const items = [
 
 export function MissionVision() {
   return (
-    <section id="mission-vision" className="w-full bg-background py-16 md:py-24 lg:py-32 overflow-x-hidden">
+    <section id="mission-vision" className="w-full bg-secondary py-16 md:py-24 lg:py-32 overflow-x-hidden">
       <div className="container mx-auto max-w-6xl space-y-16">
         {items.map((item, index) => (
           <AnimatedWrapper 
             key={item.title} 
             className={cn("flex items-center", item.alignment === 'right' && 'justify-end')}
           >
-            <Card className="group w-full md:w-3/4 lg:w-2/3 bg-secondary text-secondary-foreground shadow-soft rounded-2xl border-transparent transition-all duration-500 hover:shadow-lift hover:-translate-y-2">
+            <Card className="group w-full md:w-3/4 lg:w-2/3 bg-background text-foreground shadow-soft rounded-2xl transition-all duration-500 hover:shadow-lift hover:-translate-y-2">
                  <div className="relative flex flex-col md:flex-row items-center p-8 gap-8">
                     <AnimatedWrapper>
-                         <div className="flex-shrink-0 bg-background p-5 rounded-full border">
+                         <div className="flex-shrink-0 bg-secondary p-5 rounded-full border">
                             {item.icon}
                         </div>
                     </AnimatedWrapper>
                     
                     <div className="text-center md:text-left">
                         <AnimatedWrapper>
-                            <CardTitle className="text-3xl font-headline mb-3 text-foreground">{item.title}</CardTitle>
+                            <CardTitle className="text-3xl font-headline mb-3">{item.title}</CardTitle>
                         </AnimatedWrapper>
                         <AnimatedWrapper>
                             <CardContent className="p-0 text-lg text-muted-foreground leading-relaxed">
