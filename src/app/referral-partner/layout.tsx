@@ -9,6 +9,7 @@ import {
   Receipt,
   Paintbrush,
   Globe,
+  CheckCircle,
 } from 'lucide-react';
 import React from 'react';
 import { usePathname, useRouter } from 'next/navigation';
@@ -46,6 +47,7 @@ import { useEffect } from 'react';
 const dashboardNavItems = [
   { href: '/referral-partner/dashboard', label: 'Overview', icon: <LayoutGrid /> },
   { href: '/referral-partner/clients', label: 'Referred Clients', icon: <Users /> },
+  { href: '/referral-partner/converted-leads', label: 'Converted Leads', icon: <CheckCircle /> },
   { href: '/referral-partner/payouts', label: 'Payouts', icon: <Receipt /> },
   { href: '/referral-partner/marketing', label: 'Marketing Kit', icon: <Paintbrush /> },
   { href: '/', label: 'Back to Site', icon: <Globe /> },
