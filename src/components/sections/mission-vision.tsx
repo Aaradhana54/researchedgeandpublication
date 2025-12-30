@@ -31,7 +31,7 @@ export function MissionVision() {
   });
 
   return (
-    <section id="mission-vision" className="w-full py-16 md:py-24 lg:py-32 overflow-x-hidden">
+    <section id="mission-vision" className="w-full bg-secondary py-16 md:py-24 lg:py-32 overflow-x-hidden">
       <div ref={ref} className="container mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
           {items.map((item, index) => (
@@ -52,7 +52,7 @@ export function MissionVision() {
                     </div>
                   </AnimatedWrapper>
                   <AnimatedWrapper delay={200}>
-                    <h3 className="text-3xl font-headline font-bold text-foreground">
+                    <h3 className="text-3xl font-headline font-bold text-primary">
                       {item.title}
                     </h3>
                   </AnimatedWrapper>
