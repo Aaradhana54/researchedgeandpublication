@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -89,20 +90,6 @@ export function Contact() {
         </div>
         <div className="grid md:grid-cols-2 gap-12 items-center">
             <AnimatedWrapper>
-                {contactImage && (
-                    <div className="overflow-hidden rounded-lg shadow-lift h-full max-h-[500px] md:max-h-full">
-                        <Image
-                            src={contactImage.imageUrl}
-                            alt={contactImage.description}
-                            width={600}
-                            height={700}
-                            data-ai-hint={contactImage.imageHint}
-                            className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
-                        />
-                    </div>
-                )}
-            </AnimatedWrapper>
-             <AnimatedWrapper delay={200}>
                 <Card className="shadow-lift">
                     <CardHeader className="text-center">
                         <CardDescription>We'd love to hear from you. Fill out the form to get in touch.</CardDescription>
@@ -152,6 +139,20 @@ export function Contact() {
                     </form>
                     </CardContent>
                 </Card>
+            </AnimatedWrapper>
+            <AnimatedWrapper delay={200}>
+                {contactImage && (
+                    <div className="overflow-hidden rounded-lg shadow-lift h-full max-h-[500px] md:max-h-full">
+                        <Image
+                            src={contactImage.imageUrl}
+                            alt={contactImage.description}
+                            width={600}
+                            height={700}
+                            data-ai-hint={contactImage.imageHint}
+                            className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+                        />
+                    </div>
+                )}
             </AnimatedWrapper>
         </div>
       </div>
