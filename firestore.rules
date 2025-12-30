@@ -54,16 +54,15 @@ service cloud.firestore {
       let data = request.resource.data;
       // List of fields a client is NOT allowed to set on creation.
       let forbiddenKeys = [
-        'status', 'dealAmount', 'advanceReceived', 'discussionNotes', 
+        'dealAmount', 'advanceReceived', 'discussionNotes', 
         'paymentScreenshotUrl', 'finalDeadline', 'finalizedAt', 
         'finalizedBy', 'assignedWriterId', 'assignedSalesId'
       ];
       
       let isCreatingOwnProject = request.auth != null && request.auth.uid == data.userId;
-      let hasClientRoleOrNoDoc = !userDocExists() || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'client';
       let noForbiddenFields = !data.keys().hasAny(forbiddenKeys);
       
-      return isCreatingOwnProject && hasClientRoleOrNoDoc && noForbiddenFields && data.status == 'pending';
+      return isCreatingOwnProject && noForbiddenFields && data.status == 'pending';
     }
 
     match /users/{userId} {

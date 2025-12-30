@@ -117,7 +117,6 @@ export default function CreateProjectPage() {
     
     const processFormSubmission = async (synopsisUrl = '') => {
         try {
-            // Construct a clean data object with only the fields a client is allowed to set.
             const dataToSave: any = {
               userId: user.uid,
               title: rawFormData.title as string,
@@ -134,13 +133,21 @@ export default function CreateProjectPage() {
               wantToPublish: rawFormData.wantToPublish === 'on',
               isPaperReady: rawFormData.isPaperReady === 'on',
               publishWhere: (rawFormData.publishWhere as string) || null,
-              deadline: rawFormData.deadline ? Timestamp.fromDate(new Date(rawFormData.deadline as string)) : null,
-              pageCount: rawFormData.pageCount ? Number(rawFormData.pageCount) : null,
-              wordCount: rawFormData.wordCount ? Number(rawFormData.wordCount) : null,
             };
+
+            // Conditionally add fields that might be null or numbers
+            if (rawFormData.deadline) {
+                dataToSave.deadline = Timestamp.fromDate(new Date(rawFormData.deadline as string));
+            }
+            if (rawFormData.pageCount) {
+                dataToSave.pageCount = Number(rawFormData.pageCount);
+            }
+            if (rawFormData.wordCount) {
+                dataToSave.wordCount = Number(rawFormData.wordCount);
+            }
             
             const projectsCollection = collection(firestore, 'projects');
-            const docRef = await addDoc(projectsCollection, dataToSave);
+            await addDoc(projectsCollection, dataToSave);
             
             await notifyAdminsAndSales(firestore, `New client project lead: "${dataToSave.title}" from ${user.name}.`);
 
