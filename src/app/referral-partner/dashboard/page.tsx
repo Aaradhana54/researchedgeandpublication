@@ -73,10 +73,10 @@ export default function ReferralDashboardPage() {
 
   // Calculate statistics based on fetched data
   const stats = useMemo(() => {
-    const totalLeads = referredUsers?.length ?? 0;
+    const totalReferred = referredUsers?.length ?? 0;
 
     const convertedUserIds = new Set(projects?.map(p => p.userId));
-    const convertedLeads = convertedUserIds.size;
+    const convertedClients = convertedUserIds.size;
 
     // Commission is earned for every approved or completed project from a referred user
     const commissionableProjects = projects?.filter(p => p.status === 'approved' || p.status === 'in-progress' || p.status === 'completed').length ?? 0;
@@ -87,8 +87,8 @@ export default function ReferralDashboardPage() {
     const availableCommission = totalCommissionEarned - totalPaidOut;
 
     return {
-      totalLeads,
-      convertedLeads,
+      totalReferred,
+      convertedClients,
       availableCommission,
       totalCommissionEarned,
     };
@@ -156,8 +156,8 @@ export default function ReferralDashboardPage() {
         </div>
       
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <StatCard title="Total Leads" value={stats.totalLeads} icon={<Users className="h-4 w-4 text-muted-foreground" />} />
-        <StatCard title="Converted Clients" value={stats.convertedLeads} icon={<CheckCircle className="h-4 w-4 text-muted-foreground" />} />
+        <StatCard title="Referred Clients" value={stats.totalReferred} icon={<Users className="h-4 w-4 text-muted-foreground" />} />
+        <StatCard title="Converted Clients" value={stats.convertedClients} icon={<CheckCircle className="h-4 w-4 text-muted-foreground" />} />
         <StatCard title="Available Commission" value={stats.availableCommission.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })} icon={<Wallet className="h-4 w-4 text-muted-foreground" />} />
         <StatCard title="Total Earnings" value={stats.totalCommissionEarned.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })} icon={<DollarSign className="h-4 w-4 text-muted-foreground" />} />
       </div>
