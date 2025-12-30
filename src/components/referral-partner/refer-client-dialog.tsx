@@ -23,10 +23,8 @@ import { LoaderCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '../ui/form';
 import { useFirestore, useUser } from '@/firebase';
-import { addDoc, collection, serverTimestamp, getDocs, query, where, writeBatch, doc } from 'firebase/firestore';
+import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import type { UserProfile } from '@/lib/types';
-
 
 const services = [
   'Thesis & Dissertation Writing',
@@ -46,36 +44,6 @@ const ReferClientSchema = z.object({
 });
 
 type ReferClientForm = z.infer<typeof ReferClientSchema>;
-
-
-async function notifyAdminsAndSales(firestore: any, message: string) {
-    try {
-        const usersRef = collection(firestore, 'users');
-        const q = query(usersRef, where('role', 'in', ['admin', 'sales-team']));
-        const querySnapshot = await getDocs(q);
-
-        if (querySnapshot.empty) return;
-
-        const batch = writeBatch(firestore);
-        const notificationsRef = collection(firestore, 'notifications');
-        
-        querySnapshot.forEach(docSnap => {
-            const user = docSnap.data() as UserProfile;
-            const newNotifRef = doc(notificationsRef);
-            batch.set(newNotifRef, {
-                userId: user.uid,
-                message: message,
-                isRead: false,
-                createdAt: serverTimestamp(),
-            });
-        });
-
-        await batch.commit();
-
-    } catch (error) {
-        console.error("Failed to send notifications to staff:", error);
-    }
-}
 
 
 export function ReferClientDialog({ children }: { children: React.ReactNode }) {
@@ -114,9 +82,6 @@ export function ReferClientDialog({ children }: { children: React.ReactNode }) {
         createdAt: serverTimestamp(),
         assignedSalesId: null, // Lead is unassigned
       });
-
-      // Notify staff
-      await notifyAdminsAndSales(firestore, `New unassigned partner lead for "${data.name}" submitted by ${partnerUser.name}.`);
 
       toast({
         title: 'Lead Submitted!',
@@ -239,3 +204,5 @@ export function ReferClientDialog({ children }: { children: React.ReactNode }) {
     </Dialog>
   );
 }
+
+    

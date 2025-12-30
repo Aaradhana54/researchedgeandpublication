@@ -2,11 +2,11 @@
 'use client';
 
 import { useMemo, useState, useEffect } from 'react';
-import { collection, query, where, getDocs, doc, writeBatch, serverTimestamp, addDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, writeBatch, serverTimestamp } from 'firebase/firestore';
 import { useCollection, useFirestore, useUser } from '@/firebase';
 import type { Task, Project } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { LoaderCircle, ClipboardList, AlertCircle, CheckCircle } from 'lucide-react';
+import { LoaderCircle, ClipboardList, AlertCircle } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -20,9 +20,8 @@ import { format } from 'date-fns';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 
 const getTaskStatusVariant = (status?: string): 'default' | 'secondary' | 'destructive' | 'outline' => {
@@ -117,20 +116,6 @@ export default function MyTasksPage() {
       const projectRef = doc(firestore, 'projects', task.projectId);
       const projectUpdateData = { status: 'completed', updatedAt: serverTimestamp() };
       batch.update(projectRef, projectUpdateData);
-      
-      const projectData = projectsMap.get(task.projectId);
-      let notificationRef;
-      let notificationData;
-      if (projectData) {
-          notificationRef = doc(collection(firestore, 'notifications'));
-          notificationData = {
-              userId: projectData.userId,
-              message: `Your project "${projectData.title}" has been marked as complete.`,
-              isRead: false,
-              createdAt: serverTimestamp(),
-          };
-          batch.set(notificationRef, notificationData);
-      }
 
       batch.commit()
           .then(() => {
@@ -246,3 +231,5 @@ export default function MyTasksPage() {
     </div>
   );
 }
+
+    

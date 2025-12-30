@@ -94,7 +94,6 @@ const adminNavItems = [
   { href: '/admin/sales', label: 'Sales', icon: <DollarSign /> },
   { href: '/admin/payouts', label: 'Payouts', icon: <ClipboardCheck /> },
   { href: '/admin/invoices', label: 'Invoices', icon: <CreditCard /> },
-  { href: '/admin/notifications', label: 'Notifications', icon: <Bell /> },
   { href: '/admin/marketing', label: 'Marketing Kit', icon: <Paintbrush /> },
   { href: '/', label: 'Back to Site', icon: <Globe /> },
 ];
@@ -104,20 +103,7 @@ function AdminSidebar() {
   const pathname = usePathname();
   const { user } = useUser();
   const router = useRouter();
-  const firestore = useFirestore();
-
-  const notificationsQuery = useMemo(() => {
-    if (!user || !firestore) return null;
-    return query(
-      collection(firestore, 'notifications'),
-      where('userId', '==', user.uid),
-      where('isRead', '==', false)
-    );
-  }, [user, firestore]);
-
-  const { data: unreadNotifications } = useCollection<Notification>(notificationsQuery);
-  const unreadCount = unreadNotifications?.length ?? 0;
-
+  
   const handleLogout = async () => {
     await logout();
     router.push('/admin/login');
@@ -174,9 +160,6 @@ function AdminSidebar() {
                          {item.icon}
                          <span>{item.label}</span>
                        </div>
-                       {item.href === '/admin/notifications' && unreadCount > 0 && (
-                          <SidebarMenuBadge>{unreadCount}</SidebarMenuBadge>
-                       )}
                     </SidebarMenuButton>
                   </Link>
                 </SidebarMenuItem>
@@ -285,3 +268,5 @@ export default function AdminLayout({
     </SidebarProvider>
   );
 }
+
+    

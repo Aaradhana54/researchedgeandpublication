@@ -11,13 +11,13 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ArrowLeft, LoaderCircle, Upload } from 'lucide-react';
-import type { ProjectServiceType, CourseLevel, UserProfile } from '@/lib/types';
+import type { ProjectServiceType, CourseLevel } from '@/lib/types';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { FormMessage } from '@/components/ui/form';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { addDoc, collection, serverTimestamp, Timestamp, getDocs, query, where, writeBatch, doc } from 'firebase/firestore';
+import { addDoc, collection, serverTimestamp, Timestamp } from 'firebase/firestore';
 import { useFirestore, useStorage } from '@/firebase';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { Progress } from '@/components/ui/progress';
@@ -39,36 +39,6 @@ const courseLevels: { label: string, value: CourseLevel }[] = [
   { label: 'Postgraduate (PG)', value: 'pg' },
   { label: 'Doctorate (PhD)', value: 'phd' },
 ];
-
-
-async function notifyAdminsAndSales(firestore: any, message: string) {
-    try {
-        const usersRef = collection(firestore, 'users');
-        const q = query(usersRef, where('role', 'in', ['admin', 'sales-team']));
-        const querySnapshot = await getDocs(q);
-
-        if (querySnapshot.empty) return;
-
-        const batch = writeBatch(firestore);
-        const notificationsRef = collection(firestore, 'notifications');
-        
-        querySnapshot.forEach(docSnap => {
-            const user = docSnap.data() as UserProfile;
-            const newNotifRef = doc(notificationsRef);
-            batch.set(newNotifRef, {
-                userId: user.uid,
-                message: message,
-                isRead: false,
-                createdAt: serverTimestamp(),
-            });
-        });
-        
-        await batch.commit();
-
-    } catch (error) {
-        console.error("Failed to send notifications to staff:", error);
-    }
-}
 
 
 export default function CreateProjectPage() {
@@ -148,8 +118,6 @@ export default function CreateProjectPage() {
             const projectsCollection = collection(firestore, 'projects');
             await addDoc(projectsCollection, dataToSave);
             
-            await notifyAdminsAndSales(firestore, `New client project lead: "${dataToSave.title}" from ${user.name}.`);
-
             toast({
                 title: 'Project Submitted!',
                 description: 'Your project has been successfully submitted for review.',
