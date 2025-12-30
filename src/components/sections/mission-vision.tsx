@@ -44,7 +44,7 @@ export function MissionVision() {
                         <AnimatedWrapper>
                             <CardTitle className="text-3xl font-headline mb-3">{item.title}</CardTitle>
                         </AnimatedWrapper>
-                        <AnimatedWrapper>
+                        <AnimatedWrapper delay={200}>
                             <CardContent className="p-0 text-lg text-muted-foreground leading-relaxed">
                                  <p dangerouslySetInnerHTML={{ __html: item.description }}></p>
                             </CardContent>
