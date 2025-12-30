@@ -53,7 +53,7 @@ export function Process() {
           </div>
         </AnimatedWrapper>
         
-        <div className="relative max-w-4xl mx-auto">
+        <div className="relative max-w-5xl mx-auto">
           {/* Central Timeline */}
           <div className="absolute left-1/2 top-0 h-full w-0.5 bg-border -translate-x-1/2" aria-hidden="true"></div>
 
@@ -66,7 +66,7 @@ export function Process() {
                 )}>
                   {/* Content Box */}
                   <div className={cn(
-                    "w-1/2 p-6 bg-background rounded-lg shadow-soft border border-transparent hover:border-primary/50 hover:shadow-lift transition-all duration-300",
+                    "w-[calc(50%_+_1.5rem)] p-6 bg-background rounded-lg shadow-soft border border-transparent hover:border-primary/50 hover:shadow-lift transition-all duration-300",
                     index % 2 === 0 ? "pr-12 text-right" : "pl-12 text-left"
                   )}>
                     <h3 className="text-xl font-bold text-foreground mb-2">{step.title}</h3>
