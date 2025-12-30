@@ -74,6 +74,12 @@
       "description": "A person sketching out a flowchart on a whiteboard, representing a clear and structured process.",
       "imageUrl": "https://images.unsplash.com/photo-1542744095-fcf48d80b2fd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wzNzEyODZ8MHwxfHNlYXJjaHwxfHxmbG93Y2hhcnR8ZW58MHx8fHwxNzE4MDI3NTI5fDA&ixlib=rb-4.0.3&q=80&w=1080",
       "imageHint": "planning workflow"
+    },
+    {
+      "id": "book-publishing-image",
+      "description": "A close-up shot of a vintage typewriter with a page being typed, evoking a sense of classic writing and authorship.",
+      "imageUrl": "https://images.unsplash.com/photo-1505682614150-e62a1c278035?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wzNzEyODZ8MHwxfHNlYXJjaHw4fHx3cml0aW5nfGVufDB8fHx8fDE3MTkwMTg5Mjl8MA&ixlib=rb-4.0.3&q=80&w=1080",
+      "imageHint": "writing authorship"
     }
   ]
 }
