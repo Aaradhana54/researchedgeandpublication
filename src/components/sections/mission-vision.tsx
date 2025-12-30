@@ -1,3 +1,4 @@
+
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { AnimatedWrapper } from '@/components/animated-wrapper';
 import { Target, Eye } from 'lucide-react';
