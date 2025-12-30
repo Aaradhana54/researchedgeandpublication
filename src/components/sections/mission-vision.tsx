@@ -2,10 +2,10 @@
 'use client';
 
 import React from 'react';
-import { AnimatedWrapper } from '@/components/animated-wrapper';
-import { Target, Eye } from 'lucide-react';
 import { useInView } from 'react-intersection-observer';
+import { Target, Eye } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { AnimatedWrapper } from '@/components/animated-wrapper';
 
 const items = [
   {
@@ -34,7 +34,7 @@ export function MissionVision() {
     <section id="mission-vision" className="w-full py-16 md:py-24 lg:py-32 overflow-x-hidden">
       <div ref={ref} className="container mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
-          {items.map((item) => (
+          {items.map((item, index) => (
             <div
               key={item.title}
               className={cn(

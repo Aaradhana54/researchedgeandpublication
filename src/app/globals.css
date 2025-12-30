@@ -255,12 +255,12 @@ body {
   /* Gradient Border Card */
   .gradient-border-card {
     @apply rounded-xl p-0.5 transition-all duration-300;
-    background: linear-gradient(135deg, hsla(var(--primary), 0.2), hsla(var(--accent), 0.2), hsla(var(--primary), 0.2));
+    background: linear-gradient(135deg, hsla(var(--primary), 0.25), hsla(var(--accent), 0.25));
   }
   .gradient-border-card:hover {
-    transform: translateY(-4px) scale(1.02);
+    transform: translateY(-4px);
     box-shadow: 0 20px 40px -10px hsla(var(--primary), 0.15);
-    background: linear-gradient(135deg, hsla(var(--primary), 0.5), hsla(var(--accent), 0.5), hsla(var(--primary), 0.5));
+    background: linear-gradient(135deg, hsla(var(--primary), 0.6), hsla(var(--accent), 0.6));
   }
 
   /* Slide-in Animations for Mission/Vision */
