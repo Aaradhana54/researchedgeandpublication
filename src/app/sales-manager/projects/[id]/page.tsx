@@ -2,13 +2,13 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, notFound, useRouter } from 'next/navigation';
-import { doc, getDoc, updateDoc, serverTimestamp, getFirestore } from 'firebase/firestore';
-import { useFirebaseApp, useUser } from '@/firebase';
+import { doc, getDoc, updateDoc, serverTimestamp, getFirestore, collection, query, where } from 'firebase/firestore';
+import { useFirebaseApp, useUser, useCollection } from '@/firebase';
 import type { Project, UserProfile, ProjectStatus } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { LoaderCircle, ArrowLeft, CheckCircle, XCircle, FileText, Download, User as UserIcon, Hourglass } from 'lucide-react';
+import { LoaderCircle, ArrowLeft, CheckCircle, XCircle, FileText, Download, User as UserIcon, Hourglass, Users } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
@@ -17,6 +17,7 @@ import { useToast } from '@/hooks/use-toast';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { ApproveProjectDialog } from '@/components/sales-manager/approve-project-dialog';
+import { AssignLeadDialog } from '@/components/sales-manager/assign-lead-dialog';
 
 function DetailItem({ label, value, isBadge = false, badgeVariant, children }: { label: string; value?: string | number | boolean | null; isBadge?: boolean; badgeVariant?: 'default' | 'secondary' | 'destructive' | 'outline', children?: React.ReactNode }) {
     if (value === null || typeof value === 'undefined' || value === '') return null;
@@ -51,8 +52,16 @@ export default function SalesManagerProjectDetailPage() {
     const [project, setProject] = useState<Project | null>(null);
     const [user, setUser] = useState<UserProfile | null>(null);
     const [finalizerUser, setFinalizerUser] = useState<UserProfile | null>(null);
+    const [assignedSalesUser, setAssignedSalesUser] = useState<UserProfile | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+
+    const salesTeamQuery = useMemo(() => {
+        if (!firestore) return null;
+        return query(collection(firestore, 'users'), where('role', '==', 'sales-team'));
+    }, [firestore]);
+
+    const { data: salesTeam, loading: loadingSalesTeam } = useCollection<UserProfile>(salesTeamQuery);
     
     const fetchProjectData = async () => {
         if (!firestore || !projectId) return;
@@ -86,6 +95,16 @@ export default function SalesManagerProjectDetailPage() {
                 if (finalizerSnap.exists()) {
                     setFinalizerUser(finalizerSnap.data() as UserProfile);
                 }
+            }
+            
+            if (projectData.assignedSalesId) {
+                 const assignedSalesRef = doc(firestore, 'users', projectData.assignedSalesId);
+                 const assignedSalesSnap = await getDoc(assignedSalesRef);
+                 if(assignedSalesSnap.exists()) {
+                     setAssignedSalesUser(assignedSalesSnap.data() as UserProfile);
+                 }
+            } else {
+                setAssignedSalesUser(null);
             }
 
         } catch (err: any) {
@@ -152,7 +171,7 @@ export default function SalesManagerProjectDetailPage() {
       }
     }
 
-    if (loading) {
+    if (loading || loadingSalesTeam) {
         return (
             <div className="flex h-screen w-full items-center justify-center bg-background">
                 <LoaderCircle className="h-10 w-10 animate-spin text-primary" />
@@ -205,6 +224,14 @@ export default function SalesManagerProjectDetailPage() {
                                 <XCircle className="mr-2 h-4 w-4" />
                                 Reject
                             </Button>
+                            {!project.assignedSalesId && salesTeam && salesTeam.length > 0 && (
+                                <AssignLeadDialog project={project} salesTeam={salesTeam} onLeadAssigned={fetchProjectData}>
+                                    <Button variant="outline">
+                                        <Users className="mr-2 h-4 w-4" />
+                                        Assign Lead
+                                    </Button>
+                                </AssignLeadDialog>
+                            )}
                              <ApproveProjectDialog project={project} onProjectApproved={fetchProjectData}>
                                 <Button>
                                     <CheckCircle className="mr-2 h-4 w-4" />
@@ -288,6 +315,15 @@ export default function SalesManagerProjectDetailPage() {
                             <Badge variant={getProjectStatusVariant(project.status)} className="capitalize text-lg">
                                 {project.status || 'Pending'}
                             </Badge>
+                             {assignedSalesUser && (
+                                <div className="mt-4">
+                                    <p className="text-sm font-medium text-muted-foreground">Assigned To</p>
+                                     <div className="flex items-center gap-2 mt-1">
+                                        <UserIcon className="w-4 h-4 text-muted-foreground"/>
+                                        <span className="font-semibold">{assignedSalesUser.name}</span>
+                                    </div>
+                                </div>
+                             )}
                         </CardContent>
                     </Card>
                      <Card>
