@@ -68,6 +68,7 @@ export function Header() {
           case 'client': return '/dashboard';
           case 'referral-partner': return '/referral-partner/dashboard';
           case 'sales-team': return '/sales/dashboard';
+          case 'sales-manager': return '/sales/dashboard';
           case 'writing-team': return '/writing/dashboard';
           default: return '/';
       }

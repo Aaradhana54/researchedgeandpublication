@@ -10,9 +10,6 @@ import {
   CheckCircle,
   Briefcase,
   UserCheck as UserCheckIcon,
-  MessageSquare,
-  CheckCircle2,
-  Globe,
 } from 'lucide-react';
 import React from 'react';
 import { usePathname, useRouter } from 'next/navigation';
@@ -32,8 +29,6 @@ import {
   SidebarGroup,
   SidebarSeparator,
   SidebarInset,
-  SidebarMenuSub,
-  SidebarMenuSubButton,
   SidebarTrigger,
 } from '@/components/ui/sidebar';
 import { Logo } from '@/components/ui/logo';
@@ -48,24 +43,12 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { LoaderCircle } from 'lucide-react';
 import { useEffect } from 'react';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 
 const salesNavItems = [
-  { href: '/sales/dashboard', label: 'Overview', icon: <LayoutGrid /> },
-  { href: '/sales/clients', label: 'Clients', icon: <Users /> },
-   { 
-    label: 'Leads', 
-    icon: <Briefcase />,
-    subItems: [
-        { href: '/sales/projects', label: 'Client Leads', icon: <FolderKanban /> },
-        { href: '/sales/partner-leads', label: 'Partner Leads', icon: <UserCheckIcon /> },
-        { href: '/sales/website-leads', label: 'Website Leads', icon: <MessageSquare /> },
-    ]
-  },
+  { href: '/sales/dashboard', label: 'Dashboard', icon: <LayoutGrid /> },
+  { href: '/sales/assigned-leads', label: 'Assigned Leads', icon: <UserCheckIcon /> },
   { href: '/sales/approved-leads', label: 'Approved Leads', icon: <CheckCircle /> },
-  { href: '/sales/completed-leads', label: 'Completed Leads', icon: <CheckCircle2 /> },
-  { href: '/', label: 'Back to Site', icon: <Globe /> },
 ];
 
 function SalesSidebar() {
@@ -82,8 +65,6 @@ function SalesSidebar() {
     return name.split(' ').map((n) => n[0]).join('').toUpperCase();
   };
 
-  const isLeadsActive = ['/sales/projects', '/sales/partner-leads', '/sales/website-leads'].some(p => pathname.startsWith(p));
-
 
   return (
     <Sidebar>
@@ -93,44 +74,16 @@ function SalesSidebar() {
       <SidebarContent>
         <SidebarMenu>
           {salesNavItems.map((item) => (
-             item.subItems ? (
-                 <Collapsible key={item.label} defaultOpen={isLeadsActive}>
-                    <CollapsibleTrigger asChild>
-                         <SidebarMenuButton className="w-full justify-between" isActive={isLeadsActive}>
-                           <div className="flex items-center gap-2">
-                               {item.icon}
-                               <span>{item.label}</span>
-                           </div>
-                           <ChevronDown className="h-4 w-4" />
-                        </SidebarMenuButton>
-                    </CollapsibleTrigger>
-                    <CollapsibleContent>
-                        <SidebarMenuSub>
-                          {item.subItems.map(subItem => (
-                            <SidebarMenuItem key={subItem.label}>
-                                <Link href={subItem.href}>
-                                    <SidebarMenuSubButton asChild isActive={pathname.startsWith(subItem.href)}>
-                                        <span className="flex items-center gap-2">
-                                            {subItem.icon}
-                                            <span>{subItem.label}</span>
-                                        </span>
-                                    </SidebarMenuSubButton>
-                                </Link>
-                            </SidebarMenuItem>
-                          ))}
-                        </SidebarMenuSub>
-                    </CollapsibleContent>
-                </Collapsible>
-            ) : (
-                <SidebarMenuItem key={item.label}>
-                  <Link href={item.href!}>
-                    <SidebarMenuButton isActive={pathname.startsWith(item.href!)}>
+            <SidebarMenuItem key={item.label}>
+              <Link href={item.href!}>
+                <SidebarMenuButton isActive={pathname.startsWith(item.href!)}>
+                  <div className="flex items-center gap-2">
                       {item.icon}
                       <span>{item.label}</span>
-                    </SidebarMenuButton>
-                  </Link>
-                </SidebarMenuItem>
-            )
+                  </div>
+                </SidebarMenuButton>
+              </Link>
+            </SidebarMenuItem>
           ))}
         </SidebarMenu>
       </SidebarContent>
@@ -183,12 +136,12 @@ export default function SalesLayout({
 
   useEffect(() => {
     if (!loading) {
-      if (!user || user.role !== 'sales-team') {
+      if (!user || !['sales-team', 'sales-manager'].includes(user.role)) {
         router.replace('/sales/login');
       }
     }
      // If the user is logged in as sales and tries to visit the login page, redirect to dashboard
-    if (!loading && user && user.role === 'sales-team' && pathname === '/sales/login') {
+    if (!loading && user && ['sales-team', 'sales-manager'].includes(user.role) && pathname === '/sales/login') {
         router.replace('/sales/dashboard');
     }
   }, [user, loading, router, pathname]);
@@ -205,7 +158,7 @@ export default function SalesLayout({
     );
   }
 
-  if (user.role !== 'sales-team') {
+  if (!['sales-team', 'sales-manager'].includes(user.role)) {
     return (
        <div className="flex h-screen w-full items-center justify-center bg-background">
         <p>You do not have permission to view this page.</p>

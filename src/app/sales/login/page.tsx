@@ -27,7 +27,7 @@ export default function SalesLoginPage() {
     setLoading(true);
 
     try {
-      await loginWithRole(email, password, 'sales-team');
+      await loginWithRole(email, password, ['sales-team', 'sales-manager']);
       router.push('/sales/dashboard'); 
     } catch (err: any) {
       setError(getFirebaseErrorMessage(err.code) || err.message);
@@ -46,7 +46,7 @@ export default function SalesLoginPage() {
             </Link>
          </Button>
         <CardHeader className="text-center pt-16">
-          <CardTitle className="text-2xl font-bold">Sales Manager Login</CardTitle>
+          <CardTitle className="text-2xl font-bold">Sales Portal Login</CardTitle>
           <CardDescription>Access your sales dashboard.</CardDescription>
         </CardHeader>
         <CardContent>
