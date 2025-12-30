@@ -25,7 +25,7 @@ const items = [
 
 export function MissionVision() {
   return (
-    <section id="mission-vision" className="w-full bg-secondary py-16 md:py-24 lg:py-32 overflow-x-hidden">
+    <section id="mission-vision" className="w-full bg-accent py-16 md:py-24 lg:py-32 overflow-x-hidden">
       <div className="container mx-auto max-w-6xl space-y-16">
         {items.map((item, index) => (
           <AnimatedWrapper 
