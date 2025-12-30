@@ -23,13 +23,13 @@ import { Button } from '@/components/ui/button';
 export default function SalesPartnerLeadsPage() {
   const firestore = useFirestore();
 
-  // Simplified query to avoid composite index
+  // Simplified query to avoid composite index. Fetches all partner leads.
   const leadsQuery = useMemo(() => {
     if (!firestore) return null;
     return query(
         collection(firestore, 'contact_leads'), 
         where('referredByPartnerId', '!=', null),
-        orderBy('referredByPartnerId'), // Keep a single orderBy for consistency
+        orderBy('referredByPartnerId'), // First order by the inequality field
         orderBy('createdAt', 'desc')
     );
   }, [firestore]);
@@ -47,7 +47,7 @@ export default function SalesPartnerLeadsPage() {
   // Perform the filtering for unassigned leads on the client
   const partnerLeads = useMemo(() => {
     if (!allPartnerLeads) return [];
-    return allPartnerLeads.filter(lead => lead.assignedSalesId === null);
+    return allPartnerLeads.filter(lead => !lead.assignedSalesId);
   }, [allPartnerLeads]);
 
 

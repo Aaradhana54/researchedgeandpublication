@@ -21,11 +21,13 @@ import { format } from 'date-fns';
 export default function AdminPartnerLeadsPage() {
   const firestore = useFirestore();
 
-  // Fetch all leads, sorted by date. Filtering will happen on the client.
+  // Fetch all leads that have a partner ID, sorted by date.
   const leadsQuery = useMemo(() => {
     if (!firestore) return null;
     return query(
         collection(firestore, 'contact_leads'), 
+        where('referredByPartnerId', '!=', null),
+        orderBy('referredByPartnerId'),
         orderBy('createdAt', 'desc')
     );
   }, [firestore]);
@@ -35,16 +37,10 @@ export default function AdminPartnerLeadsPage() {
     return query(collection(firestore, 'users'));
   }, [firestore]);
 
-  const { data: allLeads, loading: loadingLeads } = useCollection<ContactLead>(leadsQuery);
+  const { data: partnerLeads, loading: loadingLeads } = useCollection<ContactLead>(leadsQuery);
   const { data: users, loading: loadingUsers } = useCollection<UserProfile>(usersQuery);
 
   const loading = loadingLeads || loadingUsers;
-
-  // Filter for partner leads on the client side
-  const partnerLeads = useMemo(() => {
-    if (!allLeads) return [];
-    return allLeads.filter(lead => lead.referredByPartnerId);
-  }, [allLeads]);
 
   const usersMap = useMemo(() => {
     if (!users) return new Map();
