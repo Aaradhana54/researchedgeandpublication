@@ -137,8 +137,8 @@ service cloud.firestore {
     match /payouts/{payoutId} {
       // Partners can create their own payout requests.
       allow create: if isReferralPartner() && request.resource.data.userId == request.auth.uid;
-      // Partners can read their own payout history. Admins can manage all.
-      allow read, list: if (isReferralPartner() && resource.data.userId == request.auth.uid) || isAdmin();
+      // Partners can read their own payout history. Admins and Sales Team can manage all.
+      allow read, list: if (isReferralPartner() && resource.data.userId == request.auth.uid) || isAdmin() || isSalesTeam();
       // Only Admins can update (e.g. to 'paid') or delete payouts.
       allow update, delete: if isAdmin();
     }
@@ -167,23 +167,19 @@ service cloud.firestore {
     // --- Admin-only Collections (with exceptions) ---
 
     match /tasks/{taskId} {
-      // Admins can do anything.
-      // Writers can read/update/list tasks assigned to them.
-      allow read, write, create, list, update, delete: if isAdmin() || (isWritingTeam() && resource.data.assignedTo == request.auth.uid);
+      allow read, write, create, list, update, delete: if isAdmin() || isWritingTeam();
     }
 
     match /book_sales/{saleId} {
-      allow read, write, create, list, update, delete: if isAdmin();
+      allow read, write, create, list, update, delete: if isAdmin() || isSalesTeam();
     }
 
     match /invoices/{invoiceId} {
-      allow read, write, create, list, update, delete: if isAdmin();
+      allow read, write, create, list, update, delete: if isAdmin() || isSalesTeam();
     }
 
     match /notifications/{notificationId} {
-       // Admins can do anything.
-       // The owner can read/update/delete their own notifications.
-       allow read, write, create, list, update, delete: if isAdmin() || isOwner(resource.data.userId);
+       allow read, write, create, list, update, delete: if isAdmin() || (isOwner(resource.data.userId));
     }
     
     match /metadata/{docId} {
