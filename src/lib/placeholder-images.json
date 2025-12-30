@@ -42,14 +42,14 @@
     {
       "id": "hero-1",
       "description": "A modern glass building reflecting the sky, representing professionalism and ambition.",
-      "imageUrl": "https://images.unsplash.com/photo-1494522855154-135e239e4a3b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wzNzEyODZ8MHwxfHNlYXJjaHw1fHxnbGFzcyUyMGJ1aWxkaW5nfGVufDB8fHx8fDE3MTg5NTc2NzN8MA&ixlib=rb-4.0.3&q=80&w=1080",
-      "imageHint": "modern building"
+      "imageUrl": "https://images.unsplash.com/photo-1522071820081-009f0129c71c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wzNzEyODZ8MHwxfHNlYXJjaHw0fHxwcm9mZXNzaW9uYWwlMjB0ZWFtfGVufDB8fHx8fDE3MTg5NTc2MTl8MA&ixlib=rb-4.0.3&q=80&w=1080",
+      "imageHint": "professional team"
     },
     {
       "id": "hero-2",
       "description": "A professor standing in a classic library, representing knowledge and academic expertise.",
-      "imageUrl": "https://images.unsplash.com/photo-1568992688604-d5a23ab3b2e7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wzNzEyODZ8MHwxfHNlYXJjaHwyfHxwcm9mZXNzb3J8ZW58MHx8fHwxNzE4OTU4MDUxfDA&ixlib=rb-4.0.3&q=80&w=1080",
-      "imageHint": "academic professor"
+      "imageUrl": "https://images.unsplash.com/photo-1531545514256-b1400bc00f31?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wzNzEyODZ8MHwxfHNlYXJjaHw5fHxhY2FkZW1pY3xlbnwwfHx8fDE3MTg5NTgwNTV8MA&ixlib=rb-4.0.3&q=80&w=1080",
+      "imageHint": "academic collaboration"
     },
     {
       "id": "hero-3",
