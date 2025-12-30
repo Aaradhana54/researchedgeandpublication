@@ -162,17 +162,19 @@ export default function AdminLayout({
   const router = useRouter();
   const pathname = usePathname();
 
+  const allowedRoles = ['admin', 'sales-team', 'sales-manager', 'writing-team'];
+
   useEffect(() => {
     // If we are not loading and the current page is not the login page
     if (!loading && pathname !== '/admin/login') {
-      // If there is no user or the user is not an admin/sales, redirect to login
-      if (!user || !['admin', 'sales-team', 'writing-team', 'sales-manager'].includes(user.role)) {
+      // If there is no user or the user does not have an allowed role, redirect to login
+      if (!user || !allowedRoles.includes(user.role)) {
         router.replace('/admin/login');
       }
     }
-    // If the user is logged in and tries to visit the login page, redirect to their dashboard
-    if (!loading && user && pathname === '/admin/login') {
-        const dashboardPath = user.role === 'admin' || user.role.startsWith('sales') ? '/admin/dashboard' : (user.role === 'writing-team' ? '/writing/dashboard' : '/');
+    // If a logged-in user with an allowed role tries to visit the login page, redirect them to their dashboard
+    if (!loading && user && allowedRoles.includes(user.role) && pathname === '/admin/login') {
+        const dashboardPath = user.role === 'writing-team' ? '/writing/dashboard' : '/admin/dashboard';
         router.replace(dashboardPath);
     }
 
@@ -192,7 +194,7 @@ export default function AdminLayout({
     );
   }
   
-  if (!['admin', 'sales-team', 'writing-team', 'sales-manager'].includes(user.role)) {
+  if (!allowedRoles.includes(user.role)) {
     return (
        <div className="flex h-screen w-full items-center justify-center bg-background">
         <p>You do not have permission to view this page.</p>

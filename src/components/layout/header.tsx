@@ -64,11 +64,12 @@ export function Header() {
   const getPortalPath = () => {
       if (!user) return '/';
       switch (user.role) {
-          case 'admin': return '/admin/dashboard';
+          case 'admin':
+          case 'sales-team':
+          case 'sales-manager':
+              return '/admin/dashboard';
           case 'client': return '/dashboard';
           case 'referral-partner': return '/referral-partner/dashboard';
-          case 'sales-team': return '/sales/dashboard';
-          case 'sales-manager': return '/sales/dashboard';
           case 'writing-team': return '/writing/dashboard';
           default: return '/';
       }
@@ -158,7 +159,7 @@ export function Header() {
                           <Users className="mr-2 h-4 w-4" />
                           <span>Referral Partner</span>
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => router.push('/sales/login')}>
+                        <DropdownMenuItem onClick={() => router.push('/admin/login')}>
                           <TrendingUp className="mr-2 h-4 w-4" />
                           <span>Sales Manager Login</span>
                         </DropdownMenuItem>
