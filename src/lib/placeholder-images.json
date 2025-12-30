@@ -41,27 +41,27 @@
     },
     {
       "id": "hero-1",
-      "description": "A soft, abstract gradient of lilac and light pink, creating a calming and modern background.",
-      "imageUrl": "https://images.unsplash.com/photo-1579546929518-9e396f3cc809?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wzNzEyODZ8MHwxfHNlYXJjaHwxfHxhYnN0cmFjdCUyMGxhdmVuZGVyJTIwZ3JhZGllbnR8ZW58MHx8fHwxNzE4MzMwMjUxfDA&ixlib=rb-4.0.3&q=80&w=1080",
-      "imageHint": "abstract gradient"
+      "description": "A modern glass building reflecting the sky, representing professionalism and ambition.",
+      "imageUrl": "https://images.unsplash.com/photo-1494522855154-135e239e4a3b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wzNzEyODZ8MHwxfHNlYXJjaHw1fHxnbGFzcyUyMGJ1aWxkaW5nfGVufDB8fHx8fDE3MTg5NTc2NzN8MA&ixlib=rb-4.0.3&q=80&w=1080",
+      "imageHint": "modern building"
     },
     {
       "id": "hero-2",
-      "description": "Minimalist architectural detail with a curved wall and soft, aesthetic shadows.",
-      "imageUrl": "https://images.unsplash.com/photo-1617996423428-e79dd1821868?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wzNzEyODZ8MHwxfHNlYXJjaHwyfHxtaW5pbWFsJTIwYXJjaGl0ZWN0dXJlJTIwcHVycGxlfGVufDB8fHx8fDE3MTgzMjk0Njh8MA&ixlib=rb-4.0.3&q=80&w=1080",
-      "imageHint": "minimal architecture"
+      "description": "A professor standing in a classic library, representing knowledge and academic expertise.",
+      "imageUrl": "https://images.unsplash.com/photo-1568992688604-d5a23ab3b2e7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wzNzEyODZ8MHwxfHNlYXJjaHwyfHxwcm9mZXNzb3J8ZW58MHx8fHwxNzE4OTU4MDUxfDA&ixlib=rb-4.0.3&q=80&w=1080",
+      "imageHint": "academic professor"
     },
     {
       "id": "hero-3",
-      "description": "A close-up shot of beautiful, soft lilac flowers with a blurred background.",
-      "imageUrl": "https://images.unsplash.com/photo-1586943101502-36e13872a9b7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wzNzEyODZ8MHwxfHNlYXJjaHwzfHxtaW5pbWFsJTIwbGlsYWMlMjBmbG93ZXJzfGVufDB8fHx8fDE3MTgzMzAyODR8MA&ixlib=rb-4.0.3&q=80&w=1080",
-      "imageHint": "lilac flowers"
+      "description": "A diverse group of students collaborating on a project in a bright, modern setting.",
+      "imageUrl": "https://images.unsplash.com/photo-1523240795612-9a054b0db644?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wzNzEyODZ8MHwxfHNlYXJjaHw1fHxzdHVkZW50cyUyMGNvbGxhYm9yYXRpbmd8ZW58MHx8fHwxNzE4OTU4MjEwfDA&ixlib=rb-4.0.3&q=80&w=1080",
+      "imageHint": "students collaborating"
     },
     {
       "id": "hero-4",
-      "description": "A minimal and calming interior with a simple vase and soft, natural light, conveying an airy and peaceful mood.",
-      "imageUrl": "https://images.unsplash.com/photo-1541123437800-1bb1317badc2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wzNzEyODZ8MHwxfHNlYXJjaHw3fHxjYWxtJTIwbWluaW1hbCUyMGludGVyaW9yfGVufDB8fHx8fDE3MTgzMjk2NDB8MA&ixlib=rb-4.0.3&q=80&w=1080",
-      "imageHint": "calm interior"
+      "description": "A student focusing on her work in a library, representing dedication and research.",
+      "imageUrl": "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wzNzEyODZ8MHwxfHNlYXJjaHwxfHx1bml2ZXJzaXR5JTIwc3R1ZGVudCUyMGxpYnJhcnl8ZW58MHx8fHwxNzE4OTU4Mjk2fDA&ixlib=rb-4.0.3&q=80&w=1080",
+      "imageHint": "student library"
     },
     {
       "id": "services-image",
