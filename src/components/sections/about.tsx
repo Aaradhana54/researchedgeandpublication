@@ -28,7 +28,7 @@ export function About() {
           </AnimatedWrapper>
           <AnimatedWrapper delay={200}>
             {aboutImage && (
-              <div className="overflow-hidden rounded-lg shadow-lift h-full">
+              <div className="overflow-hidden rounded-lg shadow-lift h-[600px]">
                  <Image
                   src={aboutImage.imageUrl}
                   alt={aboutImage.description}
