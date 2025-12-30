@@ -40,6 +40,12 @@
       "imageHint": "team collaboration"
     },
     {
+      "id": "contact-us",
+      "description": "A person writing at a desk with a laptop and coffee, in a professional but warm setting.",
+      "imageUrl": "https://images.unsplash.com/photo-1499750310107-5fef28a66643?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wzNzEyODZ8MHwxfHNlYXJjaHw4fHxjb250YWN0JTIwdXN8ZW58MHx8fHwxNzIxODQ4NTkyfDA&ixlib=rb-4.0.3&q=80&w=1080",
+      "imageHint": "contact us"
+    },
+    {
       "id": "hero-1",
       "description": "A modern glass building reflecting the sky, representing professionalism and ambition.",
       "imageUrl": "https://images.unsplash.com/photo-1522071820081-009f0129c71c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wzNzEyODZ8MHwxfHNlYXJjaHw0fHxwcm9mZXNzaW9uYWwlMjB0ZWFtfGVufDB8fHx8fDE3MTg5NTc2MTl8MA&ixlib=rb-4.0.3&q=80&w=1080",

@@ -1,7 +1,7 @@
-
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { AnimatedWrapper } from '@/components/animated-wrapper';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -12,8 +12,9 @@ import { Button } from '@/components/ui/button';
 import { useFirestore } from '@/firebase';
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
-import { LoaderCircle, Mail, Phone } from 'lucide-react';
+import { LoaderCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 const services = [
   'Thesis & Dissertation Writing',
@@ -31,6 +32,8 @@ export function Contact() {
   const [formKey, setFormKey] = useState(Date.now()); // To reset form
   const firestore = useFirestore();
   const { toast } = useToast();
+
+  const contactImage = PlaceHolderImages.find(p => p.id === 'contact-us');
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -81,60 +84,76 @@ export function Contact() {
   return (
     <section id="contact" className="w-full bg-background py-16 md:py-24 lg:py-32">
       <div className="container mx-auto">
-        <AnimatedWrapper>
-          <div className="max-w-2xl mx-auto">
-             <Card className="shadow-lift">
-                <CardHeader className="text-center">
-                  <CardTitle className="text-3xl font-bold tracking-tight text-primary sm:text-4xl font-headline">Contact Us</CardTitle>
-                  <CardDescription>We'd love to hear from you. Fill out the form to get in touch.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                <form key={formKey} onSubmit={handleSubmit} className="space-y-6">
-                    {error && (
-                        <Alert variant="destructive">
-                            <AlertTitle>Error</AlertTitle>
-                            <AlertDescription>{error}</AlertDescription>
-                        </Alert>
-                    )}
-                    <div className="space-y-2">
-                    <Label htmlFor="name">Full Name *</Label>
-                    <Input id="name" name="name" placeholder="John Doe" required disabled={loading} />
+        <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold tracking-tight text-primary sm:text-4xl font-headline">Contact Us</h2>
+        </div>
+        <div className="grid md:grid-cols-2 gap-12 items-center">
+            <AnimatedWrapper>
+                {contactImage && (
+                    <div className="overflow-hidden rounded-lg shadow-lift h-full max-h-[500px] md:max-h-full">
+                        <Image
+                            src={contactImage.imageUrl}
+                            alt={contactImage.description}
+                            width={600}
+                            height={700}
+                            data-ai-hint={contactImage.imageHint}
+                            className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+                        />
                     </div>
-                    <div className="grid md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                        <Label htmlFor="email">Email Address *</Label>
-                        <Input id="email" name="email" type="email" placeholder="john.doe@example.com" required disabled={loading}/>
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="phone">Phone Number *</Label>
-                        <Input id="phone" name="phone" type="tel" placeholder="+91 98765 43210" required disabled={loading}/>
-                    </div>
-                    </div>
-                    <div className="space-y-2">
-                    <Label htmlFor="serviceType">Service of Interest</Label>
-                    <Select name="serviceType" disabled={loading}>
-                        <SelectTrigger id="serviceType">
-                        <SelectValue placeholder="Select a service" />
-                        </SelectTrigger>
-                        <SelectContent>
-                        {services.map(service => (
-                            <SelectItem key={service} value={service}>{service}</SelectItem>
-                        ))}
-                        </SelectContent>
-                    </Select>
-                    </div>
-                    <div className="space-y-2">
-                    <Label htmlFor="message">Message</Label>
-                    <Textarea id="message" name="message" placeholder="Tell us about your project..." rows={5} disabled={loading}/>
-                    </div>
-                    <Button type="submit" className="w-full" size="lg" disabled={loading}>
-                    {loading ? <LoaderCircle className="animate-spin"/> : "Send Message"}
-                    </Button>
-                </form>
-                </CardContent>
-            </Card>
-          </div>
-        </AnimatedWrapper>
+                )}
+            </AnimatedWrapper>
+             <AnimatedWrapper delay={200}>
+                <Card className="shadow-lift">
+                    <CardHeader className="text-center">
+                        <CardDescription>We'd love to hear from you. Fill out the form to get in touch.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                    <form key={formKey} onSubmit={handleSubmit} className="space-y-6">
+                        {error && (
+                            <Alert variant="destructive">
+                                <AlertTitle>Error</AlertTitle>
+                                <AlertDescription>{error}</AlertDescription>
+                            </Alert>
+                        )}
+                        <div className="space-y-2">
+                        <Label htmlFor="name">Full Name *</Label>
+                        <Input id="name" name="name" placeholder="John Doe" required disabled={loading} />
+                        </div>
+                        <div className="grid md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                            <Label htmlFor="email">Email Address *</Label>
+                            <Input id="email" name="email" type="email" placeholder="john.doe@example.com" required disabled={loading}/>
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="phone">Phone Number *</Label>
+                            <Input id="phone" name="phone" type="tel" placeholder="+91 98765 43210" required disabled={loading}/>
+                        </div>
+                        </div>
+                        <div className="space-y-2">
+                        <Label htmlFor="serviceType">Service of Interest</Label>
+                        <Select name="serviceType" disabled={loading}>
+                            <SelectTrigger id="serviceType">
+                            <SelectValue placeholder="Select a service" />
+                            </SelectTrigger>
+                            <SelectContent>
+                            {services.map(service => (
+                                <SelectItem key={service} value={service}>{service}</SelectItem>
+                            ))}
+                            </SelectContent>
+                        </Select>
+                        </div>
+                        <div className="space-y-2">
+                        <Label htmlFor="message">Message</Label>
+                        <Textarea id="message" name="message" placeholder="Tell us about your project..." rows={5} disabled={loading}/>
+                        </div>
+                        <Button type="submit" className="w-full" size="lg" disabled={loading}>
+                        {loading ? <LoaderCircle className="animate-spin"/> : "Send Message"}
+                        </Button>
+                    </form>
+                    </CardContent>
+                </Card>
+            </AnimatedWrapper>
+        </div>
       </div>
     </section>
   );
