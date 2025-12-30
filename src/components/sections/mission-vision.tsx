@@ -1,6 +1,7 @@
 
 'use client';
 
+import React from 'react';
 import { AnimatedWrapper } from '@/components/animated-wrapper';
 import { Target, Eye } from 'lucide-react';
 import { useInView } from 'react-intersection-observer';
