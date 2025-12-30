@@ -234,7 +234,7 @@ export default function SalesManagerProjectDetailPage() {
                                 Reject
                             </Button>
                             {!project.assignedSalesId && salesTeam && salesTeam.length > 0 && (
-                                <AssignLeadDialog project={project} leadType='project' salesTeam={salesTeam} onLeadAssigned={fetchProjectData}>
+                                <AssignLeadDialog lead={project} leadType='project' salesTeam={salesTeam} onLeadAssigned={fetchProjectData}>
                                     <Button variant="outline">
                                         <Users className="mr-2 h-4 w-4" />
                                         Assign Lead
