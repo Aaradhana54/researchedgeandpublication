@@ -117,36 +117,27 @@ export default function CreateProjectPage() {
     
     const processFormSubmission = async (synopsisUrl = '') => {
         try {
+            // Construct a clean data object with only the fields a client is allowed to set.
             const dataToSave: any = {
               userId: user.uid,
+              title: rawFormData.title as string,
               serviceType: service,
-              title: rawFormData.title,
-              wantToPublish: rawFormData.wantToPublish === 'on',
-              isPaperReady: rawFormData.isPaperReady === 'on',
               status: 'pending',
               createdAt: serverTimestamp(),
               updatedAt: serverTimestamp(),
               synopsisFileUrl: synopsisUrl,
+              mobile: (rawFormData.mobile as string) || null,
+              topic: (rawFormData.topic as string) || null,
+              courseLevel: (rawFormData.courseLevel as CourseLevel) || null,
+              referencingStyle: (rawFormData.referencingStyle as string) || null,
+              language: (rawFormData.language as string) || 'English',
+              wantToPublish: rawFormData.wantToPublish === 'on',
+              isPaperReady: rawFormData.isPaperReady === 'on',
+              publishWhere: (rawFormData.publishWhere as string) || null,
+              deadline: rawFormData.deadline ? Timestamp.fromDate(new Date(rawFormData.deadline as string)) : null,
+              pageCount: rawFormData.pageCount ? Number(rawFormData.pageCount) : null,
+              wordCount: rawFormData.wordCount ? Number(rawFormData.wordCount) : null,
             };
-            
-            if (rawFormData.mobile) dataToSave.mobile = rawFormData.mobile;
-            if (rawFormData.topic) dataToSave.topic = rawFormData.topic;
-            if (rawFormData.courseLevel) dataToSave.courseLevel = rawFormData.courseLevel;
-            if (rawFormData.referencingStyle) dataToSave.referencingStyle = rawFormData.referencingStyle;
-            if (rawFormData.language) dataToSave.language = rawFormData.language;
-            if (rawFormData.publishWhere) {
-              dataToSave.publishWhere = rawFormData.publishWhere;
-            }
-    
-            if (rawFormData.deadline) {
-              dataToSave.deadline = Timestamp.fromDate(new Date(rawFormData.deadline as string));
-            }
-            if (rawFormData.pageCount) {
-              dataToSave.pageCount = Number(rawFormData.pageCount);
-            }
-            if (rawFormData.wordCount) {
-                dataToSave.wordCount = Number(rawFormData.wordCount);
-            }
             
             const projectsCollection = collection(firestore, 'projects');
             const docRef = await addDoc(projectsCollection, dataToSave);
@@ -472,5 +463,3 @@ export default function CreateProjectPage() {
     </div>
   );
 }
-
-    
