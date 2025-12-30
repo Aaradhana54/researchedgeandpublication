@@ -36,7 +36,7 @@
     {
       "id": "about-us",
       "description": "A professional team collaborating in a modern office.",
-      "imageUrl": "https://images.unsplash.com/photo-1522071820081-009f0129c71c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHx0ZWFtJTIwY29sbGFib3JhdGlvbnxlbnwwfHx8fDE3NjcwNzU2OTl8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wzNzEyODZ8MHwxfHNlYXJjaHwyfHx0ZWFtJTIwY29sbGFib3JhdGlvbnxlbnwwfHx8fDE3MjE4NDYxOTF8MA&ixlib=rb-4.0.3&q=80&w=1080",
       "imageHint": "team collaboration"
     },
     {
@@ -80,6 +80,18 @@
       "description": "A close-up shot of a vintage typewriter with a page being typed, evoking a sense of classic writing and authorship.",
       "imageUrl": "https://images.unsplash.com/photo-1505682614150-e62a1c278035?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wzNzEyODZ8MHwxfHNlYXJjaHw4fHx3cml0aW5nfGVufDB8fHx8fDE3MTkwMTg5Mjl8MA&ixlib=rb-4.0.3&q=80&w=1080",
       "imageHint": "writing authorship"
+    },
+    {
+      "id": "mission-image",
+      "description": "A winding path leading up a mountain, symbolizing a journey towards a goal.",
+      "imageUrl": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wzNzEyODZ8MHwxfHNlYXJjaHwxfHxtb3VudGFpbiUyMHBhdGh8ZW58MHx8fHwxNzIxODQ3NTQ1fDA&ixlib=rb-4.0.3&q=80&w=1080",
+      "imageHint": "mountain path"
+    },
+    {
+      "id": "vision-image",
+      "description": "A person looking through a telescope at a starry night sky, representing foresight and discovery.",
+      "imageUrl": "https://images.unsplash.com/photo-1534970028765-38ce47ef7d8d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wzNzEyODZ8MHwxfHNlYXJjaHwxfHx0ZWxlc2NvcGV8ZW58MHx8fHwxNzIxODQ3NTc0fDA&ixlib=rb-4.0.3&q=80&w=1080",
+      "imageHint": "telescope stars"
     }
   ]
 }
