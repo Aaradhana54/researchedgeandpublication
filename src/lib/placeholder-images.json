@@ -41,21 +41,21 @@
     },
     {
       "id": "hero-1",
-      "description": "Ethereal and soft purple and pink clouds at sunset, creating a dreamy and calming background.",
-      "imageUrl": "https://images.unsplash.com/photo-1534088568595-a066f41021a5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wzNzEyODZ8MHwxfHNlYXJjaHw1fHxwYXN0ZWwlMjBza3l8ZW58MHx8fHwxNzE4MzI4OTg3fDA&ixlib=rb-4.0.3&q=80&w=1080",
-      "imageHint": "pastel sky"
+      "description": "A soft, abstract gradient of lilac and light pink, creating a calming and modern background.",
+      "imageUrl": "https://images.unsplash.com/photo-1579546929518-9e396f3cc809?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wzNzEyODZ8MHwxfHNlYXJjaHwxfHxhYnN0cmFjdCUyMGxhdmVuZGVyJTIwZ3JhZGllbnR8ZW58MHx8fHwxNzE4MzMwMjUxfDA&ixlib=rb-4.0.3&q=80&w=1080",
+      "imageHint": "abstract gradient"
     },
     {
       "id": "hero-2",
-      "description": "An abstract close-up of flowing lavender-colored silk fabric with soft folds and gentle light.",
-      "imageUrl": "https://images.unsplash.com/photo-1599405622158-a5a41a45749c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wzNzEyODZ8MHwxfHNlYXJjaHw0fHxhYnN0cmFjdCUyMGxhdmVuZGVyfGVufDB8fHx8fDE3MTgzMjk0MDJ8MA&ixlib=rb-4.0.3&q=80&w=1080",
-      "imageHint": "abstract lavender"
+      "description": "Minimalist architectural detail with a curved wall and soft, aesthetic shadows.",
+      "imageUrl": "https://images.unsplash.com/photo-1617996423428-e79dd1821868?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wzNzEyODZ8MHwxfHNlYXJjaHwyfHxtaW5pbWFsJTIwYXJjaGl0ZWN0dXJlJTIwcHVycGxlfGVufDB8fHx8fDE3MTgzMjk0Njh8MA&ixlib=rb-4.0.3&q=80&w=1080",
+      "imageHint": "minimal architecture"
     },
     {
       "id": "hero-3",
-      "description": "An elegant architectural detail showing a curved wall with soft shadows, in a minimalist and aesthetic style.",
-      "imageUrl": "https://images.unsplash.com/photo-1617996423428-e79dd1821868?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wzNzEyODZ8MHwxfHNlYXJjaHwyfHxtaW5pbWFsJTIwYXJjaGl0ZWN0dXJlJTIwcHVycGxlfGVufDB8fHx8fDE3MTgzMjk0Njh8MA&ixlib=rb-4.0.3&q=80&w=1080",
-      "imageHint": "minimal architecture"
+      "description": "A close-up shot of beautiful, soft lilac flowers with a blurred background.",
+      "imageUrl": "https://images.unsplash.com/photo-1586943101502-36e13872a9b7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wzNzEyODZ8MHwxfHNlYXJjaHwzfHxtaW5pbWFsJTIwbGlsYWMlMjBmbG93ZXJzfGVufDB8fHx8fDE3MTgzMzAyODR8MA&ixlib=rb-4.0.3&q=80&w=1080",
+      "imageHint": "lilac flowers"
     },
     {
       "id": "hero-4",
