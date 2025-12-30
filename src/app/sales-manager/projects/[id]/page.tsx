@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -15,6 +16,7 @@ import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
+import { ApproveProjectDialog } from '@/components/sales-manager/approve-project-dialog';
 
 function DetailItem({ label, value, isBadge = false, badgeVariant, children }: { label: string; value?: string | number | boolean | null; isBadge?: boolean; badgeVariant?: 'default' | 'secondary' | 'destructive' | 'outline', children?: React.ReactNode }) {
     if (value === null || typeof value === 'undefined' || value === '') return null;
@@ -51,58 +53,60 @@ export default function SalesManagerProjectDetailPage() {
     const [finalizerUser, setFinalizerUser] = useState<UserProfile | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-
-    useEffect(() => {
+    
+    const fetchProjectData = async () => {
         if (!firestore || !projectId) return;
 
-        const fetchProjectData = async () => {
-            setLoading(true);
-            setError(null);
-            try {
-                const projectDocRef = doc(firestore, 'projects', projectId);
-                const projectSnap = await getDoc(projectDocRef);
+        setLoading(true);
+        setError(null);
+        try {
+            const projectDocRef = doc(firestore, 'projects', projectId);
+            const projectSnap = await getDoc(projectDocRef);
 
-                if (!projectSnap.exists()) {
-                    notFound();
-                    return;
-                }
-
-                const projectData = { ...projectSnap.data(), id: projectSnap.id } as Project;
-                setProject(projectData);
-
-                // Fetch related user data
-                if (projectData.userId) {
-                    const userDocRef = doc(firestore, 'users', projectData.userId);
-                    const userSnap = await getDoc(userDocRef);
-                    if (userSnap.exists()) {
-                        setUser(userSnap.data() as UserProfile);
-                    }
-                }
-
-                if (projectData.finalizedBy) {
-                    const finalizerDocRef = doc(firestore, 'users', projectData.finalizedBy);
-                    const finalizerSnap = await getDoc(finalizerDocRef);
-                    if (finalizerSnap.exists()) {
-                        setFinalizerUser(finalizerSnap.data() as UserProfile);
-                    }
-                }
-
-            } catch (err: any) {
-                 if (err.code === 'permission-denied') {
-                    const permissionError = new FirestorePermissionError({
-                        path: `projects/${projectId}`,
-                        operation: 'get',
-                    }, err);
-                    errorEmitter.emit('permission-error', permissionError);
-                }
-                console.error("Failed to fetch project details:", err);
-                setError("Could not load project data. You may not have permission to view it.");
-            } finally {
-                setLoading(false);
+            if (!projectSnap.exists()) {
+                notFound();
+                return;
             }
-        };
 
+            const projectData = { ...projectSnap.data(), id: projectSnap.id } as Project;
+            setProject(projectData);
+
+            // Fetch related user data
+            if (projectData.userId) {
+                const userDocRef = doc(firestore, 'users', projectData.userId);
+                const userSnap = await getDoc(userDocRef);
+                if (userSnap.exists()) {
+                    setUser(userSnap.data() as UserProfile);
+                }
+            }
+
+            if (projectData.finalizedBy) {
+                const finalizerDocRef = doc(firestore, 'users', projectData.finalizedBy);
+                const finalizerSnap = await getDoc(finalizerDocRef);
+                if (finalizerSnap.exists()) {
+                    setFinalizerUser(finalizerSnap.data() as UserProfile);
+                }
+            }
+
+        } catch (err: any) {
+             if (err.code === 'permission-denied') {
+                const permissionError = new FirestorePermissionError({
+                    path: `projects/${projectId}`,
+                    operation: 'get',
+                }, err);
+                errorEmitter.emit('permission-error', permissionError);
+            }
+            console.error("Failed to fetch project details:", err);
+            setError("Could not load project data. You may not have permission to view it.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+
+    useEffect(() => {
         fetchProjectData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [firestore, projectId]);
 
 
@@ -178,9 +182,8 @@ export default function SalesManagerProjectDetailPage() {
         notFound();
     }
     
-    const canShowAdminControls = loggedInUser?.role === 'admin' || loggedInUser?.role === 'sales-manager';
-    const canShowDealDetails = loggedInUser?.role === 'admin' || loggedInUser?.role === 'sales-team' || loggedInUser?.role === 'sales-manager';
-    const canShowClientDetails = loggedInUser?.role === 'admin' || loggedInUser?.role === 'sales-team' || loggedInUser?.role === 'sales-manager';
+    const canManageDeal = loggedInUser?.role === 'admin' || loggedInUser?.role === 'sales-manager';
+    const isPending = project.status === 'pending';
 
     return (
         <div className="p-4 sm:p-6 lg:p-8">
@@ -196,12 +199,18 @@ export default function SalesManagerProjectDetailPage() {
                         <h1 className="text-3xl font-bold tracking-tight">{project.title}</h1>
                         <p className="text-muted-foreground">Detailed view of the project submission.</p>
                     </div>
-                    {canShowAdminControls && project.status === 'pending' && (
+                    {canManageDeal && isPending && (
                         <div className="flex items-center gap-2">
                              <Button variant="destructive" onClick={() => handleStatusUpdate('rejected')}>
                                 <XCircle className="mr-2 h-4 w-4" />
                                 Reject
                             </Button>
+                             <ApproveProjectDialog project={project} onProjectApproved={fetchProjectData}>
+                                <Button>
+                                    <CheckCircle className="mr-2 h-4 w-4" />
+                                    Approve Deal
+                                </Button>
+                            </ApproveProjectDialog>
                         </div>
                     )}
                 </div>
@@ -229,44 +238,46 @@ export default function SalesManagerProjectDetailPage() {
                         </CardContent>
                     </Card>
 
-                    {canShowDealDetails && (
-                        <Card>
-                             <CardHeader>
-                                <CardTitle>Deal Details</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                {project.finalizedAt ? (
-                                    <>
-                                        <DetailItem label="Deal Amount" value={project.dealAmount?.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })} />
-                                        <DetailItem label="Advance Received" value={project.advanceReceived?.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })} />
-                                        <DetailItem label="Final Deadline" value={project.finalDeadline ? format(project.finalDeadline.toDate(), 'PPP') : 'Not set'} />
-                                        <DetailItem label="Discussion Notes" value={project.discussionNotes} />
-                                        <DetailItem label="Payment Screenshot">
-                                            {project.paymentScreenshotUrl ? (
-                                                <a href={project.paymentScreenshotUrl} target="_blank" rel="noopener noreferrer" className="flex items-center text-primary hover:underline">
-                                                    <Download className="mr-2 h-4 w-4" />
-                                                    View Screenshot
-                                                </a>
-                                            ) : 'Not uploaded'}
-                                        </DetailItem>
-                                        <DetailItem label="Finalized On" value={project.finalizedAt ? format(project.finalizedAt.toDate(), 'PPP p') : 'N/A'} />
-                                        <DetailItem label="Finalized By">
-                                            <div className="flex items-center gap-2">
-                                                <UserIcon className="w-4 h-4 text-muted-foreground"/>
-                                                <span>{finalizerUser ? finalizerUser.name : (project.finalizedBy || 'Unknown')}</span>
-                                            </div>
-                                        </DetailItem>
-                                    </>
-                                ) : (
-                                    <div className="text-center text-muted-foreground py-8">
-                                        <Hourglass className="mx-auto h-8 w-8 mb-2" />
-                                        <p>This lead has not been finalized yet.</p>
-                                        <p className="text-xs">Deal details will appear here once approved by the sales team.</p>
-                                    </div>
-                                )}
-                            </CardContent>
-                        </Card>
-                    )}
+                    <Card>
+                         <CardHeader>
+                            <CardTitle>Deal Details</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            {project.finalizedAt ? (
+                                <>
+                                    <DetailItem label="Deal Amount" value={project.dealAmount?.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })} />
+                                    <DetailItem label="Advance Received" value={project.advanceReceived?.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })} />
+                                    <DetailItem label="Final Deadline" value={project.finalDeadline ? format(project.finalDeadline.toDate(), 'PPP') : 'Not set'} />
+                                    <DetailItem label="Discussion Notes" value={project.discussionNotes} />
+                                    <DetailItem label="Payment Screenshot">
+                                        {project.paymentScreenshotUrl ? (
+                                            <a href={project.paymentScreenshotUrl} target="_blank" rel="noopener noreferrer" className="flex items-center text-primary hover:underline">
+                                                <Download className="mr-2 h-4 w-4" />
+                                                View Screenshot
+                                            </a>
+                                        ) : 'Not uploaded'}
+                                    </DetailItem>
+                                    <DetailItem label="Finalized On" value={project.finalizedAt ? format(project.finalizedAt.toDate(), 'PPP p') : 'N/A'} />
+                                    <DetailItem label="Finalized By">
+                                        <div className="flex items-center gap-2">
+                                            <UserIcon className="w-4 h-4 text-muted-foreground"/>
+                                            <span>{finalizerUser ? finalizerUser.name : (project.finalizedBy || 'Unknown')}</span>
+                                        </div>
+                                    </DetailItem>
+                                </>
+                            ) : (
+                                <div className="text-center text-muted-foreground py-8">
+                                    <Hourglass className="mx-auto h-8 w-8 mb-2" />
+                                    <p>This lead has not been finalized yet.</p>
+                                    {isPending ? (
+                                         <p className="text-xs">Click "Approve Deal" to enter finalization details.</p>
+                                    ) : (
+                                         <p className="text-xs">Deal details will appear here once approved by the sales team.</p>
+                                    )}
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
                 </div>
                  <div className="lg:col-span-1 space-y-8">
                      <Card>
@@ -279,23 +290,21 @@ export default function SalesManagerProjectDetailPage() {
                             </Badge>
                         </CardContent>
                     </Card>
-                    {canShowClientDetails && (
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Client Details</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                {!user && !loading ? <p>User not found.</p> :
-                                    <>
-                                        <DetailItem label="Name" value={user?.name} />
-                                        <DetailItem label="Email" value={user?.email} />
-                                        <DetailItem label="Profile Mobile No." value={user?.mobile} />
-                                        <DetailItem label="Joined On" value={user?.createdAt ? format(user.createdAt.toDate(), 'PPP') : 'N/A'} />
-                                    </>
-                                }
-                            </CardContent>
-                        </Card>
-                    )}
+                     <Card>
+                        <CardHeader>
+                            <CardTitle>Client Details</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            {!user && !loading ? <p>User not found.</p> :
+                                <>
+                                    <DetailItem label="Name" value={user?.name} />
+                                    <DetailItem label="Email" value={user?.email} />
+                                    <DetailItem label="Profile Mobile No." value={user?.mobile} />
+                                    <DetailItem label="Joined On" value={user?.createdAt ? format(user.createdAt.toDate(), 'PPP') : 'N/A'} />
+                                </>
+                            }
+                        </CardContent>
+                    </Card>
                     {project.synopsisFileUrl && (
                         <Card>
                             <CardHeader>
@@ -316,5 +325,3 @@ export default function SalesManagerProjectDetailPage() {
         </div>
     );
 }
-
-    
