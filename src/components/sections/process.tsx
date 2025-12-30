@@ -53,22 +53,22 @@ export function Process() {
             <div className="flex items-center justify-center md:hidden text-muted-foreground text-sm">
                 <ArrowRight className="mr-2"/> Scroll to view all steps
             </div>
-            <div className="horizontal-scroll-container overflow-x-auto overflow-y-hidden pb-8 -mb-8">
-                <div className="relative flex items-start justify-start w-max px-8 pt-24 pb-12" style={{ minWidth: `${processSteps.length * 18}rem` }}>
+            <div className="horizontal-scroll-container no-scrollbar overflow-x-auto overflow-y-hidden pb-8 -mb-8">
+                <div className="relative flex items-start justify-start w-max px-8 pt-24 pb-12" style={{ minWidth: `100rem` }}>
                     
                     {/* The connecting line path */}
                     <svg className="absolute top-0 left-0 h-full w-full" >
                         <path
                             d="M 160 80 
-                               C 220 80, 220 160, 280 160 
-                               C 340 160, 340 80, 400 80
-                               C 460 80, 460 160, 520 160
-                               C 580 160, 580 80, 640 80
-                               C 700 80, 700 160, 760 160
-                               C 820 160, 820 80, 880 80"
+                               C 240 80, 240 160, 320 160 
+                               C 400 160, 400 80, 480 80
+                               C 560 80, 560 160, 640 160
+                               C 720 160, 720 80, 800 80
+                               C 880 80, 880 160, 960 160
+                               C 1040 160, 1040 80, 1120 80"
                             fill="none"
                             stroke="hsl(var(--primary))"
-                            strokeWidth="3"
+                            strokeWidth="4"
                             className="path-animation"
                             strokeLinecap="round"
                         />
@@ -89,9 +89,6 @@ export function Process() {
                                 style={{ background: 'linear-gradient(to top right, hsl(var(--primary)), hsl(var(--accent)))' }}
                             >
                                 {step.icon}
-                            </div>
-                             <div className="absolute top-1/2 -translate-y-1/2 flex items-center justify-center">
-                                {index > 0 && <ArrowRight className="w-5 h-5 text-muted-foreground -ml-11" />}
                             </div>
                             
                             {/* Card */}
