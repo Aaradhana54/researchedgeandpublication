@@ -6,7 +6,7 @@ import { collection, query } from 'firebase/firestore';
 import { useCollection, useFirestore } from '@/firebase';
 import type { UserProfile } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { LoaderCircle, UserPlus, Briefcase } from 'lucide-react';
+import { LoaderCircle, UserPlus, Briefcase, Trash2 } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -19,9 +19,22 @@ import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 import { CreateUserDialog } from '@/components/admin/create-user-dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useToast } from '@/hooks/use-toast';
+import { deleteUserAsAdmin } from '@/firebase/auth';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 
-function TeamMemberTable({ users }: { users: UserProfile[] }) {
+function TeamMemberTable({ users, onDelete }: { users: UserProfile[], onDelete: (user: UserProfile) => void }) {
     if (!users || users.length === 0) {
         return (
              <div className="text-center p-12 text-muted-foreground">
@@ -39,6 +52,7 @@ function TeamMemberTable({ users }: { users: UserProfile[] }) {
               <TableHead>Name</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Joined On</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -49,6 +63,27 @@ function TeamMemberTable({ users }: { users: UserProfile[] }) {
                 <TableCell>
                     {user.createdAt ? format(user.createdAt.toDate(), 'PPP') : 'N/A'}
                 </TableCell>
+                <TableCell className="text-right">
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive hover:bg-destructive/10" disabled={user.role === 'admin'}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Are you sure you want to delete this user?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This action will permanently delete the user account for <strong>{user.name}</strong> ({user.email}). This cannot be undone.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => onDelete(user)} className="bg-destructive hover:bg-destructive/90">Delete User</AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -58,6 +93,7 @@ function TeamMemberTable({ users }: { users: UserProfile[] }) {
 
 export default function TeamManagementPage() {
   const firestore = useFirestore();
+  const { toast } = useToast();
 
   const usersQuery = useMemo(() => {
     if (!firestore) return null;
@@ -67,6 +103,36 @@ export default function TeamManagementPage() {
   const { data: users, loading } = useCollection<UserProfile>(usersQuery);
 
   const teamRoles = ['writing-team', 'sales-team', 'sales-manager', 'publication-team', 'accounts-team'];
+
+  const handleDeleteUser = async (userToDelete: UserProfile) => {
+    if (!firestore) {
+        toast({ variant: 'destructive', title: 'Error', description: 'Firestore not available.' });
+        return;
+    }
+    
+    if (userToDelete.role === 'admin') {
+      toast({
+        variant: 'destructive',
+        title: 'Action Not Allowed',
+        description: 'Admin users cannot be deleted from the dashboard for security reasons.',
+      });
+      return;
+    }
+
+    try {
+        await deleteUserAsAdmin(userToDelete.uid);
+        toast({
+            title: 'User Deleted',
+            description: `The account for ${userToDelete.name} has been permanently deleted.`
+        });
+    } catch(error: any) {
+        toast({
+            variant: 'destructive',
+            title: 'Deletion Failed',
+            description: error.message || 'An unexpected error occurred while deleting the user.'
+        });
+    }
+  }
 
   const filteredUsers = useMemo(() => {
     if (!users) {
@@ -137,7 +203,7 @@ export default function TeamManagementPage() {
                     <>
                        {tabs.map(tab => (
                          <TabsContent key={tab.value} value={tab.value}>
-                            <TeamMemberTable users={tab.data} />
+                            <TeamMemberTable users={tab.data} onDelete={handleDeleteUser} />
                         </TabsContent>
                        ))}
                     </>
