@@ -1,36 +1,55 @@
 
 'use client';
 
+import { useRef } from 'react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { AnimatedWrapper } from '@/components/animated-wrapper';
 import Link from 'next/link';
+import { Carousel, CarouselContent, CarouselItem } from '@/components/ui/carousel';
+import Autoplay from "embla-carousel-autoplay";
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 export function Hero() {
-  const heroImage = {
-    imageUrl: 'https://images.unsplash.com/photo-1521587760476-6c12a4b040da?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxsaWJyYXJ5JTIwYm9va3N8ZW58MHx8fHwxNzE4MDI3NTI5fDA&ixlib=rb-4.0.3&q=80&w=1080',
-    description: 'A stack of books on a table with a library in the background.',
-    imageHint: 'library books'
-  };
+  const plugin = useRef(
+    Autoplay({ delay: 5000, stopOnInteraction: true })
+  );
+
+  const heroImages = PlaceHolderImages.filter(p => p.id.startsWith('hero-'));
 
   return (
     <section
       id="home"
       className="relative w-full h-[calc(100vh-5rem)] overflow-hidden"
     >
-      {/* Background Image Layer */}
-      <Image
-        src={heroImage.imageUrl}
-        alt={heroImage.description}
-        fill
-        className="object-cover"
-        data-ai-hint={heroImage.imageHint}
-        priority
-      />
-      <div className="absolute inset-0 bg-black/50" />
+      <Carousel
+        plugins={[plugin.current]}
+        className="w-full h-full"
+        onMouseEnter={plugin.current.stop}
+        onMouseLeave={plugin.current.reset}
+      >
+        <CarouselContent>
+          {heroImages.map((image, index) => (
+            <CarouselItem key={index}>
+              <div className="w-full h-[calc(100vh-5rem)] relative">
+                <Image
+                  src={image.imageUrl}
+                  alt={image.description}
+                  fill
+                  className="object-cover"
+                  data-ai-hint={image.imageHint}
+                  priority={index === 0}
+                />
+              </div>
+            </CarouselItem>
+          ))}
+        </CarouselContent>
+      </Carousel>
       
+      <div className="absolute inset-0 bg-black/50" />
+
       {/* Foreground Content Layer */}
-      <div className="relative z-10 h-full flex flex-col items-center justify-center text-center container mx-auto px-4">
+      <div className="absolute inset-0 z-10 h-full flex flex-col items-center justify-center text-center container mx-auto px-4">
         <AnimatedWrapper>
           <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl md:text-6xl lg:text-7xl font-headline">
             Research Edge and Publication
