@@ -69,20 +69,10 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 const adminNavItems = [
   { href: '/admin/dashboard', label: 'Overview', icon: <LayoutGrid /> },
   { href: '/admin/users', label: 'User Management', icon: <Users /> },
-  { 
-    label: 'Team Management', 
-    icon: <Briefcase />,
-    subItems: [
-        { href: '/admin/team/writing', label: 'Writing Team', icon: <PenTool /> },
-        { href: '/admin/team/sales', label: 'Sales Team', icon: <TrendingUp /> },
-        { href: '/admin/team/sales-manager', label: 'Sales Manager', icon: <UserCog /> },
-        { href: '/admin/team/publication', label: 'Publication Team', icon: <BookCheck /> },
-        { href: '/admin/team/accounts', label: 'Accounts Team', icon: <Banknote /> },
-    ]
-  },
+  { href: '/admin/team', label: 'Team Management', icon: <Briefcase /> },
   { 
     label: 'Leads', 
-    icon: <Briefcase />,
+    icon: <FolderKanban />,
     subItems: [
         { href: '/admin/leads', label: 'All Leads', icon: <Users /> },
         { href: '/admin/projects', label: 'Client Leads', icon: <FolderKanban /> },
@@ -116,7 +106,6 @@ function AdminSidebar() {
   };
 
   const isLeadsActive = ['/admin/leads', '/admin/projects', '/admin/partner-leads', '/admin/website-leads'].some(p => pathname.startsWith(p));
-  const isTeamManagementActive = pathname.startsWith('/admin/team');
 
 
   return (
@@ -128,9 +117,9 @@ function AdminSidebar() {
         <SidebarMenu>
           {adminNavItems.map((item) => (
             item.subItems ? (
-                 <Collapsible key={item.label} defaultOpen={item.label === 'Leads' ? isLeadsActive : isTeamManagementActive}>
+                 <Collapsible key={item.label} defaultOpen={item.label === 'Leads' ? isLeadsActive : false}>
                     <CollapsibleTrigger asChild>
-                         <SidebarMenuButton className="w-full justify-between" isActive={(item.label === 'Leads' && isLeadsActive) || (item.label === 'Team Management' && isTeamManagementActive)}>
+                         <SidebarMenuButton className="w-full justify-between" isActive={isLeadsActive}>
                            <div className="flex items-center gap-2">
                                {item.icon}
                                <span>{item.label}</span>
