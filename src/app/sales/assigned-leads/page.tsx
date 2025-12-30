@@ -197,12 +197,20 @@ export default function AssignedLeadsPage() {
 
   const projectsQuery = useMemo(() => {
     if (!firestore || !user) return null;
-    return query(collection(firestore, 'projects'), where('assignedSalesId', '==', user.uid));
+    return query(
+        collection(firestore, 'projects'), 
+        where('assignedSalesId', '==', user.uid),
+        where('status', '==', 'pending') // Only show pending projects
+    );
   }, [firestore, user]);
 
   const contactLeadsQuery = useMemo(() => {
     if (!firestore || !user) return null;
-    return query(collection(firestore, 'contact_leads'), where('assignedSalesId', '==', user.uid));
+    return query(
+        collection(firestore, 'contact_leads'), 
+        where('assignedSalesId', '==', user.uid),
+        where('status', '==', 'new') // Only show new contact leads
+    );
   }, [firestore, user]);
 
   const usersQuery = useMemo(() => {
@@ -246,9 +254,9 @@ export default function AssignedLeadsPage() {
       </div>
       <Card>
         <CardHeader>
-          <CardTitle>Your Leads</CardTitle>
+          <CardTitle>Your Active Leads</CardTitle>
           <CardDescription>
-            This is a master list of every lead assigned to you.
+            This is a list of all pending leads assigned to you. Approved leads will be removed from this list.
           </CardDescription>
         </CardHeader>
         <CardContent>
