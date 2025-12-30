@@ -27,7 +27,7 @@ export default function SalesPage() {
 
   const salesTeamQuery = useMemo(() => {
     if (!firestore) return null;
-    return query(collection(firestore, 'users'), where('role', '==', 'sales-team'));
+    return query(collection(firestore, 'users'), where('role', 'in', ['sales-team', 'sales-manager']));
   }, [firestore]);
 
   const finalizedProjectsQuery = useMemo(() => {

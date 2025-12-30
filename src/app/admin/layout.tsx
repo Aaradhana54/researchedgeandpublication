@@ -170,9 +170,10 @@ export default function AdminLayout({
         router.replace('/admin/login');
       }
     }
-    // If the user is logged in as an admin and tries to visit the login page, redirect to dashboard
-    if (!loading && user && user.role === 'admin' && pathname === '/admin/login') {
-        router.replace('/admin/dashboard');
+    // If the user is logged in and tries to visit the login page, redirect to their dashboard
+    if (!loading && user && pathname === '/admin/login') {
+        const dashboardPath = user.role === 'admin' || user.role.startsWith('sales') ? '/admin/dashboard' : (user.role === 'writing-team' ? '/writing/dashboard' : '/');
+        router.replace(dashboardPath);
     }
 
   }, [user, loading, router, pathname]);
