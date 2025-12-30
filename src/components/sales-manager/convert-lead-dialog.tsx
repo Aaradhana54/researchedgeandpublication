@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState } from 'react';
@@ -76,7 +77,7 @@ export function ConvertLeadDialog({ children, contactLead, onLeadConverted }: { 
     try {
         // 1. Create a new project document
         const projectsCollection = collection(firestore, 'projects');
-        const projectData = {
+        const projectData: any = {
           // Use a special ID format for unregistered users
           userId: `unregistered_${contactLead.email}`,
           title: data.title,
@@ -92,6 +93,7 @@ export function ConvertLeadDialog({ children, contactLead, onLeadConverted }: { 
           finalizedAt: serverTimestamp(),
           finalizedBy: user.uid,
           assignedSalesId: contactLead.assignedSalesId,
+          referredByPartnerId: contactLead.referredByPartnerId || null, // Add partner ID
         };
         await addDoc(projectsCollection, projectData);
         

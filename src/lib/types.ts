@@ -78,6 +78,7 @@ export interface Project {
   finalizedBy?: string; // UID of the sales person
   assignedWriterId?: string; // UID of the writer
   rejectionReason?: string;
+  referredByPartnerId?: string; // UID of the referral partner for leads converted without signup
 }
 
 export interface ContactLead {

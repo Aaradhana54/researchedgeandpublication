@@ -63,7 +63,8 @@
         "finalizedBy": { "type": "string", "description": "UID of the sales person who finalized the deal." },
         "assignedSalesId": { "type": "string", "description": "The UID of the sales person this lead is assigned to." },
         "assignedWriterId": { "type": "string", "description": "The UID of the writer assigned to this project." },
-        "rejectionReason": { "type": "string", "description": "Reason why the project was rejected by the sales team." }
+        "rejectionReason": { "type": "string", "description": "Reason why the project was rejected by the sales team." },
+        "referredByPartnerId": { "type": "string", "description": "UID of the referral partner for leads converted without signup." }
       },
       "required": ["userId", "title", "serviceType", "createdAt"]
     },

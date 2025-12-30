@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useMemo }from 'react';
@@ -33,13 +34,11 @@ export default function ReferralDashboardPage() {
   const firestore = useFirestore();
   const { toast } = useToast();
 
-  // 1. Find all users referred by the current partner (direct sign-ups)
   const referredUsersQuery = useMemo(() => {
     if (!user || !firestore || !user.referralCode) return null;
     return query(collection(firestore, 'users'), where('referredBy', '==', user.referralCode));
   }, [user, firestore]);
   
-  // 2. Find all leads submitted by the partner (manual submission)
   const submittedLeadsQuery = useMemo(() => {
     if (!user || !firestore) return null;
     return query(collection(firestore, 'contact_leads'), where('referredByPartnerId', '==', user.uid));
@@ -49,22 +48,20 @@ export default function ReferralDashboardPage() {
   const { data: referredUsers, loading: referralsLoading } = useCollection<UserProfile>(referredUsersQuery);
   const { data: submittedLeads, loading: leadsLoading } = useCollection<ContactLead>(submittedLeadsQuery);
 
-  // 3. Get the IDs of the referred users
   const referredUserIds = useMemo(() => {
     if (!referredUsers || referredUsers.length === 0) return [];
     return referredUsers.map(u => u.uid);
   }, [referredUsers]);
 
-  // 4. Find all projects created by those referred users to calculate conversions
-  const projectsOfReferredUsersQuery = useMemo(() => {
-    if (!firestore || referredUserIds.length === 0) return null;
-    // Firestore 'in' query is limited to 30 items. For more, you'd need a different data model.
-    return query(collection(firestore, 'projects'), where('userId', 'in', referredUserIds));
-  }, [firestore, referredUserIds]);
+  // Fetch ALL projects, then filter client-side. This is less efficient but avoids complex index requirements.
+  const allProjectsQuery = useMemo(() => {
+    if (!firestore) return null;
+    return query(collection(firestore, 'projects'));
+  }, [firestore]);
 
-  const { data: projects, loading: projectsLoading } = useCollection<Project>(projectsOfReferredUsersQuery);
 
-  // 5. Get all payouts for the current partner
+  const { data: allProjects, loading: projectsLoading } = useCollection<Project>(allProjectsQuery);
+
   const payoutsQuery = useMemo(() => {
     if (!user || !firestore) return null;
     return query(collection(firestore, 'payouts'), where('userId', '==', user.uid));
@@ -81,13 +78,28 @@ export default function ReferralDashboardPage() {
 
   // Calculate statistics based on fetched data
   const stats = useMemo(() => {
+    if (!user) return { totalReferred: 0, convertedClients: 0, availableCommission: 0, totalCommissionEarned: 0 };
+    
     // Total referred is sign-ups + manual submissions
     const totalReferred = (referredUsers?.length ?? 0) + (submittedLeads?.length ?? 0);
     
+    // Filter projects that belong to the partner
+    const partnerProjects = allProjects?.filter(p => 
+      (referredUserIds.includes(p.userId)) || // Project by a user who signed up with the code
+      (p.referredByPartnerId === user.uid)     // Project from a lead converted by sales
+    ) ?? [];
+    
     // A client is converted if they have a project that is approved, in-progress, or completed.
-    const commissionableProjects = projects?.filter(p => ['approved', 'in-progress', 'completed'].includes(p.status || ''));
-    const convertedUserIds = new Set(commissionableProjects?.map(p => p.userId));
-    const convertedClients = convertedUserIds.size;
+    const commissionableProjects = partnerProjects.filter(p => ['approved', 'in-progress', 'completed'].includes(p.status || ''));
+    
+    // Count unique clients for "Converted Clients" stat
+    const convertedClientIds = new Set<string>();
+    commissionableProjects.forEach(p => {
+        // We use userId for registered users, and a composite for unregistered to count them
+        const clientId = p.userId.startsWith('unregistered_') ? p.id : p.userId;
+        if(clientId) convertedClientIds.add(clientId);
+    });
+    const convertedClients = convertedClientIds.size;
     
     const totalCommissionEarned = (commissionableProjects?.length ?? 0) * COMMISSION_PER_PROJECT;
 
@@ -101,7 +113,7 @@ export default function ReferralDashboardPage() {
       availableCommission,
       totalCommissionEarned,
     };
-  }, [referredUsers, submittedLeads, projects, payouts]);
+  }, [user, referredUsers, submittedLeads, allProjects, payouts, referredUserIds]);
 
   const handleCopyLink = () => {
     if (!referralLink) return;
