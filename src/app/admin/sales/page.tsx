@@ -14,6 +14,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
+  TableFooter,
 } from '@/components/ui/table';
 
 interface SalesPerformanceData {
@@ -63,6 +64,10 @@ export default function SalesPage() {
 
   }, [salesTeam, projects]);
 
+  const grandTotal = useMemo(() => {
+    return performanceData.reduce((acc, current) => acc + current.totalDealValue, 0);
+  }, [performanceData]);
+
   return (
     <div className="p-4 sm:p-6 lg:p-8">
       <div className="mb-8">
@@ -102,6 +107,14 @@ export default function SalesPage() {
                   </TableRow>
                 ))}
               </TableBody>
+               <TableFooter>
+                <TableRow>
+                  <TableCell colSpan={2} className="font-bold text-lg">Grand Total</TableCell>
+                  <TableCell className="text-right font-bold text-lg">
+                    {grandTotal.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}
+                  </TableCell>
+                </TableRow>
+              </TableFooter>
             </Table>
           ) : (
             <div className="text-center p-12 text-muted-foreground">

@@ -7,9 +7,7 @@ import {
   Users,
   FolderKanban,
   DollarSign,
-  ClipboardCheck,
-  CreditCard,
-  ClipboardList,
+  CheckCircle,
   ArrowRight,
   LoaderCircle,
 } from 'lucide-react';
@@ -26,7 +24,7 @@ import {
 import { collection, query } from 'firebase/firestore';
 
 import { useCollection, useFirestore } from '@/firebase';
-import type { UserProfile, Project, BookSale, Payout, Invoice, Task } from '@/lib/types';
+import type { UserProfile, Project, ContactLead } from '@/lib/types';
 import {
   Card,
   CardContent,
@@ -84,32 +82,27 @@ export default function AdminDashboardPage() {
 
   const usersQuery = useMemo(() => firestore ? query(collection(firestore, 'users')) : null, [firestore]);
   const projectsQuery = useMemo(() => firestore ? query(collection(firestore, 'projects')) : null, [firestore]);
-  const salesQuery = useMemo(() => firestore ? query(collection(firestore, 'book_sales')) : null, [firestore]);
-  const payoutsQuery = useMemo(() => firestore ? query(collection(firestore, 'payouts')) : null, [firestore]);
-  const invoicesQuery = useMemo(() => firestore ? query(collection(firestore, 'invoices')) : null, [firestore]);
-  const tasksQuery = useMemo(() => firestore ? query(collection(firestore, 'tasks')) : null, [firestore]);
+  const contactLeadsQuery = useMemo(() => firestore ? query(collection(firestore, 'contact_leads')) : null, [firestore]);
 
   const { data: users, loading: loadingUsers } = useCollection<UserProfile>(usersQuery);
   const { data: projects, loading: loadingProjects } = useCollection<Project>(projectsQuery);
-  const { data: sales, loading: loadingSales } = useCollection<BookSale>(salesQuery);
-  const { data: payouts, loading: loadingPayouts } = useCollection<Payout>(payoutsQuery);
-  const { data: invoices, loading: loadingInvoices } = useCollection<Invoice>(invoicesQuery);
-  const { data: tasks, loading: loadingTasks } = useCollection<Task>(tasksQuery);
+  const { data: contactLeads, loading: loadingContactLeads } = useCollection<ContactLead>(contactLeadsQuery);
 
   const loading =
     loadingUsers ||
     loadingProjects ||
-    loadingSales ||
-    loadingPayouts ||
-    loadingInvoices ||
-    loadingTasks;
+    loadingContactLeads;
 
-  const totalUsers = users?.length ?? 0;
-  const totalProjects = projects?.length ?? 0;
-  const totalSales = sales?.length ?? 0;
-  const pendingPayouts = payouts?.filter((p) => p.status === 'pending').length ?? 0;
-  const totalInvoices = invoices?.length ?? 0;
-  const totalTasks = tasks?.length ?? 0;
+  const stats = useMemo(() => {
+    const totalUsers = users?.length ?? 0;
+    const totalLeads = (projects?.length ?? 0) + (contactLeads?.length ?? 0);
+    const approvedLeads = projects?.filter(p => ['approved', 'in-progress', 'completed'].includes(p.status || '')).length ?? 0;
+    const totalSales = projects?.filter(p => ['approved', 'in-progress', 'completed'].includes(p.status || ''))
+                                .reduce((sum, p) => sum + (p.dealAmount || 0), 0) ?? 0;
+
+    return { totalUsers, totalLeads, approvedLeads, totalSales };
+  }, [users, projects, contactLeads]);
+
 
   const projectChartData = useMemo(() => {
     if (!projects) return [];
@@ -157,48 +150,34 @@ export default function AdminDashboardPage() {
         </div>
       ) : (
         <>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <StatCard
               title="Total Users"
-              value={totalUsers}
+              value={stats.totalUsers}
               icon={<Users className="h-4 w-4 text-muted-foreground" />}
               link="/admin/users"
               linkText="Manage Users"
             />
             <StatCard
-              title="Total Projects"
-              value={totalProjects}
+              title="Total Leads"
+              value={stats.totalLeads}
               icon={<FolderKanban className="h-4 w-4 text-muted-foreground" />}
-              link="/admin/projects"
-              linkText="View Projects"
+              link="/admin/leads"
+              linkText="View Leads"
+            />
+             <StatCard
+              title="Approved Leads"
+              value={stats.approvedLeads}
+              icon={<CheckCircle className="h-4 w-4 text-muted-foreground" />}
+              link="/admin/approved-leads"
+              linkText="View Approved"
             />
             <StatCard
               title="Total Sales"
-              value={totalSales}
+              value={stats.totalSales.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}
               icon={<DollarSign className="h-4 w-4 text-muted-foreground" />}
               link="/admin/sales"
               linkText="View Sales"
-            />
-            <StatCard
-              title="Pending Payouts"
-              value={pendingPayouts}
-              icon={<ClipboardCheck className="h-4 w-4 text-muted-foreground" />}
-              link="/admin/payouts"
-              linkText="Review Payouts"
-            />
-            <StatCard
-              title="Total Invoices"
-              value={totalInvoices}
-              icon={<CreditCard className="h-4 w-4 text-muted-foreground" />}
-              link="/admin/invoices"
-              linkText="Manage Invoices"
-            />
-             <StatCard
-              title="Active Tasks"
-              value={totalTasks}
-              icon={<ClipboardList className="h-4 w-4 text-muted-foreground" />}
-              link="/admin/projects" // Assuming tasks are managed under projects
-              linkText="View Tasks"
             />
           </div>
 
