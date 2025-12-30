@@ -2,8 +2,8 @@
 'use client';
 
 import { useMemo } from 'react';
-import { collection, query, orderBy, where } from 'firebase/firestore';
-import { useCollection, useFirestore, useUser } from '@/firebase';
+import { collection, query, orderBy } from 'firebase/firestore';
+import { useCollection, useFirestore } from '@/firebase';
 import type { ContactLead, UserProfile } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoaderCircle, Users } from 'lucide-react';
@@ -23,13 +23,11 @@ import { Button } from '@/components/ui/button';
 export default function SalesPartnerLeadsPage() {
   const firestore = useFirestore();
 
-  // Simplified query to avoid composite index. Fetches all partner leads.
+  // Fetch all leads sorted by date. Client-side will filter this.
   const leadsQuery = useMemo(() => {
     if (!firestore) return null;
     return query(
         collection(firestore, 'contact_leads'), 
-        where('referredByPartnerId', '!=', null),
-        orderBy('referredByPartnerId'), // First order by the inequality field
         orderBy('createdAt', 'desc')
     );
   }, [firestore]);
@@ -39,16 +37,16 @@ export default function SalesPartnerLeadsPage() {
     return query(collection(firestore, 'users'));
   }, [firestore]);
 
-  const { data: allPartnerLeads, loading: loadingLeads } = useCollection<ContactLead>(leadsQuery);
+  const { data: allLeads, loading: loadingLeads } = useCollection<ContactLead>(leadsQuery);
   const { data: users, loading: loadingUsers } = useCollection<UserProfile>(usersQuery);
 
   const loading = loadingLeads || loadingUsers;
 
-  // Perform the filtering for unassigned leads on the client
+  // Filter for unassigned partner leads on the client
   const partnerLeads = useMemo(() => {
-    if (!allPartnerLeads) return [];
-    return allPartnerLeads.filter(lead => !lead.assignedSalesId);
-  }, [allPartnerLeads]);
+    if (!allLeads) return [];
+    return allLeads.filter(lead => lead.referredByPartnerId && !lead.assignedSalesId);
+  }, [allLeads]);
 
 
   const usersMap = useMemo(() => {

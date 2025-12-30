@@ -2,7 +2,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { collection, query, orderBy, where } from 'firebase/firestore';
+import { collection, query, orderBy } from 'firebase/firestore';
 import { useCollection, useFirestore } from '@/firebase';
 import type { ContactLead, UserProfile } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,13 +21,11 @@ import { format } from 'date-fns';
 export default function AdminPartnerLeadsPage() {
   const firestore = useFirestore();
 
-  // Fetch all leads that have a partner ID, sorted by date.
+  // Fetch all contact leads, sorted by date.
   const leadsQuery = useMemo(() => {
     if (!firestore) return null;
     return query(
         collection(firestore, 'contact_leads'), 
-        where('referredByPartnerId', '!=', null),
-        orderBy('referredByPartnerId'),
         orderBy('createdAt', 'desc')
     );
   }, [firestore]);
@@ -37,10 +35,16 @@ export default function AdminPartnerLeadsPage() {
     return query(collection(firestore, 'users'));
   }, [firestore]);
 
-  const { data: partnerLeads, loading: loadingLeads } = useCollection<ContactLead>(leadsQuery);
+  const { data: allLeads, loading: loadingLeads } = useCollection<ContactLead>(leadsQuery);
   const { data: users, loading: loadingUsers } = useCollection<UserProfile>(usersQuery);
 
   const loading = loadingLeads || loadingUsers;
+
+  // Filter for partner leads on the client side
+  const partnerLeads = useMemo(() => {
+      if (!allLeads) return [];
+      return allLeads.filter(lead => !!lead.referredByPartnerId);
+  }, [allLeads]);
 
   const usersMap = useMemo(() => {
     if (!users) return new Map();
