@@ -30,39 +30,30 @@ export function MissionVision() {
         {items.map((item, index) => (
           <AnimatedWrapper 
             key={item.title} 
-            className={cn(
-                'transition-all duration-1000 transform',
-                item.alignment === 'left' ? 'translate-x-[-100%]' : 'translate-x-[100%]',
-                'is-in-view:translate-x-0'
-            )}
-            delay={100}
+            delay={index * 150}
+            className={cn("flex items-center", item.alignment === 'right' && 'justify-end')}
           >
-            <div className={cn(
-                "flex items-center",
-                item.alignment === 'right' && 'justify-end'
-            )}>
-                <Card className="group relative w-full md:w-3/4 lg:w-2/3 bg-gradient-to-br from-primary via-primary to-purple-700 text-primary-foreground shadow-lift rounded-2xl border-purple-500/20 overflow-hidden transition-all duration-500 hover:scale-[1.02]">
-                    <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors duration-500"></div>
-                     <div className="relative flex flex-col md:flex-row items-center p-8 gap-8">
-                        <AnimatedWrapper delay={700} className="transition-all duration-700 opacity-0 is-in-view:opacity-100">
-                             <div className="flex-shrink-0 bg-white/10 backdrop-blur-sm p-5 rounded-full border border-white/20">
-                                {item.icon}
-                            </div>
-                        </AnimatedWrapper>
-                        
-                        <div className="text-center md:text-left">
-                            <AnimatedWrapper delay={800} className="transition-all duration-700 opacity-0 is-in-view:opacity-100">
-                                <CardTitle className="text-3xl font-headline mb-3 text-white">{item.title}</CardTitle>
-                            </AnimatedWrapper>
-                            <AnimatedWrapper delay={900} className="transition-all duration-700 opacity-0 is-in-view:opacity-100">
-                                <CardContent className="p-0 text-lg text-white/80 leading-relaxed">
-                                     <p dangerouslySetInnerHTML={{ __html: item.description }}></p>
-                                </CardContent>
-                            </AnimatedWrapper>
+            <Card className="group relative w-full md:w-3/4 lg:w-2/3 bg-gradient-to-br from-primary via-primary to-purple-700 text-primary-foreground shadow-lift rounded-2xl border-purple-500/20 overflow-hidden transition-all duration-500 hover:scale-[1.02]">
+                <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors duration-500"></div>
+                 <div className="relative flex flex-col md:flex-row items-center p-8 gap-8">
+                    <AnimatedWrapper delay={400}>
+                         <div className="flex-shrink-0 bg-white/10 backdrop-blur-sm p-5 rounded-full border border-white/20">
+                            {item.icon}
                         </div>
+                    </AnimatedWrapper>
+                    
+                    <div className="text-center md:text-left">
+                        <AnimatedWrapper delay={500}>
+                            <CardTitle className="text-3xl font-headline mb-3 text-white">{item.title}</CardTitle>
+                        </AnimatedWrapper>
+                        <AnimatedWrapper delay={600}>
+                            <CardContent className="p-0 text-lg text-white/80 leading-relaxed">
+                                 <p dangerouslySetInnerHTML={{ __html: item.description }}></p>
+                            </CardContent>
+                        </AnimatedWrapper>
                     </div>
-                </Card>
-            </div>
+                </div>
+            </Card>
           </AnimatedWrapper>
         ))}
       </div>
