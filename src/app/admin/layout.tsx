@@ -20,12 +20,9 @@ import {
   Banknote,
   Paintbrush,
   MessageSquare,
-  UserCheck as UserCheckIcon,
-  CheckCircle,
-  CheckCircle2,
-  Globe,
   Star,
   UserCog,
+  CheckCircle,
 } from 'lucide-react';
 import React from 'react';
 import { useEffect, useMemo } from 'react';
@@ -70,16 +67,7 @@ const adminNavItems = [
   { href: '/admin/dashboard', label: 'Overview', icon: <LayoutGrid /> },
   { href: '/admin/users', label: 'User Management', icon: <Users /> },
   { href: '/admin/team', label: 'Team Management', icon: <Briefcase /> },
-  { 
-    label: 'Leads', 
-    icon: <FolderKanban />,
-    subItems: [
-        { href: '/admin/leads', label: 'All Leads', icon: <Users /> },
-        { href: '/admin/projects', label: 'Client Leads', icon: <FolderKanban /> },
-        { href: '/admin/partner-leads', label: 'Partner Leads', icon: <UserCheckIcon /> },
-        { href: '/admin/website-leads', label: 'Website Leads', icon: <MessageSquare /> },
-    ]
-  },
+  { href: '/admin/leads', label: 'Leads', icon: <FolderKanban /> },
   { href: '/admin/approved-leads', label: 'Approved Leads', icon: <CheckCircle /> },
   { href: '/admin/feedback', label: 'Feedback', icon: <Star /> },
   { href: '/admin/accounts', label: 'Accounts', icon: <Wallet /> },
@@ -87,7 +75,7 @@ const adminNavItems = [
   { href: '/admin/payouts', label: 'Payouts', icon: <ClipboardCheck /> },
   { href: '/admin/invoices', label: 'Invoices', icon: <CreditCard /> },
   { href: '/admin/marketing', label: 'Marketing Kit', icon: <Paintbrush /> },
-  { href: '/', label: 'Back to Site', icon: <Globe /> },
+  { href: '/', label: 'Back to Site', icon: <MessageSquare /> },
 ];
 
 
@@ -105,9 +93,6 @@ function AdminSidebar() {
     return name.split(' ').map((n) => n[0]).join('').toUpperCase();
   };
 
-  const isLeadsActive = ['/admin/leads', '/admin/projects', '/admin/partner-leads', '/admin/website-leads'].some(p => pathname.startsWith(p));
-
-
   return (
     <Sidebar>
       <SidebarHeader>
@@ -116,46 +101,16 @@ function AdminSidebar() {
       <SidebarContent>
         <SidebarMenu>
           {adminNavItems.map((item) => (
-            item.subItems ? (
-                 <Collapsible key={item.label} defaultOpen={item.label === 'Leads' ? isLeadsActive : false}>
-                    <CollapsibleTrigger asChild>
-                         <SidebarMenuButton className="w-full justify-between" isActive={isLeadsActive}>
-                           <div className="flex items-center gap-2">
-                               {item.icon}
-                               <span>{item.label}</span>
-                           </div>
-                           <ChevronDown className="h-4 w-4" />
-                        </SidebarMenuButton>
-                    </CollapsibleTrigger>
-                    <CollapsibleContent>
-                        <SidebarMenuSub>
-                          {item.subItems.map(subItem => (
-                            <SidebarMenuItem key={subItem.label}>
-                                <Link href={subItem.href}>
-                                    <SidebarMenuSubButton asChild isActive={pathname.startsWith(subItem.href)}>
-                                        <span className="flex items-center gap-2">
-                                            {subItem.icon}
-                                            <span>{subItem.label}</span>
-                                        </span>
-                                    </SidebarMenuSubButton>
-                                </Link>
-                            </SidebarMenuItem>
-                          ))}
-                        </SidebarMenuSub>
-                    </CollapsibleContent>
-                </Collapsible>
-            ) : (
-                <SidebarMenuItem key={item.label}>
-                  <Link href={item.href!}>
-                    <SidebarMenuButton isActive={pathname.startsWith(item.href!)}>
-                       <div className="flex items-center gap-2">
-                         {item.icon}
-                         <span>{item.label}</span>
-                       </div>
-                    </SidebarMenuButton>
-                  </Link>
-                </SidebarMenuItem>
-            )
+            <SidebarMenuItem key={item.label}>
+              <Link href={item.href!}>
+                <SidebarMenuButton isActive={pathname.startsWith(item.href!)}>
+                   <div className="flex items-center gap-2">
+                     {item.icon}
+                     <span>{item.label}</span>
+                   </div>
+                </SidebarMenuButton>
+              </Link>
+            </SidebarMenuItem>
           ))}
         </SidebarMenu>
       </SidebarContent>
