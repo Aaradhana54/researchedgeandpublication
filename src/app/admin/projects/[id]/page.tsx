@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -179,13 +180,14 @@ export default function ProjectDetailPage() {
     }
     
     const canShowAdminControls = loggedInUser?.role === 'admin';
-    const canShowDealDetails = loggedInUser?.role === 'admin' || loggedInUser?.role === 'sales-team';
-    const canShowClientDetails = loggedInUser?.role === 'admin' || loggedInUser?.role === 'sales-team';
+    const canShowDealDetails = loggedInUser?.role === 'admin' || loggedInUser?.role === 'sales-team' || loggedInUser?.role === 'sales-manager';
+    const canShowClientDetails = loggedInUser?.role === 'admin' || loggedInUser?.role === 'sales-team' || loggedInUser?.role === 'sales-manager';
 
 
     const getBackLink = () => {
         switch(loggedInUser?.role) {
             case 'admin':
+            case 'sales-manager':
                 return '/admin/projects';
             case 'sales-team':
                 return '/sales/projects';
