@@ -1,14 +1,14 @@
 import type { Metadata } from 'next';
 import { Toaster } from '@/components/ui/toaster';
 import './globals.css';
-import { Inter } from 'next/font/google';
+import { Inter, Playfair_Display } from 'next/font/google';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
 import { FirebaseErrorListener } from '@/components/firebase-error-listener';
 import { UserProvider } from '@/firebase/auth/use-user';
 import { ThemeProvider } from '@/components/theme-provider';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
-
+const playfair = Playfair_Display({ subsets: ['latin'], variable: '--font-playfair' });
 
 export const metadata: Metadata = {
   title: 'Research Edge and Publication',
@@ -21,12 +21,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`!scroll-smooth ${inter.variable}`} suppressHydrationWarning>
+    <html lang="en" className={`!scroll-smooth ${inter.variable} ${playfair.variable}`} suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap"
           rel="stylesheet"
         />
       </head>
