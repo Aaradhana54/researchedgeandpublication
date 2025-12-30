@@ -58,7 +58,6 @@ const salesNavItems = [
     label: 'Leads', 
     icon: <Briefcase />,
     subItems: [
-        { href: '/sales/leads', label: 'Your Assigned Leads', icon: <Users /> },
         { href: '/sales/projects', label: 'Client Leads', icon: <FolderKanban /> },
         { href: '/sales/partner-leads', label: 'Partner Leads', icon: <UserCheckIcon /> },
         { href: '/sales/website-leads', label: 'Website Leads', icon: <MessageSquare /> },
@@ -83,7 +82,7 @@ function SalesSidebar() {
     return name.split(' ').map((n) => n[0]).join('').toUpperCase();
   };
 
-  const isLeadsActive = ['/sales/leads', '/sales/projects', '/sales/partner-leads', '/sales/website-leads'].some(p => pathname.startsWith(p));
+  const isLeadsActive = ['/sales/projects', '/sales/partner-leads', '/sales/website-leads'].some(p => pathname.startsWith(p));
 
 
   return (
