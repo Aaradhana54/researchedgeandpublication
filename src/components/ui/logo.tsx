@@ -9,28 +9,16 @@ const CustomLogoIcon = ({ className }: { className?: string }) => (
     fill="none"
     xmlns="http://www.w3.org/2000/svg"
     stroke="currentColor"
-    strokeWidth="2.5"
+    strokeWidth="3"
     strokeLinecap="round"
     strokeLinejoin="round"
   >
-    {/* R Bowl */}
-    <path d="M29.5 12C35.8513 12 41 17.1487 41 23.5C41 29.8513 35.8513 35 29.5 35" />
-    
-    {/* Vertical Stem */}
-    <path d="M10 12V38" />
-
-    {/* E horizontal bars */}
-    <path d="M10 17.5H29.5" />
-    <path d="M10 23.5H29.5" />
-    <path d="M10 29.5H29.5" />
-
-    {/* Bottom Prongs */}
-    <path d="M10 38H41" />
-    <path d="M15 38V42" />
-    <path d="M20.25 38V42" />
-    <path d="M25.5 38V42" />
-    <path d="M30.75 38V42" />
-    <path d="M36 38V42" />
+    {/* Open Book Shape */}
+    <path d="M10 38V12C10 9.23858 12.2386 7 15 7H35C37.7614 7 40 9.23858 40 12V38" />
+    <path d="M10 38H40" />
+    {/* Arrow indicating 'Edge' and 'Publication' */}
+    <path d="M25 28L35 18" />
+    <path d="M25 18H35V28" />
   </svg>
 );
 
