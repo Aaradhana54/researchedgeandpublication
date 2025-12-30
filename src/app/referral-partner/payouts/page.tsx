@@ -6,7 +6,7 @@ import { useUser } from '@/firebase/auth/use-user';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoaderCircle, Banknote, Receipt } from 'lucide-react';
 import { useCollection, useFirestore } from '@/firebase';
-import { collection, query, where } from 'firebase/firestore';
+import { collection, query, where, orderBy } from 'firebase/firestore';
 import type { Payout, Project, UserProfile } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { RequestPayoutDialog } from '@/components/referral-partner/request-payout-dialog';
