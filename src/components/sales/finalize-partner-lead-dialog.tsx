@@ -112,13 +112,15 @@ export function FinalizePartnerLeadDialog({ children, lead }: { children: React.
         finalDeadline: Timestamp.fromDate(new Date(data.finalDeadline)),
         finalizedAt: serverTimestamp(),
         finalizedBy: salesUser.uid,
+        assignedSalesId: salesUser.uid, // Assign to the finalizing sales person
         paymentScreenshotUrl: downloadUrl,
       });
 
-      // Step 3: Update the original lead's status to 'converted'
+      // Step 3: Update the original lead's status to 'converted' and assign it
       const leadDocRef = doc(firestore, 'contact_leads', lead.id);
       await updateDoc(leadDocRef, {
         status: 'converted',
+        assignedSalesId: salesUser.uid,
       });
       
       // Step 4: Create a notification for the (future) user
@@ -153,7 +155,7 @@ export function FinalizePartnerLeadDialog({ children, lead }: { children: React.
         <DialogTrigger asChild>{children}</DialogTrigger>
         <DialogContent className="sm:max-w-lg">
             <DialogHeader>
-                <DialogTitle>Finalize Partner Lead: {lead.name}</DialogTitle>
+                <DialogTitle>Finalize Lead: {lead.name}</DialogTitle>
                 <DialogDescription>Create a project and confirm the deal details to approve this lead.</DialogDescription>
             </DialogHeader>
             <div className="max-h-[70vh] overflow-y-auto pr-4">

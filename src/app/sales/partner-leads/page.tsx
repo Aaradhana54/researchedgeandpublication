@@ -22,34 +22,28 @@ import { Button } from '@/components/ui/button';
 
 export default function SalesPartnerLeadsPage() {
   const firestore = useFirestore();
-  const { user } = useUser();
 
   const leadsQuery = useMemo(() => {
-    if (!firestore || !user) return null;
-    // Remove orderBy to avoid composite index, will sort on client
+    if (!firestore) return null;
+    // Show all unassigned leads with a partner ID
     return query(
         collection(firestore, 'contact_leads'), 
-        where('assignedSalesId', '==', user.uid)
+        where('referredByPartnerId', '!=', null),
+        where('assignedSalesId', '==', null),
+        orderBy('referredByPartnerId'),
+        orderBy('createdAt', 'desc')
     );
-  }, [firestore, user]);
+  }, [firestore]);
   
   const usersQuery = useMemo(() => {
     if (!firestore) return null;
     return query(collection(firestore, 'users'));
   }, [firestore]);
 
-  const { data: allLeadsData, loading: loadingLeads } = useCollection<ContactLead>(leadsQuery);
+  const { data: partnerLeads, loading: loadingLeads } = useCollection<ContactLead>(leadsQuery);
   const { data: users, loading: loadingUsers } = useCollection<UserProfile>(usersQuery);
 
   const loading = loadingLeads || loadingUsers;
-
-  // Client-side filtering and sorting
-  const partnerLeads = useMemo(() => {
-    if (!allLeadsData) return [];
-    return allLeadsData
-      .filter(lead => lead.referredByPartnerId)
-      .sort((a, b) => b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime());
-  }, [allLeadsData]);
 
   const usersMap = useMemo(() => {
     if (!users) return new Map();
@@ -60,14 +54,14 @@ export default function SalesPartnerLeadsPage() {
   return (
     <div className="p-4 sm:p-6 lg:p-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight">Partner Leads</h1>
-        <p className="text-muted-foreground">A list of all leads submitted by referral partners and assigned to you.</p>
+        <h1 className="text-3xl font-bold tracking-tight">Unassigned Partner Leads</h1>
+        <p className="text-muted-foreground">A pool of all new leads submitted by referral partners.</p>
       </div>
       <Card>
         <CardHeader>
-          <CardTitle>Your Assigned Partner Leads</CardTitle>
+          <CardTitle>Unassigned Partner Leads</CardTitle>
           <CardDescription>
-            These leads were submitted by referral partners and assigned to you.
+            These leads were submitted by referral partners and are waiting to be finalized.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -126,8 +120,8 @@ export default function SalesPartnerLeadsPage() {
           ) : (
             <div className="text-center p-12 text-muted-foreground">
                 <Users className="mx-auto w-12 h-12 mb-4" />
-                <h3 className="text-lg font-semibold">No Partner Leads Found</h3>
-                <p>You have no partner leads assigned to you at the moment.</p>
+                <h3 className="text-lg font-semibold">No Unassigned Partner Leads</h3>
+                <p>There are no new partner leads waiting for finalization.</p>
             </div>
           )}
         </CardContent>

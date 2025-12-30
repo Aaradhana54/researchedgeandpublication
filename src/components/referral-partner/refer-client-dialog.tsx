@@ -23,7 +23,7 @@ import { LoaderCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '../ui/form';
 import { useFirestore, useUser } from '@/firebase';
-import { addDoc, collection, serverTimestamp, getDocs, query, where, writeBatch, doc, runTransaction } from 'firebase/firestore';
+import { addDoc, collection, serverTimestamp, getDocs, query, where, writeBatch, doc } from 'firebase/firestore';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import type { UserProfile } from '@/lib/types';
 
@@ -48,39 +48,13 @@ const ReferClientSchema = z.object({
 type ReferClientForm = z.infer<typeof ReferClientSchema>;
 
 
-async function assignLeadToSales(firestore: any): Promise<string | null> {
-    const salesTeamQuery = query(collection(firestore, 'users'), where('role', '==', 'sales-team'));
-    const salesTeamSnapshot = await getDocs(salesTeamQuery);
-    const salesTeam = salesTeamSnapshot.docs.map(doc => doc.id);
-
-    if (salesTeam.length === 0) {
-        return null;
-    }
-    
-    const metadataRef = doc(firestore, 'metadata', 'leadAssignment');
-    let nextIndex = 0;
-
-    await runTransaction(firestore, async (transaction) => {
-        const metadataDoc = await transaction.get(metadataRef);
-        if (!metadataDoc.exists()) {
-            nextIndex = 0;
-        } else {
-            const currentIndex = metadataDoc.data().salesLeadIndex || 0;
-            nextIndex = (currentIndex + 1) % salesTeam.length;
-        }
-        transaction.set(metadataRef, { salesLeadIndex: nextIndex }, { merge: true });
-    });
-    
-    return salesTeam[nextIndex];
-}
-
-async function notifyAdminsAndSales(firestore: any, message: string, assignedSalesId: string | null = null) {
+async function notifyAdminsAndSales(firestore: any, message: string) {
     try {
         const usersRef = collection(firestore, 'users');
-        const q = query(usersRef, where('role', '==', 'admin'));
+        const q = query(usersRef, where('role', 'in', ['admin', 'sales-team']));
         const querySnapshot = await getDocs(q);
 
-        if (querySnapshot.empty && !assignedSalesId) return;
+        if (querySnapshot.empty) return;
 
         const batch = writeBatch(firestore);
         const notificationsRef = collection(firestore, 'notifications');
@@ -95,17 +69,6 @@ async function notifyAdminsAndSales(firestore: any, message: string, assignedSal
                 createdAt: serverTimestamp(),
             });
         });
-
-        if (assignedSalesId) {
-            const newNotifRef = doc(notificationsRef);
-             batch.set(newNotifRef, {
-                userId: assignedSalesId,
-                message: `New partner lead assigned to you: "${message}"`,
-                isRead: false,
-                createdAt: serverTimestamp(),
-            });
-        }
-
 
         await batch.commit();
 
@@ -143,19 +106,17 @@ export function ReferClientDialog({ children }: { children: React.ReactNode }) {
     setError(null);
 
     try {
-      const assignedSalesId = await assignLeadToSales(firestore);
-
       const leadsCollection = collection(firestore, 'contact_leads');
       await addDoc(leadsCollection, {
         ...data,
         referredByPartnerId: partnerUser.uid,
         status: 'new',
         createdAt: serverTimestamp(),
-        assignedSalesId: assignedSalesId,
+        assignedSalesId: null, // Lead is unassigned
       });
 
       // Notify staff
-      await notifyAdminsAndSales(firestore, `New partner lead for "${data.name}" submitted by ${partnerUser.name}.`, assignedSalesId);
+      await notifyAdminsAndSales(firestore, `New unassigned partner lead for "${data.name}" submitted by ${partnerUser.name}.`);
 
       toast({
         title: 'Lead Submitted!',

@@ -2,8 +2,8 @@
 'use client';
 
 import { useMemo } from 'react';
-import { collection, query, orderBy, where } from 'firebase/firestore';
-import { useCollection, useFirestore, useUser } from '@/firebase';
+import { collection, query, orderBy, where, limit } from 'firebase/firestore';
+import { useCollection, useFirestore } from '@/firebase';
 import type { ContactLead } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoaderCircle, MessageSquare } from 'lucide-react';
@@ -22,39 +22,33 @@ import { FinalizePartnerLeadDialog } from '@/components/sales/finalize-partner-l
 
 export default function SalesWebsiteLeadsPage() {
   const firestore = useFirestore();
-  const { user } = useUser();
 
   const leadsQuery = useMemo(() => {
-    if (!firestore || !user) return null;
-    // Remove orderBy to avoid composite index, will sort on client
+    if (!firestore) return null;
+    // Query for all unassigned website leads
+    // Website leads are identified by referredByPartnerId being null
     return query(
         collection(firestore, 'contact_leads'), 
-        where('assignedSalesId', '==', user.uid)
+        where('referredByPartnerId', '==', null),
+        where('assignedSalesId', '==', null),
+        orderBy('createdAt', 'desc')
     );
-  }, [firestore, user]);
+  }, [firestore]);
   
 
-  const { data: allLeadsData, loading: loadingLeads } = useCollection<ContactLead>(leadsQuery);
-
-  // Client-side filtering and sorting
-  const websiteLeads = useMemo(() => {
-    if (!allLeadsData) return [];
-    return allLeadsData
-        .filter(lead => !lead.referredByPartnerId)
-        .sort((a, b) => b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime());
-  }, [allLeadsData]);
+  const { data: websiteLeads, loading: loadingLeads } = useCollection<ContactLead>(leadsQuery);
 
   return (
     <div className="p-4 sm:p-6 lg:p-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight">Website Leads</h1>
-        <p className="text-muted-foreground">A list of leads from the contact form assigned to you.</p>
+        <h1 className="text-3xl font-bold tracking-tight">Unassigned Website Leads</h1>
+        <p className="text-muted-foreground">A pool of all new leads from the public contact form.</p>
       </div>
       <Card>
         <CardHeader>
-          <CardTitle>Your Assigned Website Leads</CardTitle>
+          <CardTitle>Unassigned Website Leads</CardTitle>
           <CardDescription>
-            These leads were submitted via the contact form on your website and assigned to you.
+            These leads were submitted via the contact form and are waiting to be finalized.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -112,8 +106,8 @@ export default function SalesWebsiteLeadsPage() {
           ) : (
             <div className="text-center p-12 text-muted-foreground">
                 <MessageSquare className="mx-auto w-12 h-12 mb-4" />
-                <h3 className="text-lg font-semibold">No Website Leads Found</h3>
-                <p>You have no website leads assigned to you at this time.</p>
+                <h3 className="text-lg font-semibold">No Unassigned Website Leads</h3>
+                <p>There are no new website leads at this time.</p>
             </div>
           )}
         </CardContent>

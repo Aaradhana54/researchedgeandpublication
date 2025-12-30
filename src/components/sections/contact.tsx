@@ -10,7 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { useFirestore } from '@/firebase';
-import { addDoc, collection, serverTimestamp, getDocs, query, where, writeBatch, doc, runTransaction } from 'firebase/firestore';
+import { addDoc, collection, serverTimestamp, getDocs, query, where, writeBatch, doc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { LoaderCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
@@ -27,41 +27,13 @@ const services = [
 ];
 
 
-async function assignLeadToSales(firestore: any): Promise<string | null> {
-    const salesTeamQuery = query(collection(firestore, 'users'), where('role', '==', 'sales-team'));
-    const salesTeamSnapshot = await getDocs(salesTeamQuery);
-    const salesTeam = salesTeamSnapshot.docs.map(doc => doc.id);
-
-    if (salesTeam.length === 0) {
-        return null; // No one to assign to
-    }
-    
-    // Use a transaction to get the current index and increment it atomically
-    const metadataRef = doc(firestore, 'metadata', 'leadAssignment');
-    let nextIndex = 0;
-
-    await runTransaction(firestore, async (transaction) => {
-        const metadataDoc = await transaction.get(metadataRef);
-        if (!metadataDoc.exists()) {
-            nextIndex = 0;
-        } else {
-            const currentIndex = metadataDoc.data().salesLeadIndex || 0;
-            nextIndex = (currentIndex + 1) % salesTeam.length;
-        }
-        transaction.set(metadataRef, { salesLeadIndex: nextIndex }, { merge: true });
-    });
-    
-    return salesTeam[nextIndex];
-}
-
-
-async function notifyAdminsAndSales(firestore: any, message: string, assignedSalesId: string | null = null) {
+async function notifyAdminsAndSales(firestore: any, message: string) {
     try {
         const usersRef = collection(firestore, 'users');
-        const q = query(usersRef, where('role', '==', 'admin'));
+        const q = query(usersRef, where('role', 'in', ['admin', 'sales-team']));
         const querySnapshot = await getDocs(q);
 
-        if (querySnapshot.empty && !assignedSalesId) return;
+        if (querySnapshot.empty) return;
 
         const batch = writeBatch(firestore);
         const notificationsRef = collection(firestore, 'notifications');
@@ -76,16 +48,6 @@ async function notifyAdminsAndSales(firestore: any, message: string, assignedSal
                 createdAt: serverTimestamp(),
             });
         });
-
-        if (assignedSalesId) {
-             const newNotifRef = doc(notificationsRef);
-             batch.set(newNotifRef, {
-                userId: assignedSalesId,
-                message: `New website lead assigned to you: "${message}"`,
-                isRead: false,
-                createdAt: serverTimestamp(),
-            });
-        }
 
         await batch.commit();
 
@@ -114,8 +76,7 @@ export function Contact() {
 
     try {
       const formData = new FormData(event.currentTarget);
-      const assignedSalesId = await assignLeadToSales(firestore);
-
+      
       const data = {
         name: formData.get('name') as string,
         email: formData.get('email') as string,
@@ -124,7 +85,7 @@ export function Contact() {
         message: formData.get('message') as string,
         status: 'new',
         createdAt: serverTimestamp(),
-        assignedSalesId: assignedSalesId,
+        assignedSalesId: null, // Lead is unassigned initially
       };
 
       if (!data.name || !data.email || !data.phone) {
@@ -135,7 +96,7 @@ export function Contact() {
       await addDoc(leadsCollection, data);
       
       // Notify staff
-      await notifyAdminsAndSales(firestore, `New website lead from: ${data.name}.`, assignedSalesId);
+      await notifyAdminsAndSales(firestore, `New unassigned website lead from: ${data.name}.`);
 
       toast({
         title: 'Message Sent!',
