@@ -47,9 +47,9 @@
     },
     {
       "id": "hero-2",
-      "description": "An open book with delicate flowers, creating a soft and scholarly aesthetic.",
-      "imageUrl": "https://images.unsplash.com/photo-1495446815901-a7297e633e8d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wzNzEyODZ8MHwxfHNlYXJjaHwzfHxhZXN0aGV0aWMlMjBib29rfGVufDB8fHx8fDE3MTgxODU0MTN8MA&ixlib=rb-4.0.3&q=80&w=1080",
-      "imageHint": "aesthetic book"
+      "description": "A stylish interior with modern architecture, featuring curved lines and a soft, minimalist aesthetic.",
+      "imageUrl": "https://images.unsplash.com/photo-1617300350722-12349942a3a6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wzNzEyODZ8MHwxfHNlYXJjaHw1fHxtaW5pbWFsJTIwYXJjaGl0ZWN0dXJlJTIwcHVycGxlfGVufDB8fHx8fDE3MTgzMjk0Njh8MA&ixlib=rb-4.0.3&q=80&w=1080",
+      "imageHint": "modern architecture"
     },
     {
       "id": "hero-3",
@@ -59,9 +59,9 @@
     },
     {
       "id": "hero-4",
-      "description": "A modern library with a clean and aesthetic design.",
-      "imageUrl": "https://images.unsplash.com/photo-1521587760476-6c12a4b040da?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wzNzEyODZ8MHwxfHNlYXJjaHw3fHxpYnJhcnklMjBhZXN0aGV0aWN8ZW58MHx8fHx8MTcxODI1ODUzN3ww&ixlib=rb-4.0.3&q=80&w=1080",
-      "imageHint": "modern library"
+      "description": "A person working on a laptop in a calm, aesthetically pleasing environment.",
+      "imageUrl": "https://images.unsplash.com/photo-1515378791036-0648a3ef77b2?ixid=M3wzNzEyODZ8MHwxfHNlYXJjaHw3fHxsYXB0b3AlMjBhZXN0aGV0aWN8ZW58MHx8fHx8MTcxODMyOTU3Mnww&ixlib=rb-4.0.3&q=80&w=1080&fit=max",
+      "imageHint": "creative workspace"
     },
     {
       "id": "services-image",
