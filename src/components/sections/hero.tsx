@@ -24,6 +24,9 @@ export function Hero() {
     >
       <Carousel
         plugins={[plugin.current]}
+        opts={{
+          loop: true,
+        }}
         className="w-full h-full"
         onMouseEnter={plugin.current.stop}
         onMouseLeave={plugin.current.reset}
