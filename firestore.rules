@@ -168,12 +168,8 @@ service cloud.firestore {
 
     match /tasks/{taskId} {
       // Admins can do anything.
-      allow create: if isAdmin();
-      // Writers can list their own tasks.
-      allow list: if isAdmin() || isWritingTeam();
-      // Writers can read/update tasks assigned to them.
-      allow read, update: if isAdmin() || (isWritingTeam() && resource.data.assignedTo == request.auth.uid);
-      allow delete: if isAdmin();
+      // Writers can read/update/list tasks assigned to them.
+      allow read, write, create, list, update, delete: if isAdmin() || (isWritingTeam() && resource.data.assignedTo == request.auth.uid);
     }
 
     match /book_sales/{saleId} {
@@ -185,10 +181,9 @@ service cloud.firestore {
     }
 
     match /notifications/{notificationId} {
-       // Any authenticated user can create a notification.
-       allow create: if request.auth != null;
-       // Only the owner or an admin can read, update, or delete.
-       allow read, write, list, update, delete: if isAdmin() || isOwner(resource.data.userId);
+       // Admins can do anything.
+       // The owner can read/update/delete their own notifications.
+       allow read, write, create, list, update, delete: if isAdmin() || isOwner(resource.data.userId);
     }
     
     match /metadata/{docId} {
