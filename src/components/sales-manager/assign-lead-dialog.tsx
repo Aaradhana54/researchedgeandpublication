@@ -18,7 +18,7 @@ import {
 import { Button } from '../ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { LoaderCircle, Users } from 'lucide-react';
-import type { Project, UserProfile } from '@/lib/types';
+import type { Project, UserProfile, ContactLead } from '@/lib/types';
 import { useFirestore } from '@/firebase';
 import { doc, updateDoc } from 'firebase/firestore';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
@@ -34,7 +34,15 @@ const AssignLeadSchema = z.object({
 
 type AssignLeadForm = z.infer<typeof AssignLeadSchema>;
 
-export function AssignLeadDialog({ children, project, salesTeam, onLeadAssigned }: { children: React.ReactNode, project: Project, salesTeam: UserProfile[], onLeadAssigned: () => void }) {
+interface AssignLeadDialogProps {
+    children: React.ReactNode;
+    lead: Project | ContactLead;
+    leadType: 'project' | 'contact';
+    salesTeam: UserProfile[];
+    onLeadAssigned: () => void;
+}
+
+export function AssignLeadDialog({ children, lead, leadType, salesTeam, onLeadAssigned }: AssignLeadDialogProps) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -50,7 +58,7 @@ export function AssignLeadDialog({ children, project, salesTeam, onLeadAssigned 
   });
 
   const onSubmit = async (data: AssignLeadForm) => {
-    if (!project.id || !firestore) {
+    if (!lead.id || !firestore) {
         setError('An unexpected error occurred. Missing required context.');
         return;
     }
@@ -58,25 +66,27 @@ export function AssignLeadDialog({ children, project, salesTeam, onLeadAssigned 
     setError(null);
 
     try {
-        const projectDocRef = doc(firestore, 'projects', project.id!);
+        const collectionName = leadType === 'project' ? 'projects' : 'contact_leads';
+        const leadDocRef = doc(firestore, collectionName, lead.id);
+        
         const updateData = {
             assignedSalesId: data.assignedSalesId,
         };
 
-        await updateDoc(projectDocRef, updateData);
+        await updateDoc(leadDocRef, updateData);
         
         toast({
             title: 'Lead Assigned!',
             description: 'The lead has been assigned to the selected sales team member.',
         });
         
-        onLeadAssigned(); // Callback to refresh parent state
+        onLeadAssigned();
         setOpen(false);
 
     } catch (err: any) {
          if (err.code === 'permission-denied') {
           const permissionError = new FirestorePermissionError({
-            path: `projects/${project.id}`,
+            path: `${leadType}/${lead.id}`,
             operation: 'update',
             requestResourceData: { assignedSalesId: data.assignedSalesId },
           }, err);

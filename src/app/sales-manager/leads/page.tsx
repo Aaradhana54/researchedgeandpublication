@@ -68,7 +68,7 @@ function ClientLeadsTable({ projects, usersMap }: { projects: Project[], usersMa
               return (
                 <TableRow key={project.id}>
                   <TableCell className="font-medium">
-                    <Link href={`/sales-manager/projects/${project.id}`} className="hover:underline text-primary">
+                    <Link href={`/sales-manager/leads/${project.id}?type=project`} className="hover:underline text-primary">
                       {project.title}
                     </Link>
                   </TableCell>
@@ -124,7 +124,11 @@ function PartnerLeadsTable({ leads, usersMap }: { leads: ContactLead[], usersMap
                   const partner = usersMap.get(lead.referredByPartnerId!);
                   return (
                     <TableRow key={lead.id}>
-                      <TableCell className="font-medium">{lead.name}</TableCell>
+                        <TableCell className="font-medium">
+                            <Link href={`/sales-manager/leads/${lead.id}?type=contact`} className="hover:underline text-primary">
+                                {lead.name}
+                            </Link>
+                        </TableCell>
                       <TableCell>
                         <div className="font-medium">{lead.email}</div>
                         <div className="text-sm text-muted-foreground">{lead.phone}</div>
@@ -170,7 +174,11 @@ function WebsiteLeadsTable({ leads }: { leads: ContactLead[]}) {
             <TableBody>
             {leads.map((lead) => (
                 <TableRow key={lead.id}>
-                    <TableCell className="font-medium">{lead.name}</TableCell>
+                    <TableCell className="font-medium">
+                        <Link href={`/sales-manager/leads/${lead.id}?type=contact`} className="hover:underline text-primary">
+                            {lead.name}
+                        </Link>
+                    </TableCell>
                     <TableCell>
                     <div className="font-medium">{lead.email}</div>
                     <div className="text-sm text-muted-foreground">{lead.phone}</div>
