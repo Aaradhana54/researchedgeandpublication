@@ -28,14 +28,14 @@ export function About() {
           </AnimatedWrapper>
           <AnimatedWrapper delay={200}>
             {aboutImage && (
-              <div className="overflow-hidden rounded-lg shadow-lift">
+              <div className="overflow-hidden rounded-lg shadow-lift h-full">
                  <Image
                   src={aboutImage.imageUrl}
                   alt={aboutImage.description}
                   width={600}
-                  height={400}
+                  height={800}
                   data-ai-hint={aboutImage.imageHint}
-                  className="w-full h-auto object-cover transition-transform duration-500 hover:scale-105"
+                  className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
                 />
               </div>
             )}
