@@ -44,7 +44,6 @@ const courseLevels: { label: string, value: CourseLevel }[] = [
 async function notifyAdminsAndSales(firestore: any, message: string) {
     try {
         const usersRef = collection(firestore, 'users');
-        // Notify all sales and admin users about a new unassigned lead.
         const q = query(usersRef, where('role', 'in', ['admin', 'sales-team']));
         const querySnapshot = await getDocs(q);
 
@@ -470,3 +469,5 @@ export default function CreateProjectPage() {
     </div>
   );
 }
+
+    
