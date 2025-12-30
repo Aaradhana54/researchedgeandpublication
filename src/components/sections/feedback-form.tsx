@@ -82,7 +82,7 @@ export function FeedbackForm() {
                 <div className="space-y-6">
                     <h2 className="text-3xl font-bold tracking-tight text-primary sm:text-4xl font-headline">Share Your Experience</h2>
                     <p className="text-lg text-muted-foreground">
-                        Your feedback is invaluable to us. It helps us improve our services and better understand your needs. Please take a moment to share your thoughts, and thank you for being a part of our journey.
+                        Your feedback is invaluable to us. It helps us improve our services and better understand your needs. Please take a moment to share your thoughts, and thank you for being a part of our journey. Whether it's a testimonial about your success, a suggestion for a new service, or an observation about your experience, every piece of feedback helps us grow and refine our support for the academic community. Your insights directly influence our development and allow us to continue providing the highest quality assistance.
                     </p>
                     <div className="space-y-4">
                         <div className="flex items-center gap-4">
