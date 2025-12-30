@@ -2,11 +2,11 @@
 'use client';
 
 import { useMemo } from 'react';
-import { collection, query } from 'firebase/firestore';
+import { collection, query, doc, deleteDoc } from 'firebase/firestore';
 import { useCollection, useFirestore } from '@/firebase';
 import type { UserProfile } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { LoaderCircle, UserPlus } from 'lucide-react';
+import { LoaderCircle, UserPlus, Trash2 } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -20,6 +20,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { CreateUserDialog } from '@/components/admin/create-user-dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { useToast } from '@/hooks/use-toast';
+import { deleteUserAsAdmin } from '@/firebase/auth';
 
 const roleVariantMap: { [key: string]: 'default' | 'secondary' | 'destructive' | 'outline' } = {
   admin: 'destructive',
@@ -32,7 +35,7 @@ const roleVariantMap: { [key: string]: 'default' | 'secondary' | 'destructive' |
   'accounts-team': 'secondary',
 };
 
-function UserTable({ users }: { users: UserProfile[] }) {
+function UserTable({ users, onDelete }: { users: UserProfile[], onDelete: (user: UserProfile) => void }) {
     if (!users || users.length === 0) {
         return <p className="text-center text-muted-foreground py-12">No users found for this role.</p>;
     }
@@ -45,6 +48,7 @@ function UserTable({ users }: { users: UserProfile[] }) {
               <TableHead>Email</TableHead>
               <TableHead>Role</TableHead>
               <TableHead>Joined On</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -60,6 +64,27 @@ function UserTable({ users }: { users: UserProfile[] }) {
                 <TableCell>
                     {user.createdAt ? format(user.createdAt.toDate(), 'PPP') : 'N/A'}
                 </TableCell>
+                 <TableCell className="text-right">
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive hover:bg-destructive/10" disabled={user.role === 'admin'}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Are you sure you want to delete this user?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This action will permanently delete the user account for <strong>{user.name}</strong> ({user.email}). This cannot be undone.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => onDelete(user)} className="bg-destructive hover:bg-destructive/90">Delete User</AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -67,7 +92,7 @@ function UserTable({ users }: { users: UserProfile[] }) {
     );
 }
 
-function ReferralPartnerTable({ partners, allUsers }: { partners: UserProfile[], allUsers: UserProfile[] }) {
+function ReferralPartnerTable({ partners, allUsers, onDelete }: { partners: UserProfile[], allUsers: UserProfile[], onDelete: (user: UserProfile) => void }) {
     if (!partners || partners.length === 0) {
         return <p className="text-center text-muted-foreground py-12">No referral partners found.</p>;
     }
@@ -94,6 +119,7 @@ function ReferralPartnerTable({ partners, allUsers }: { partners: UserProfile[],
               <TableHead>Referral Code</TableHead>
               <TableHead>Referred Clients</TableHead>
               <TableHead>Joined On</TableHead>
+               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -108,6 +134,27 @@ function ReferralPartnerTable({ partners, allUsers }: { partners: UserProfile[],
                 <TableCell>
                     {partner.createdAt ? format(partner.createdAt.toDate(), 'PPP') : 'N/A'}
                 </TableCell>
+                 <TableCell className="text-right">
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive hover:bg-destructive/10">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Are you sure you want to delete this user?</AlertDialogTitle>
+                           <AlertDialogDescription>
+                            This action will permanently delete the user account for <strong>{partner.name}</strong> ({partner.email}). This cannot be undone.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => onDelete(partner)} className="bg-destructive hover:bg-destructive/90">Delete User</AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -118,13 +165,47 @@ function ReferralPartnerTable({ partners, allUsers }: { partners: UserProfile[],
 
 export default function UserManagementPage() {
   const firestore = useFirestore();
+  const { toast } = useToast();
 
   const usersQuery = useMemo(() => {
     if (!firestore) return null;
     return query(collection(firestore, 'users'));
   }, [firestore]);
 
-  const { data: users, loading } = useCollection<UserProfile>(usersQuery);
+  const { data: users, loading, mutate } = useCollection<UserProfile>(usersQuery);
+
+  const handleDeleteUser = async (userToDelete: UserProfile) => {
+    if (!firestore) {
+        toast({ variant: 'destructive', title: 'Error', description: 'Firestore not available.' });
+        return;
+    }
+    
+    if (userToDelete.role === 'admin') {
+      toast({
+        variant: 'destructive',
+        title: 'Action Not Allowed',
+        description: 'Admin users cannot be deleted from the dashboard for security reasons.',
+      });
+      return;
+    }
+
+    try {
+        await deleteUserAsAdmin(userToDelete.uid);
+        toast({
+            title: 'User Deleted',
+            description: `The account for ${userToDelete.name} has been permanently deleted.`
+        });
+        // The useCollection hook should update automatically, but we can force a re-fetch if needed
+        // mutate(); 
+    } catch(error: any) {
+        toast({
+            variant: 'destructive',
+            title: 'Deletion Failed',
+            description: error.message || 'An unexpected error occurred while deleting the user.'
+        });
+    }
+  }
+
 
   const filteredUsers = useMemo(() => {
     if (!users) {
@@ -185,16 +266,16 @@ export default function UserManagementPage() {
                 ) : (
                     <>
                         <TabsContent value="clients">
-                            <UserTable users={filteredUsers.clients} />
+                            <UserTable users={filteredUsers.clients} onDelete={handleDeleteUser} />
                         </TabsContent>
                          <TabsContent value="authors">
-                            <UserTable users={filteredUsers.authors} />
+                            <UserTable users={filteredUsers.authors} onDelete={handleDeleteUser} />
                         </TabsContent>
                          <TabsContent value="partners">
-                            <ReferralPartnerTable partners={filteredUsers.partners} allUsers={users || []} />
+                            <ReferralPartnerTable partners={filteredUsers.partners} allUsers={users || []} onDelete={handleDeleteUser} />
                         </TabsContent>
                          <TabsContent value="admins">
-                            <UserTable users={filteredUsers.admins} />
+                            <UserTable users={filteredUsers.admins} onDelete={handleDeleteUser}/>
                         </TabsContent>
                     </>
                 )}
