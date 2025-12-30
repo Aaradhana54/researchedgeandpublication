@@ -41,27 +41,27 @@
     },
     {
       "id": "hero-1",
-      "description": "A student writing notes in a library with a large collection of books in the background.",
-      "imageUrl": "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxsaWJyYXJ5JTIwc3R1ZGVudHxlbnwwfHx8fDE3NjcwMDgzMDB8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "library student"
+      "description": "A person writing in a notebook in a calm, minimalist setting with soft purple light.",
+      "imageUrl": "https://images.unsplash.com/photo-1517842645767-c6f90415ad90?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxtaW5pbWFsJTIwd3JpdGluZ3xlbnwwfHx8fDE3NjcwMDgzNDZ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "writing minimalist"
     },
     {
       "id": "hero-2",
-      "description": "A university lecture hall filled with students attentively listening.",
-      "imageUrl": "https://images.unsplash.com/photo-1540575467063-178a50c2df87?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxsZWN0dXJlJTIwaGFsbHxlbnwwfHx8fDE3NjcwMDgzMDF8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "lecture hall"
+      "description": "An artistic and aesthetic shot of an open book with lavender flowers.",
+      "imageUrl": "https://images.unsplash.com/photo-1520625332694-7b64c0af4592?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxhZXN0aGV0aWMlMjBib29rfGVufDB8fHx8fDE3NjcwMDgzNDd8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "book aesthetic"
     },
     {
       "id": "hero-3",
-      "description": "A scholar sitting at a desk in a library, surrounded by books and focused on research.",
-      "imageUrl": "https://images.unsplash.com/photo-1606996704767-4d39b7820043?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHx1bml2ZXJzaXR5JTIwc2Nob2xhcnxlbnwwfHx8fDE3NjcwMDgzMDB8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "university scholar"
+      "description": "A modern and clean architectural shot with a calming purple and pink sky.",
+      "imageUrl": "https://images.unsplash.com/photo-1533109721025-d1ae7ee7c427?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxhZXN0aGV0aWMlMjBwYXN0ZWwlMjBza3l8ZW58MHx8fHwxNzY3MTc5NTIyfDA&ixlib=rb-4.0.3&q=80&w=1080",
+      "imageHint": "architecture sky"
     },
     {
       "id": "hero-4",
-      "description": "A group of diverse students collaborating around a laptop in a modern study space.",
-      "imageUrl": "https://images.unsplash.com/photo-1521737711867-e3b97375f902?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wzNzEyODZ8MHwxfHNlYXJjaHw0fHxzdHVkZW50cyUyMGNvbGxhYm9yYXRpbmd8ZW58MHx8fHwxNzE4MzA5ODgyfDA&ixlib=rb-4.0.3&q=80&w=1080",
-      "imageHint": "students collaborating"
+      "description": "A person sitting comfortably and reading a book in a softly lit, cozy room.",
+      "imageUrl": "https://images.unsplash.com/photo-1506880018603-34cf037a6a4c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxyZWFkaW5nJTIwY296eXxlbnwwfHx8fDE3NjcwMDgzNDd8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "reading cozy"
     },
     {
       "id": "services-image",
