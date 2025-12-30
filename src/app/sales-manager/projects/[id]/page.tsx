@@ -130,9 +130,9 @@ export default function SalesManagerProjectDetailPage() {
 
 
     const handleStatusUpdate = async (status: ProjectStatus) => {
-        if (!firestore) return;
+        if (!firestore || !project?.id) return;
         try {
-            const projectDocRef = doc(firestore, 'projects', projectId);
+            const projectDocRef = doc(firestore, 'projects', project.id);
             await updateDoc(projectDocRef, {
                 status: status,
                 updatedAt: serverTimestamp(),
@@ -145,11 +145,20 @@ export default function SalesManagerProjectDetailPage() {
                 description: `Project has been marked as ${status}.`
             });
         } catch (error: any) {
-            toast({
-                variant: 'destructive',
-                title: 'Update Failed',
-                description: error.message
-            });
+             if (error.code === 'permission-denied') {
+                const permissionError = new FirestorePermissionError({
+                    path: `projects/${project.id}`,
+                    operation: 'update',
+                    requestResourceData: { status }
+                }, error);
+                errorEmitter.emit('permission-error', permissionError);
+             } else {
+                toast({
+                    variant: 'destructive',
+                    title: 'Update Failed',
+                    description: error.message
+                });
+             }
             console.error("Failed to update project status:", error);
         }
     };
@@ -225,7 +234,7 @@ export default function SalesManagerProjectDetailPage() {
                                 Reject
                             </Button>
                             {!project.assignedSalesId && salesTeam && salesTeam.length > 0 && (
-                                <AssignLeadDialog project={project} salesTeam={salesTeam} onLeadAssigned={fetchProjectData}>
+                                <AssignLeadDialog project={project} leadType='project' salesTeam={salesTeam} onLeadAssigned={fetchProjectData}>
                                     <Button variant="outline">
                                         <Users className="mr-2 h-4 w-4" />
                                         Assign Lead
