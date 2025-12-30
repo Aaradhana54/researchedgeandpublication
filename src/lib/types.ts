@@ -77,6 +77,7 @@ export interface Project {
   finalizedAt?: Timestamp;
   finalizedBy?: string; // UID of the sales person
   assignedWriterId?: string; // UID of the writer
+  rejectionReason?: string;
 }
 
 export interface ContactLead {

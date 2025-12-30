@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -16,6 +17,7 @@ import { useToast } from '@/hooks/use-toast';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { ApproveProjectDialog } from '@/components/sales-manager/approve-project-dialog';
+import { RejectProjectDialog } from '@/components/sales/reject-project-dialog';
 
 function DetailItem({ label, value, isBadge = false, badgeVariant, children }: { label: string; value?: string | number | boolean | null; isBadge?: boolean; badgeVariant?: 'default' | 'secondary' | 'destructive' | 'outline', children?: React.ReactNode }) {
     if (value === null || typeof value === 'undefined' || value === '') return null;
@@ -172,6 +174,12 @@ export default function SalesProjectDetailPage() {
                     </div>
                     {isPending && (
                         <div className="flex items-center gap-2">
+                             <RejectProjectDialog project={project} onProjectRejected={fetchProjectData}>
+                                <Button variant="destructive">
+                                    <XCircle className="mr-2 h-4 w-4" />
+                                    Reject
+                                </Button>
+                             </RejectProjectDialog>
                              <ApproveProjectDialog project={project} onProjectApproved={fetchProjectData}>
                                 <Button>
                                     <CheckCircle className="mr-2 h-4 w-4" />

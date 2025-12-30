@@ -62,7 +62,8 @@
         "finalizedAt": { "type": "string", "format": "date-time", "description": "Timestamp when the deal was finalized." },
         "finalizedBy": { "type": "string", "description": "UID of the sales person who finalized the deal." },
         "assignedSalesId": { "type": "string", "description": "The UID of the sales person this lead is assigned to." },
-        "assignedWriterId": { "type": "string", "description": "The UID of the writer assigned to this project." }
+        "assignedWriterId": { "type": "string", "description": "The UID of the writer assigned to this project." },
+        "rejectionReason": { "type": "string", "description": "Reason why the project was rejected by the sales team." }
       },
       "required": ["userId", "title", "serviceType", "createdAt"]
     },
