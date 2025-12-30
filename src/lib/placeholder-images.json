@@ -42,25 +42,25 @@
     {
       "id": "hero-1",
       "description": "A person writing in a notebook in a calm, minimalist setting with soft purple light.",
-      "imageUrl": "https://images.unsplash.com/photo-1517842645767-c6f90415ad90?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxtaW5pbWFsJTIwd3JpdGluZ3xlbnwwfHx8fDE3NjcwMDgzNDZ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1517842645767-c6f90415ad90?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wzNzEyODZ8MHwxfHNlYXJjaHw1fHxtaW5pbWFsJTIwd3JpdGluZ3xlbnwwfHx8fDE3MTgyMDQ0NDR8MA&ixlib=rb-4.0.3&q=80&w=1080",
       "imageHint": "writing minimalist"
     },
     {
       "id": "hero-2",
       "description": "An artistic and aesthetic shot of an open book with lavender flowers.",
-      "imageUrl": "https://images.unsplash.com/photo-1520625332694-7b64c0af4592?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxhZXN0aGV0aWMlMjBib29rfGVufDB8fHx8fDE3NjcwMDgzNDd8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1520625332694-7b64c0af4592?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wzNzEyODZ8MHwxfHNlYXJjaHwyfHxhZXN0aGV0aWMlMjBib29rfGVufDB8fHx8fDE3MTgyMDQ0NDV8MA&ixlib=rb-4.0.3&q=80&w=1080",
       "imageHint": "book aesthetic"
     },
     {
       "id": "hero-3",
       "description": "A modern and clean architectural shot with a calming purple and pink sky.",
-      "imageUrl": "https://images.unsplash.com/photo-1533109721025-d1ae7ee7c427?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxhZXN0aGV0aWMlMjBwYXN0ZWwlMjBza3l8ZW58MHx8fHwxNzY3MTc5NTIyfDA&ixlib=rb-4.0.3&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1533109721025-d1ae7ee7c427?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wzNzEyODZ8MHwxfHNlYXJjaHwzfHxhZXN0aGV0aWMlMjBwYXN0ZWwlMjBza3l8ZW58MHx8fHwxNzE4MjA0NTU4fDA&ixlib=rb-4.0.3&q=80&w=1080",
       "imageHint": "architecture sky"
     },
     {
       "id": "hero-4",
       "description": "A person sitting comfortably and reading a book in a softly lit, cozy room.",
-      "imageUrl": "https://images.unsplash.com/photo-1506880018603-34cf037a6a4c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxyZWFkaW5nJTIwY296eXxlbnwwfHx8fDE3NjcwMDgzNDd8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1506880018603-34cf037a6a4c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wzNzEyODZ8MHwxfHNlYXJjaHwyfHxyZWFkaW5nJTIwY296eXxlbnwwfHx8fDE3MTgyMDQ0NDV8MA&ixlib=rb-4.0.3&q=80&w=1080",
       "imageHint": "reading cozy"
     },
     {
