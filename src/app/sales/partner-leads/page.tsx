@@ -23,14 +23,13 @@ import { Button } from '@/components/ui/button';
 export default function SalesPartnerLeadsPage() {
   const firestore = useFirestore();
 
+  // Simplified query to avoid composite index
   const leadsQuery = useMemo(() => {
     if (!firestore) return null;
-    // Show all unassigned leads with a partner ID
     return query(
         collection(firestore, 'contact_leads'), 
         where('referredByPartnerId', '!=', null),
-        where('assignedSalesId', '==', null),
-        orderBy('referredByPartnerId'),
+        orderBy('referredByPartnerId'), // Keep a single orderBy for consistency
         orderBy('createdAt', 'desc')
     );
   }, [firestore]);
@@ -40,10 +39,17 @@ export default function SalesPartnerLeadsPage() {
     return query(collection(firestore, 'users'));
   }, [firestore]);
 
-  const { data: partnerLeads, loading: loadingLeads } = useCollection<ContactLead>(leadsQuery);
+  const { data: allPartnerLeads, loading: loadingLeads } = useCollection<ContactLead>(leadsQuery);
   const { data: users, loading: loadingUsers } = useCollection<UserProfile>(usersQuery);
 
   const loading = loadingLeads || loadingUsers;
+
+  // Perform the filtering for unassigned leads on the client
+  const partnerLeads = useMemo(() => {
+    if (!allPartnerLeads) return [];
+    return allPartnerLeads.filter(lead => lead.assignedSalesId === null);
+  }, [allPartnerLeads]);
+
 
   const usersMap = useMemo(() => {
     if (!users) return new Map();
