@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -45,7 +46,7 @@ export default function SalesLoginPage() {
             </Link>
          </Button>
         <CardHeader className="text-center pt-16">
-          <CardTitle className="text-2xl font-bold">Sales Portal Login</CardTitle>
+          <CardTitle className="text-2xl font-bold">Sales Manager Login</CardTitle>
           <CardDescription>Access your sales dashboard.</CardDescription>
         </CardHeader>
         <CardContent>

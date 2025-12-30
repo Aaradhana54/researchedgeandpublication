@@ -159,7 +159,7 @@ export function Header() {
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => router.push('/sales/login')}>
                           <TrendingUp className="mr-2 h-4 w-4" />
-                          <span>Sales Login</span>
+                          <span>Sales Manager Login</span>
                         </DropdownMenuItem>
                          <DropdownMenuItem onClick={() => router.push('/writing/login')}>
                           <PenTool className="mr-2 h-4 w-4" />
