@@ -162,7 +162,7 @@ export default function AdminLayout({
   const router = useRouter();
   const pathname = usePathname();
 
-  const allowedRoles = ['admin', 'sales-team', 'sales-manager'];
+  const allowedRoles = ['admin'];
 
   useEffect(() => {
     if (!loading && pathname !== '/admin/login') {
@@ -213,3 +213,5 @@ export default function AdminLayout({
     </SidebarProvider>
   );
 }
+
+    

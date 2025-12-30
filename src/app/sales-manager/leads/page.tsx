@@ -68,7 +68,7 @@ function ClientLeadsTable({ projects, usersMap }: { projects: Project[], usersMa
               return (
                 <TableRow key={project.id}>
                   <TableCell className="font-medium">
-                    <Link href={`/admin/projects/${project.id}`} className="hover:underline text-primary">
+                    <Link href={`/sales-manager/projects/${project.id}`} className="hover:underline text-primary">
                       {project.title}
                     </Link>
                   </TableCell>
@@ -282,3 +282,5 @@ export default function AllLeadsPage() {
     </div>
   );
 }
+
+    
