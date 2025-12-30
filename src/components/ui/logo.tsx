@@ -9,7 +9,8 @@ const CustomLogoIcon = ({ className }: { className?: string }) => (
     fill="none"
     xmlns="http://www.w3.org/2000/svg"
   >
-    <path d="M25 90V10H65C79.9183 10 90 20.0817 90 35C90 49.9183 79.9183 60 65 60H50L75 90" stroke="currentColor" strokeWidth="12" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M25 90V10H65C79.9183 10 90 20.0817 90 35C90 49.9183 79.9183 60 65 60H50" stroke="currentColor" strokeWidth="12" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M50 60L75 90" stroke="currentColor" strokeWidth="12" strokeLinecap="round" strokeLinejoin="round"/>
   </svg>
 );
 
