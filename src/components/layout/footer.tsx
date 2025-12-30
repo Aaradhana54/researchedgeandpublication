@@ -68,7 +68,7 @@ export function Footer() {
                 <Link href="https://www.instagram.com/revioresearch?igsh=OG1jOTAybGlldXRq" aria-label="Instagram" className="text-muted-foreground hover:text-primary transition-colors"><Instagram /></Link>
                 <Link href="#" aria-label="LinkedIn" className="text-muted-foreground hover:text-primary transition-colors"><Linkedin /></Link>
                 <Link href="#" aria-label="Twitter" className="text-muted-foreground hover:text-primary transition-colors"><Twitter /></Link>
-                <Link href="#" aria-label="Facebook" className="text-muted-foreground hover:text-primary transition-colors"><Facebook /></Link>
+                <Link href="https://www.facebook.com/profile.php?id=61575793142887" aria-label="Facebook" className="text-muted-foreground hover:text-primary transition-colors"><Facebook /></Link>
              </div>
           </div>
 
