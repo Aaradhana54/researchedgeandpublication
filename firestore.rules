@@ -51,18 +51,18 @@ service cloud.firestore {
     }
     
     function isClientCreatingOwnProject() {
-      let data = request.resource.data;
-      // List of fields a client is NOT allowed to set on creation.
-      let forbiddenKeys = [
-        'dealAmount', 'advanceReceived', 'discussionNotes', 
-        'paymentScreenshotUrl', 'finalDeadline', 'finalizedAt', 
-        'finalizedBy', 'assignedWriterId', 'assignedSalesId'
-      ];
-      
-      let isCreatingOwnProject = request.auth != null && request.auth.uid == data.userId;
-      let noForbiddenFields = !data.keys().hasAny(forbiddenKeys);
-      
-      return isCreatingOwnProject && noForbiddenFields && data.status == 'pending';
+        let data = request.resource.data;
+        // List of fields a client is NOT allowed to set on creation.
+        let forbiddenKeys = [
+            'status', 'dealAmount', 'advanceReceived', 'discussionNotes', 
+            'paymentScreenshotUrl', 'finalDeadline', 'finalizedAt', 
+            'finalizedBy', 'assignedWriterId', 'assignedSalesId'
+        ];
+        
+        let isCreatingOwnProject = request.auth != null && request.auth.uid == data.userId;
+        let noForbiddenFields = !data.keys().hasAny(forbiddenKeys);
+        
+        return isCreatingOwnProject && noForbiddenFields;
     }
 
     match /users/{userId} {
@@ -185,7 +185,10 @@ service cloud.firestore {
     }
 
     match /notifications/{notificationId} {
-       allow read, write, create, list, update, delete: if isAdmin() || isOwner(resource.data.userId);
+       // Any authenticated user can create a notification.
+       allow create: if request.auth != null;
+       // Only the owner or an admin can read, update, or delete.
+       allow read, write, list, update, delete: if isAdmin() || isOwner(resource.data.userId);
     }
     
     match /metadata/{docId} {
