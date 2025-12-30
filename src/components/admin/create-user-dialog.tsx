@@ -35,8 +35,6 @@ const roles: UserRole[] = [
   'writing-team',
   'sales-team',
   'sales-manager',
-  'publication-team',
-  'accounts-team',
 ];
 
 const CreateUserSchema = z.object({

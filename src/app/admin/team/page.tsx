@@ -102,7 +102,7 @@ export default function TeamManagementPage() {
 
   const { data: users, loading } = useCollection<UserProfile>(usersQuery);
 
-  const teamRoles = ['writing-team', 'sales-team', 'sales-manager', 'publication-team', 'accounts-team'];
+  const teamRoles = ['writing-team', 'sales-team', 'sales-manager'];
 
   const handleDeleteUser = async (userToDelete: UserProfile) => {
     if (!firestore) {
@@ -163,8 +163,6 @@ export default function TeamManagementPage() {
     { value: 'writing-team', label: 'Writing Team', data: filteredUsers['writing-team'] },
     { value: 'sales-team', label: 'Sales Team', data: filteredUsers['sales-team'] },
     { value: 'sales-manager', label: 'Sales Manager', data: filteredUsers['sales-manager'] },
-    { value: 'publication-team', label: 'Publication Team', data: filteredUsers['publication-team'] },
-    { value: 'accounts-team', label: 'Accounts Team', data: filteredUsers['accounts-team'] },
   ];
 
   return (
@@ -189,7 +187,7 @@ export default function TeamManagementPage() {
         </CardHeader>
         <CardContent>
             <Tabs defaultValue="writing-team" className="w-full">
-                <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 mb-6 h-auto flex-wrap">
+                <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 mb-6 h-auto flex-wrap">
                    {tabs.map(tab => (
                      <TabsTrigger key={tab.value} value={tab.value} className="flex-1 capitalize">{tab.label.replace('-', ' ')}</TabsTrigger>
                    ))}

@@ -22,8 +22,6 @@ export type UserRole =
   | 'referral-partner'
   | 'writing-team'
   | 'sales-team'
-  | 'publication-team'
-  | 'accounts-team'
   | 'sales-manager';
 
 export type UserProfile = {
