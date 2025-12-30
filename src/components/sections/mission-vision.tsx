@@ -8,17 +8,17 @@ import { cn } from '@/lib/utils';
 
 const items = [
   {
-    icon: <Target className="w-8 h-8 text-white" />,
+    icon: <Target className="w-8 h-8 text-primary" />,
     title: 'Our Mission',
     description:
       'To simplify the complex journey of research and publication by providing ethical, high-quality support that makes academic and institutional publishing straightforward, transparent, and accessible to scholars, educators, and institutions worldwide.',
     alignment: 'left',
   },
   {
-    icon: <Eye className="w-8 h-8 text-white" />,
+    icon: <Eye className="w-8 h-8 text-primary" />,
     title: 'Our Vision',
     description:
-      'To become India’s most trusted and comprehensive one-stop platform for all research and publishing needs, building a future where every <span class="text-transparent bg-clip-text bg-gradient-to-r from-white/90 to-purple-300">brilliant idea</span> receives the expert support it needs to achieve global recognition.',
+      'To become India’s most trusted and comprehensive one-stop platform for all research and publishing needs, building a future where every <span class="font-medium text-primary">brilliant idea</span> receives the expert support it needs to achieve global recognition.',
     alignment: 'right',
   },
 ];
@@ -30,24 +30,22 @@ export function MissionVision() {
         {items.map((item, index) => (
           <AnimatedWrapper 
             key={item.title} 
-            delay={index * 150}
             className={cn("flex items-center", item.alignment === 'right' && 'justify-end')}
           >
-            <Card className="group relative w-full md:w-3/4 lg:w-2/3 bg-gradient-to-br from-primary via-primary to-purple-700 text-primary-foreground shadow-lift rounded-2xl border-purple-500/20 overflow-hidden transition-all duration-500 hover:scale-[1.02]">
-                <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors duration-500"></div>
+            <Card className="group w-full md:w-3/4 lg:w-2/3 bg-secondary text-secondary-foreground shadow-soft rounded-2xl border-transparent transition-all duration-500 hover:shadow-lift hover:-translate-y-2">
                  <div className="relative flex flex-col md:flex-row items-center p-8 gap-8">
-                    <AnimatedWrapper delay={400}>
-                         <div className="flex-shrink-0 bg-white/10 backdrop-blur-sm p-5 rounded-full border border-white/20">
+                    <AnimatedWrapper>
+                         <div className="flex-shrink-0 bg-background p-5 rounded-full border">
                             {item.icon}
                         </div>
                     </AnimatedWrapper>
                     
                     <div className="text-center md:text-left">
-                        <AnimatedWrapper delay={500}>
-                            <CardTitle className="text-3xl font-headline mb-3 text-white">{item.title}</CardTitle>
+                        <AnimatedWrapper>
+                            <CardTitle className="text-3xl font-headline mb-3 text-foreground">{item.title}</CardTitle>
                         </AnimatedWrapper>
-                        <AnimatedWrapper delay={600}>
-                            <CardContent className="p-0 text-lg text-white/80 leading-relaxed">
+                        <AnimatedWrapper>
+                            <CardContent className="p-0 text-lg text-muted-foreground leading-relaxed">
                                  <p dangerouslySetInnerHTML={{ __html: item.description }}></p>
                             </CardContent>
                         </AnimatedWrapper>
