@@ -23,7 +23,8 @@ export type UserRole =
   | 'writing-team'
   | 'sales-team'
   | 'publication-team'
-  | 'accounts-team';
+  | 'accounts-team'
+  | 'sales-manager';
 
 export type UserProfile = {
   uid: string;
@@ -85,9 +86,10 @@ export interface ContactLead {
     phone: string;
     serviceType: string;
     message?: string;
-    referredByPartnerId: string;
+    referredByPartnerId?: string;
     status: 'new' | 'contacted' | 'converted';
     createdAt: Timestamp;
+    assignedSalesId?: string | null;
 }
 
 export interface Task {

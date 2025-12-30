@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useMemo } from 'react';
@@ -31,6 +32,7 @@ const roleVariantMap: { [key: string]: 'default' | 'secondary' | 'destructive' |
   'referral-partner': 'outline',
   'writing-team': 'secondary',
   'sales-team': 'secondary',
+  'sales-manager': 'secondary',
   'publication-team': 'secondary',
   'accounts-team': 'secondary',
 };
@@ -99,7 +101,7 @@ function ReferralPartnerTable({ partners, allUsers, onDelete }: { partners: User
 
     const referralCounts = useMemo(() => {
         const counts = new Map<string, number>();
-        if (!allUsers) return counts;
+        if (!allUsers || !partners) return counts;
 
         partners.forEach(partner => {
             if(partner.referralCode) {

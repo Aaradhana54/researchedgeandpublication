@@ -25,6 +25,7 @@ import {
   CheckCircle2,
   Globe,
   Star,
+  UserCog,
 } from 'lucide-react';
 import React from 'react';
 import { useEffect, useMemo } from 'react';
@@ -74,6 +75,7 @@ const adminNavItems = [
     subItems: [
         { href: '/admin/team/writing', label: 'Writing Team', icon: <PenTool /> },
         { href: '/admin/team/sales', label: 'Sales Team', icon: <TrendingUp /> },
+        { href: '/admin/team/sales-manager', label: 'Sales Manager', icon: <UserCog /> },
         { href: '/admin/team/publication', label: 'Publication Team', icon: <BookCheck /> },
         { href: '/admin/team/accounts', label: 'Accounts Team', icon: <Banknote /> },
     ]
@@ -114,6 +116,7 @@ function AdminSidebar() {
   };
 
   const isLeadsActive = ['/admin/leads', '/admin/projects', '/admin/partner-leads', '/admin/website-leads'].some(p => pathname.startsWith(p));
+  const isTeamManagementActive = pathname.startsWith('/admin/team');
 
 
   return (
@@ -125,9 +128,9 @@ function AdminSidebar() {
         <SidebarMenu>
           {adminNavItems.map((item) => (
             item.subItems ? (
-                 <Collapsible key={item.label} defaultOpen={item.subItems.some(sub => pathname.startsWith(sub.href)) || (item.label === 'Leads' && isLeadsActive)}>
+                 <Collapsible key={item.label} defaultOpen={item.label === 'Leads' ? isLeadsActive : isTeamManagementActive}>
                     <CollapsibleTrigger asChild>
-                         <SidebarMenuButton className="w-full justify-between" isActive={item.label === 'Leads' && isLeadsActive}>
+                         <SidebarMenuButton className="w-full justify-between" isActive={(item.label === 'Leads' && isLeadsActive) || (item.label === 'Team Management' && isTeamManagementActive)}>
                            <div className="flex items-center gap-2">
                                {item.icon}
                                <span>{item.label}</span>
@@ -219,7 +222,7 @@ export default function AdminLayout({
     // If we are not loading and the current page is not the login page
     if (!loading && pathname !== '/admin/login') {
       // If there is no user or the user is not an admin/sales, redirect to login
-      if (!user || !['admin', 'sales-team', 'writing-team'].includes(user.role)) {
+      if (!user || !['admin', 'sales-team', 'writing-team', 'sales-manager'].includes(user.role)) {
         router.replace('/admin/login');
       }
     }
@@ -244,7 +247,7 @@ export default function AdminLayout({
     );
   }
   
-  if (!['admin', 'sales-team', 'writing-team'].includes(user.role)) {
+  if (!['admin', 'sales-team', 'writing-team', 'sales-manager'].includes(user.role)) {
     return (
        <div className="flex h-screen w-full items-center justify-center bg-background">
         <p>You do not have permission to view this page.</p>

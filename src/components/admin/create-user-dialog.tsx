@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState } from 'react';
@@ -33,6 +34,7 @@ const roles: UserRole[] = [
   'referral-partner',
   'writing-team',
   'sales-team',
+  'sales-manager',
   'publication-team',
   'accounts-team',
 ];

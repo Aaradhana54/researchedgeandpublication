@@ -25,7 +25,7 @@ service cloud.firestore {
     }
 
     function isSalesTeam() {
-      return hasRole('sales-team');
+      return hasRole('sales-team') || hasRole('sales-manager');
     }
     
     function isSalesTeamAssigned(assignedSalesId) {
@@ -54,17 +54,18 @@ service cloud.firestore {
         let data = request.resource.data;
         // List of fields a client is NOT allowed to set on creation.
         let forbiddenKeys = [
-            'dealAmount', 'advanceReceived', 'discussionNotes', 
-            'paymentScreenshotUrl', 'finalDeadline', 'finalizedAt', 
-            'finalizedBy', 'assignedWriterId', 'assignedSalesId'
+            'dealAmount', 'advanceReceived', 'discussionNotes', 'paymentScreenshotUrl', 
+            'finalDeadline', 'finalizedAt', 'finalizedBy', 'assignedWriterId', 'assignedSalesId',
+            // Also explicitly forbid changing status on creation
+            'status'
         ];
         
         let isCreatingOwnProject = request.auth != null && request.auth.uid == data.userId;
         let noForbiddenFields = !data.keys().hasAny(forbiddenKeys);
-        let statusIsPending = data.status == 'pending';
         
-        return isCreatingOwnProject && noForbiddenFields && statusIsPending;
+        return isCreatingOwnProject && noForbiddenFields && data.status == 'pending';
     }
+
 
     match /users/{userId} {
       // New users can create their own profile with 'client' or 'referral-partner' role.
