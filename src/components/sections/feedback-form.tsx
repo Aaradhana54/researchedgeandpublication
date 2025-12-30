@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { useFirestore } from '@/firebase';
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
-import { LoaderCircle, Star, Mail, Phone } from 'lucide-react';
+import { LoaderCircle, Star } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { cn } from '@/lib/utils';
 
@@ -84,18 +84,6 @@ export function FeedbackForm() {
                     <p className="text-lg text-muted-foreground">
                         Your feedback is invaluable to us. It helps us improve our services and better understand your needs. Please take a moment to share your thoughts, and thank you for being a part of our journey. Whether it's a testimonial about your success, a suggestion for a new service, or an observation about your experience, every piece of feedback helps us grow and refine our support for the academic community. Your insights directly influence our development and allow us to continue providing the highest quality assistance.
                     </p>
-                    <div className="space-y-4">
-                        <div className="flex items-center gap-4">
-                            <div className="bg-primary/10 p-3 rounded-full"><Mail className="w-6 h-6 text-primary"/></div>
-                             <a href="mailto:revio1803@gmail.com" className="text-muted-foreground text-lg hover:text-primary transition-colors">
-                                revio1803@gmail.com
-                            </a>
-                        </div>
-                        <div className="flex items-center gap-4">
-                            <div className="bg-primary/10 p-3 rounded-full"><Phone className="w-6 h-6 text-primary"/></div>
-                            <span className="text-muted-foreground text-lg">+91 88899 32922</span>
-                        </div>
-                    </div>
                 </div>
             </AnimatedWrapper>
             <AnimatedWrapper delay={200}>

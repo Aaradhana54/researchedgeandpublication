@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { useFirestore } from '@/firebase';
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
-import { LoaderCircle } from 'lucide-react';
+import { LoaderCircle, Mail, Phone } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 
 const services = [
@@ -79,65 +79,82 @@ export function Contact() {
 
 
   return (
-    <section id="contact" className="w-full bg-secondary py-16 md:py-24 lg:py-32">
+    <section id="contact" className="w-full bg-background py-16 md:py-24 lg:py-32">
       <div className="container mx-auto">
-        <AnimatedWrapper>
-          <Card className="max-w-2xl mx-auto shadow-lift">
-            <CardHeader className="text-center">
-              <CardTitle className="text-3xl font-bold tracking-tight text-primary sm:text-4xl font-headline">Contact Us</CardTitle>
-              <CardDescription className="text-lg text-muted-foreground">
-                Have a question or want to start a project? Fill out the form below.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form key={formKey} onSubmit={handleSubmit} className="space-y-6">
-                 {error && (
-                    <Alert variant="destructive">
-                        <AlertTitle>Error</AlertTitle>
-                        <AlertDescription>{error}</AlertDescription>
-                    </Alert>
-                )}
-                <div className="space-y-2">
-                  <Label htmlFor="name">Full Name *</Label>
-                  <Input id="name" name="name" placeholder="John Doe" required disabled={loading} />
+        <div className="grid md:grid-cols-2 gap-12 items-center">
+            <AnimatedWrapper>
+                <div className="space-y-6">
+                    <h2 className="text-3xl font-bold tracking-tight text-primary sm:text-4xl font-headline">Get in Touch</h2>
+                    <p className="text-lg text-muted-foreground">
+                       Whether you have a question about our services, want to start a project, or just want to say hello, we'd love to hear from you. Fill out the form or use the contact details below to connect with our team.
+                    </p>
+                    <div className="space-y-4">
+                        <div className="flex items-center gap-4">
+                            <div className="bg-primary/10 p-3 rounded-full"><Mail className="w-6 h-6 text-primary"/></div>
+                             <a href="mailto:revio1803@gmail.com" className="text-muted-foreground text-lg hover:text-primary transition-colors">
+                                revio1803@gmail.com
+                            </a>
+                        </div>
+                        <div className="flex items-center gap-4">
+                            <div className="bg-primary/10 p-3 rounded-full"><Phone className="w-6 h-6 text-primary"/></div>
+                            <span className="text-muted-foreground text-lg">+91 88899 32922</span>
+                        </div>
+                    </div>
                 </div>
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email Address *</Label>
-                    <Input id="email" name="email" type="email" placeholder="john.doe@example.com" required disabled={loading}/>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="phone">Phone Number *</Label>
-                    <Input id="phone" name="phone" type="tel" placeholder="+91 98765 43210" required disabled={loading}/>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="serviceType">Service of Interest</Label>
-                  <Select name="serviceType" disabled={loading}>
-                    <SelectTrigger id="serviceType">
-                      <SelectValue placeholder="Select a service" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {services.map(service => (
-                        <SelectItem key={service} value={service}>{service}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="message">Message</Label>
-                  <Textarea id="message" name="message" placeholder="Tell us about your project..." rows={5} disabled={loading}/>
-                </div>
-                <Button type="submit" className="w-full" size="lg" disabled={loading}>
-                   {loading ? <LoaderCircle className="animate-spin"/> : "Send Message"}
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
-        </AnimatedWrapper>
+            </AnimatedWrapper>
+            <AnimatedWrapper delay={200}>
+                 <Card className="shadow-lift">
+                    <CardHeader>
+                    <CardTitle className="text-2xl">Send us a Message</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                    <form key={formKey} onSubmit={handleSubmit} className="space-y-6">
+                        {error && (
+                            <Alert variant="destructive">
+                                <AlertTitle>Error</AlertTitle>
+                                <AlertDescription>{error}</AlertDescription>
+                            </Alert>
+                        )}
+                        <div className="space-y-2">
+                        <Label htmlFor="name">Full Name *</Label>
+                        <Input id="name" name="name" placeholder="John Doe" required disabled={loading} />
+                        </div>
+                        <div className="grid md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                            <Label htmlFor="email">Email Address *</Label>
+                            <Input id="email" name="email" type="email" placeholder="john.doe@example.com" required disabled={loading}/>
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="phone">Phone Number *</Label>
+                            <Input id="phone" name="phone" type="tel" placeholder="+91 98765 43210" required disabled={loading}/>
+                        </div>
+                        </div>
+                        <div className="space-y-2">
+                        <Label htmlFor="serviceType">Service of Interest</Label>
+                        <Select name="serviceType" disabled={loading}>
+                            <SelectTrigger id="serviceType">
+                            <SelectValue placeholder="Select a service" />
+                            </SelectTrigger>
+                            <SelectContent>
+                            {services.map(service => (
+                                <SelectItem key={service} value={service}>{service}</SelectItem>
+                            ))}
+                            </SelectContent>
+                        </Select>
+                        </div>
+                        <div className="space-y-2">
+                        <Label htmlFor="message">Message</Label>
+                        <Textarea id="message" name="message" placeholder="Tell us about your project..." rows={5} disabled={loading}/>
+                        </div>
+                        <Button type="submit" className="w-full" size="lg" disabled={loading}>
+                        {loading ? <LoaderCircle className="animate-spin"/> : "Send Message"}
+                        </Button>
+                    </form>
+                    </CardContent>
+                </Card>
+            </AnimatedWrapper>
+        </div>
       </div>
     </section>
   );
 }
-
-    
