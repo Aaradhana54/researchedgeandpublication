@@ -17,6 +17,8 @@ export function Hero() {
 
   const heroImages = PlaceHolderImages.filter(p => p.id.startsWith('hero-'));
 
+  const headlineText = "Research Edge and Publication";
+
   return (
     <section
       id="home"
@@ -53,22 +55,28 @@ export function Hero() {
 
       {/* Foreground Content Layer */}
       <div className="absolute inset-0 z-10 h-full flex flex-col items-center justify-center text-center container mx-auto px-4">
-        <AnimatedWrapper>
-          <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl md:text-6xl lg:text-7xl font-headline">
-            Research Edge and Publication
-          </h1>
-        </AnimatedWrapper>
-        <AnimatedWrapper delay={200}>
+        <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl md:text-6xl lg:text-7xl font-headline hero-headline">
+          {headlineText.split("").map((letter, index) => (
+            <span
+              key={index}
+              className="inline-block"
+              style={{ animationDelay: `${index * 0.05}s` }}
+            >
+              {letter === " " ? "\u00A0" : letter}
+            </span>
+          ))}
+        </h1>
+        <AnimatedWrapper delay={headlineText.length * 50 + 100}>
           <p className="mt-4 max-w-3xl mx-auto text-lg md:text-xl lg:text-2xl text-white/90">
             From Research to Publication, All in One Place
           </p>
         </AnimatedWrapper>
-        <AnimatedWrapper delay={400}>
+        <AnimatedWrapper delay={headlineText.length * 50 + 200}>
           <p className="mt-6 max-w-4xl mx-auto text-base md:text-lg text-white/80">
             India’s trusted academic and publishing partner helping students, scholars, educators, and institutions convert ideas into polished, publishable work.
           </p>
         </AnimatedWrapper>
-        <AnimatedWrapper delay={600}>
+        <AnimatedWrapper delay={headlineText.length * 50 + 300}>
           <div className="mt-10 flex justify-center gap-4">
             <Button asChild size="lg">
               <Link href="#services">Our Services</Link>
