@@ -39,16 +39,12 @@ const navItems = [
 export function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   
   const sectionIds = navItems.map((item) => item.href);
   const activeId = useScrollSpy(sectionIds, { rootMargin: '-20% 0px -80% 0px' });
   const { user, loading } = useUser();
   const router = useRouter();
   
-  const clickTimeout = useRef<NodeJS.Timeout | null>(null);
-
-
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 10);
@@ -56,22 +52,6 @@ export function Header() {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
-  
-  const handleLoginClick = () => {
-    if (clickTimeout.current) {
-      // This is a double click
-      clearTimeout(clickTimeout.current);
-      clickTimeout.current = null;
-      setIsDropdownOpen(true); // Open the dropdown
-    } else {
-      // This is a single click
-      clickTimeout.current = setTimeout(() => {
-        router.push('/login');
-        clickTimeout.current = null;
-      }, 250); // Wait for 250ms for a potential double click
-    }
-  };
-
 
   const handleLogout = async () => {
     await logout();
@@ -106,7 +86,54 @@ export function Header() {
       )}
     >
       <div className="container mx-auto flex h-20 items-center justify-between px-4">
-        <Logo />
+         {!loading && !user ? (
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <div>
+                        <Logo />
+                    </div>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start">
+                    <DropdownMenuGroup>
+                        <DropdownMenuLabel>Client Portal</DropdownMenuLabel>
+                        <DropdownMenuItem onSelect={() => router.push('/login')}>
+                          <LogIn className="mr-2 h-4 w-4" />
+                          <span>Client Login</span>
+                        </DropdownMenuItem>
+                         <DropdownMenuItem onSelect={() => router.push('/signup')}>
+                          <UserPlus className="mr-2 h-4 w-4" />
+                          <span>Client Signup</span>
+                        </DropdownMenuItem>
+                    </DropdownMenuGroup>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuGroup>
+                        <DropdownMenuLabel>Staff Portals</DropdownMenuLabel>
+                        <DropdownMenuItem onSelect={() => router.push('/admin/login')}>
+                          <Shield className="mr-2 h-4 w-4" />
+                          <span>Admin</span>
+                        </DropdownMenuItem>
+                         <DropdownMenuItem onSelect={() => router.push('/sales-manager/login')}>
+                          <DollarSign className="mr-2 h-4 w-4" />
+                          <span>Sales Manager</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onSelect={() => router.push('/sales/login')}>
+                          <DollarSign className="mr-2 h-4 w-4" />
+                          <span>Sales Team</span>
+                        </DropdownMenuItem>
+                         <DropdownMenuItem onSelect={() => router.push('/referral-partner/login')}>
+                          <Handshake className="mr-2 h-4 w-4" />
+                          <span>Referral Partner</span>
+                        </DropdownMenuItem>
+                         <DropdownMenuItem onSelect={() => router.push('/writing/login')}>
+                          <FileSignature className="mr-2 h-4 w-4" />
+                          <span>Writer</span>
+                        </DropdownMenuItem>
+                    </DropdownMenuGroup>
+                </DropdownMenuContent>
+            </DropdownMenu>
+         ) : (
+            <Logo />
+         )}
 
         <nav className="hidden md:flex items-center gap-1">
           {navItems.map((item) => (
@@ -158,42 +185,7 @@ export function Header() {
                   </DropdownMenuContent>
                 </DropdownMenu>
             </div>
-          ) : (
-             <div className="hidden md:flex items-center gap-2">
-               <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
-                <DropdownMenuTrigger asChild>
-                    <Button onClick={handleLoginClick} onDoubleClick={(e) => e.preventDefault()}>
-                      Login
-                    </Button>
-                </DropdownMenuTrigger>
-                 <DropdownMenuContent align="end">
-                      <DropdownMenuGroup>
-                        <DropdownMenuLabel>Staff Portals</DropdownMenuLabel>
-                        <DropdownMenuItem onSelect={() => router.push('/admin/login')}>
-                          <Shield className="mr-2 h-4 w-4" />
-                          <span>Admin Login</span>
-                        </DropdownMenuItem>
-                         <DropdownMenuItem onSelect={() => router.push('/sales-manager/login')}>
-                          <DollarSign className="mr-2 h-4 w-4" />
-                          <span>Sales Manager</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onSelect={() => router.push('/sales/login')}>
-                          <DollarSign className="mr-2 h-4 w-4" />
-                          <span>Sales Team</span>
-                        </DropdownMenuItem>
-                         <DropdownMenuItem onSelect={() => router.push('/referral-partner/login')}>
-                          <Handshake className="mr-2 h-4 w-4" />
-                          <span>Referral Partner</span>
-                        </DropdownMenuItem>
-                         <DropdownMenuItem onSelect={() => router.push('/writing/login')}>
-                          <FileSignature className="mr-2 h-4 w-4" />
-                          <span>Writer Login</span>
-                        </DropdownMenuItem>
-                    </DropdownMenuGroup>
-                  </DropdownMenuContent>
-               </DropdownMenu>
-            </div>
-          )}
+          ) : null}
 
 
           <div className="md:hidden">
