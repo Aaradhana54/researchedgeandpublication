@@ -7,6 +7,7 @@ import {
   signInWithEmailAndPassword,
   signOut,
   sendEmailVerification,
+  sendPasswordResetEmail,
 } from 'firebase/auth';
 import { doc, setDoc, serverTimestamp, getDoc, getFirestore, deleteDoc } from 'firebase/firestore';
 import { auth, firestore } from './client';
@@ -108,6 +109,11 @@ export async function signup(email: string, password: string, name: string, role
 // --- Logout ---
 export async function logout() {
   await signOut(auth);
+}
+
+// --- Password Reset ---
+export async function sendPasswordReset(email: string) {
+  await sendPasswordResetEmail(auth, email);
 }
 
 // --- Admin-only user creation ---
