@@ -6,6 +6,7 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
+  sendEmailVerification,
 } from 'firebase/auth';
 import { doc, setDoc, serverTimestamp, getDoc, getFirestore, deleteDoc } from 'firebase/firestore';
 import { auth, firestore } from './client';
@@ -24,32 +25,38 @@ export async function loginWithRole(email: string, password: string, requiredRol
   const userCredential = await signInWithEmailAndPassword(authInstance, email, password);
   const user = userCredential.user;
 
-  // After successful authentication, check the user's role from Firestore.
+  // Check if email is verified for client roles
+  const rolesToCheck = Array.isArray(requiredRole) ? requiredRole : [requiredRole];
+  if (rolesToCheck.includes('client') && !user.emailVerified) {
+    await signOut(authInstance);
+    // Throw a specific error code to be handled in the UI
+    const error = new Error('Please verify your email before logging in.');
+    error.name = 'AuthError';
+    (error as any).code = 'auth/email-not-verified';
+    throw error;
+  }
+
   const userDocRef = doc(firestoreInstance, 'users', user.uid);
   const userDocSnap = await getDoc(userDocRef);
 
   if (!userDocSnap.exists()) {
-    // If the user document doesn't exist, they can't have the required role.
-    await signOut(authInstance); // Sign out the user
+    await signOut(authInstance);
     throw new Error('User profile not found.');
   }
 
   const userProfile = userDocSnap.data() as UserProfile;
-  const rolesToCheck = Array.isArray(requiredRole) ? requiredRole : [requiredRole];
 
   if (!rolesToCheck.includes(userProfile.role)) {
-    // If the role doesn't match, sign them out and throw an error.
     await signOut(authInstance);
     throw new Error(`Access denied. You do not have the required permissions for this portal.`);
   }
 
-  // If role matches, return the user.
   return user;
 }
 
 
 // --- Generic Login (to be phased out or used carefully) ---
-export async function login(email: string, password: string) {
+export async function login(email: string, password:string) {
   const userCredential = await signInWithEmailAndPassword(auth, email, password);
   return userCredential.user;
 }
@@ -58,6 +65,9 @@ export async function login(email: string, password: string) {
 export async function signup(email: string, password: string, name: string, role: UserRole = 'client', referredByCode: string | null = null, mobile: string | null = null) {
   const userCredential = await createUserWithEmailAndPassword(auth, email, password);
   const user = userCredential.user;
+
+  // Send verification email
+  await sendEmailVerification(user);
 
   const dataToSet: any = {
     name,
@@ -72,7 +82,6 @@ export async function signup(email: string, password: string, name: string, role
   }
 
   if (role === 'referral-partner') {
-    // Generate a unique referral code for partners. For simplicity, we use part of the UID.
     dataToSet.referralCode = user.uid.substring(0, 8);
   }
   
@@ -82,7 +91,6 @@ export async function signup(email: string, password: string, name: string, role
 
   const userDocRef = doc(firestore, 'users', user.uid);
 
-  // Firestore rules should allow the user to create their own profile document
   setDoc(userDocRef, dataToSet).catch((error) => {
     const permissionError = new FirestorePermissionError({
       path: userDocRef.path,
@@ -104,8 +112,6 @@ export async function logout() {
 
 // --- Admin-only user creation ---
 export async function createUserAsAdmin(email: string, password: string, name: string, role: UserRole) {
-  // Create a temporary, secondary Firebase app instance.
-  // This allows us to create a new user without signing out the current admin.
   const secondaryAppName = `secondary-app-${Date.now()}`;
   const secondaryApp = initializeApp(firebaseConfig, secondaryAppName);
   const secondaryAuth = getAuth(secondaryApp);
@@ -114,6 +120,9 @@ export async function createUserAsAdmin(email: string, password: string, name: s
   try {
     const userCredential = await createUserWithEmailAndPassword(secondaryAuth, email, password);
     const user = userCredential.user;
+    
+    // Send verification email immediately
+    await sendEmailVerification(user);
 
     const userDocRef = doc(firestoreInstance, 'users', user.uid);
     const dataToSet: any = {
@@ -128,29 +137,34 @@ export async function createUserAsAdmin(email: string, password: string, name: s
        dataToSet.referralCode = user.uid.substring(0, 8);
     }
 
-    // Since the admin is authenticated on the client, Firestore security rules
-    // should permit this write operation.
     await setDoc(userDocRef, dataToSet);
 
     return user;
   } catch (error: any) {
     console.error("Error creating user as admin:", error);
-    throw error; // Re-throw the error to be handled by the calling component
+    throw error;
   } finally {
-     // Clean up the secondary app instance
     await deleteApp(secondaryApp);
   }
 }
 
+// --- Resend verification email ---
+export async function resendVerificationEmail(email: string, password: string) {
+    // We need to re-authenticate the user briefly to get a fresh user object
+    // This is a common pattern for sensitive operations.
+    const tempAuth = getAuth();
+    const userCredential = await signInWithEmailAndPassword(tempAuth, email, password);
+    if(userCredential.user && !userCredential.user.emailVerified) {
+        await sendEmailVerification(userCredential.user);
+    }
+    // Sign out immediately after, we don't want to leave this session active.
+    await signOut(tempAuth);
+}
+
+
 // --- Admin-only user deletion ---
 export async function deleteUserAsAdmin(uid: string) {
   const firestoreInstance = getFirestore(getApp());
-  
-  // This is a placeholder for a proper backend implementation.
-  // Directly deleting users from the client-side is not possible for security reasons
-  // without compromising the main admin session.
-  // This function will only delete the Firestore document for now.
-  // To fully delete the user, you need a backend function (e.g., Cloud Function).
   
   console.warn("deleteUserAsAdmin is deleting Firestore record only. Auth user remains.");
 

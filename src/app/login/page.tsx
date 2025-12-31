@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -5,31 +6,56 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { LoaderCircle, LogIn, ArrowLeft } from 'lucide-react';
 
-import { loginWithRole } from '@/firebase/auth';
+import { loginWithRole, resendVerificationEmail } from '@/firebase/auth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { getFirebaseErrorMessage } from '@/firebase/errors';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { useToast } from '@/hooks/use-toast';
 
 export default function LoginPage() {
   const router = useRouter();
+  const { toast } = useToast();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [needsVerification, setNeedsVerification] = useState(false);
+
+  const handleResendVerification = async () => {
+    setLoading(true);
+    try {
+        await resendVerificationEmail(email, password);
+        toast({
+            title: "Verification Email Sent",
+            description: "A new verification link has been sent to your email address."
+        });
+    } catch (err: any) {
+        setError(getFirebaseErrorMessage(err.code) || "Failed to resend verification email.");
+    } finally {
+        setLoading(false);
+    }
+  }
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
     setLoading(true);
+    setNeedsVerification(false);
 
     try {
       await loginWithRole(email, password, 'client');
+      // The layout will handle redirection if email is verified
       router.push('/dashboard');
     } catch (err: any) {
-      setError(getFirebaseErrorMessage(err.code) || err.message);
+      if (err.code === 'auth/email-not-verified') {
+        setNeedsVerification(true);
+        setError(err.message);
+      } else {
+        setError(getFirebaseErrorMessage(err.code) || err.message);
+      }
     } finally {
       setLoading(false);
     }
@@ -51,9 +77,21 @@ export default function LoginPage() {
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
             {error && (
-              <Alert variant="destructive">
-                <AlertTitle>Login Failed</AlertTitle>
-                <AlertDescription>{error}</AlertDescription>
+              <Alert variant={needsVerification ? "default" : "destructive"}>
+                <AlertTitle>{needsVerification ? "Email Not Verified" : "Login Failed"}</AlertTitle>
+                <AlertDescription>
+                    {error}
+                     {needsVerification && (
+                        <Button 
+                            variant="link" 
+                            className="p-0 h-auto mt-2" 
+                            onClick={handleResendVerification}
+                            disabled={loading}
+                        >
+                            Resend verification email
+                        </Button>
+                    )}
+                </AlertDescription>
               </Alert>
             )}
             <div className="space-y-2">

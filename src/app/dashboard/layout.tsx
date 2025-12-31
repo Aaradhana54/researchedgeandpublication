@@ -135,28 +135,43 @@ export default function AuthenticatedLayout({
   useEffect(() => {
     if (loading) return;
 
-    const isLoginPage = pathname === '/login' || pathname === '/signup';
+    const isAuthPage = pathname === '/login' || pathname === '/signup' || pathname === '/verify-email';
 
     if (user) {
-      if (user.role === 'client') {
-        if (isLoginPage) {
-          router.replace('/dashboard');
-        }
-      } else {
-        router.replace('/login');
+      // User is logged in
+      if (user.role !== 'client') {
+        // Wrong role, kick them out
+        logout().then(() => router.replace('/login'));
+        return;
       }
+      
+      // User is a client, check for email verification
+      if (!user.emailVerified) {
+        // Redirect to a page that tells them to verify their email
+        if (pathname !== '/verify-email') {
+          router.replace('/verify-email');
+        }
+        return;
+      }
+
+      // User is a verified client, if they are on an auth page, send to dashboard
+      if (isAuthPage) {
+        router.replace('/dashboard');
+      }
+
     } else {
-      if (!isLoginPage) {
+      // User is not logged in, they should only be on auth pages
+      if (!isAuthPage) {
         router.replace('/login');
       }
     }
   }, [user, loading, router, pathname]);
 
-  if (pathname === '/login' || pathname === '/signup') {
+  if (pathname === '/login' || pathname === '/signup' || pathname === '/verify-email') {
     return <>{children}</>;
   }
 
-  if (loading || !user || user.role !== 'client') {
+  if (loading || !user || user.role !== 'client' || !user.emailVerified) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
         <LoaderCircle className="h-10 w-10 animate-spin text-primary" />

@@ -28,6 +28,7 @@ export type UserProfile = {
   uid: string;
   name: string;
   email: string;
+  emailVerified?: boolean; // Optional for backward compatibility, but always present now
   mobile?: string;
   role: UserRole;
   createdAt: Timestamp;

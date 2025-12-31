@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { LoaderCircle, UserPlus } from 'lucide-react';
+import { LoaderCircle, UserPlus, CheckCircle } from 'lucide-react';
 
 import { signup } from '@/firebase/auth';
 import { Button } from '@/components/ui/button';
@@ -24,6 +24,7 @@ export default function SignupPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [referralCode, setReferralCode] = useState<string | null>(null);
+  const [signupSuccess, setSignupSuccess] = useState(false);
 
   useEffect(() => {
     const refCode = searchParams.get('ref');
@@ -45,13 +46,38 @@ export default function SignupPage() {
 
     try {
       await signup(email, password, name, 'client', referralCode, mobile);
-      router.push('/dashboard');
+      setSignupSuccess(true);
     } catch (err: any) {
       setError(getFirebaseErrorMessage(err.code));
     } finally {
       setLoading(false);
     }
   };
+  
+  if (signupSuccess) {
+      return (
+          <div className="flex items-center justify-center min-h-screen bg-secondary p-4">
+              <Card className="w-full max-w-md mx-auto shadow-lift text-center">
+                  <CardHeader>
+                      <div className="mx-auto bg-primary/10 p-3 rounded-full w-fit">
+                          <CheckCircle className="w-10 h-10 text-primary" />
+                      </div>
+                      <CardTitle className="text-2xl font-bold pt-4">Verify Your Email</CardTitle>
+                      <CardDescription>A verification link has been sent to <strong>{email}</strong>. Please check your inbox and click the link to activate your account.</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                       <p className="text-sm text-muted-foreground">Once verified, you can log in to your dashboard.</p>
+                  </CardContent>
+                  <CardFooter>
+                       <Button asChild className="w-full">
+                          <Link href="/login">Go to Login</Link>
+                      </Button>
+                  </CardFooter>
+              </Card>
+          </div>
+      );
+  }
+
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-secondary p-4">

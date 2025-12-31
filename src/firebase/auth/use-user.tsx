@@ -1,14 +1,15 @@
+
 'use client';
 
 import { useEffect, useState, createContext, useContext } from 'react';
 import { onAuthStateChanged, type User as FirebaseUser } from 'firebase/auth';
-import { doc, onSnapshot, getFirestore } from 'firebase/firestore'; // Import getFirestore
-import { useFirebaseApp } from '../provider'; // Import useFirebaseApp
+import { doc, onSnapshot, getFirestore } from 'firebase/firestore';
+import { useFirebaseApp } from '../provider';
 import type { UserProfile } from '@/lib/types';
 import { getAuth } from 'firebase/auth';
 
 interface UserContextValue {
-  user: UserProfile | null;
+  user: (UserProfile & { emailVerified: boolean }) | null;
   loading: boolean;
   error: Error | null;
 }
@@ -24,13 +25,13 @@ export function useUser() {
 }
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<UserProfile | null>(null);
+  const [user, setUser] = useState<(UserProfile & { emailVerified: boolean }) | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  const app = useFirebaseApp(); // Get the initialized app instance
+  const app = useFirebaseApp();
 
   useEffect(() => {
-    if (!app) return; // Wait for the app to be initialized
+    if (!app) return;
 
     const auth = getAuth(app);
     const firestore = getFirestore(app);
@@ -44,7 +45,6 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         }
 
         if (authUser) {
-          // Still loading until we get the profile
           setLoading(true);
           const profileRef = doc(firestore, 'users', authUser.uid);
           
@@ -53,9 +53,17 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
             (docSnapshot) => {
               if (docSnapshot.exists()) {
                  const userProfileData = docSnapshot.data() as Omit<UserProfile, 'uid'>;
-                setUser({ ...userProfileData, uid: authUser.uid });
+                 // Combine profile with email verification status
+                 setUser({ 
+                   ...userProfileData, 
+                   uid: authUser.uid,
+                   emailVerified: authUser.emailVerified 
+                  });
               } else {
+                // This can happen if the user record is deleted from Firestore but not Auth
                 setUser(null);
+                // Force sign out to clean up state
+                signOut(auth);
               }
               setLoading(false);
             },
@@ -87,7 +95,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         profileUnsubscribe();
       }
     };
-  }, [app]); // Rerun effect if app instance changes
+  }, [app]);
 
   const value = { user, loading, error };
 
