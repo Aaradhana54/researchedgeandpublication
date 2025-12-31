@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import {
@@ -133,13 +134,22 @@ export default function WritingLayout({
   const pathname = usePathname();
 
   useEffect(() => {
-    if (!loading) {
-      if (!user || user.role !== 'writing-team') {
+    if (loading) return;
+
+    const isLoginPage = pathname === '/writing/login';
+
+    if (user) {
+      if (user.role === 'writing-team') {
+        if (isLoginPage) {
+          router.replace('/writing/dashboard');
+        }
+      } else {
         router.replace('/writing/login');
       }
-    }
-     if (!loading && user && user.role === 'writing-team' && pathname === '/writing/login') {
-        router.replace('/writing/dashboard');
+    } else {
+      if (!isLoginPage) {
+        router.replace('/writing/login');
+      }
     }
   }, [user, loading, router, pathname]);
 
@@ -147,18 +157,10 @@ export default function WritingLayout({
       return <>{children}</>;
   }
 
-  if (loading || !user) {
+  if (loading || !user || user.role !== 'writing-team') {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
         <LoaderCircle className="h-10 w-10 animate-spin text-primary" />
-      </div>
-    );
-  }
-
-  if (user.role !== 'writing-team') {
-    return (
-       <div className="flex h-screen w-full items-center justify-center bg-background">
-        <p>You do not have permission to view this page.</p>
       </div>
     );
   }

@@ -165,38 +165,40 @@ export default function AdminLayout({
   const allowedRoles = ['admin'];
 
   useEffect(() => {
-    if (!loading && pathname !== '/admin/login') {
-      if (!user || !allowedRoles.includes(user.role)) {
+    if (loading) return; // Wait for user data to load
+
+    const isLoginPage = pathname === '/admin/login';
+
+    if (user) {
+      // User is logged in
+      if (allowedRoles.includes(user.role)) {
+        // User has the correct role
+        if (isLoginPage) {
+          router.replace('/admin/dashboard');
+        }
+      } else {
+        // User has the wrong role, force them out
+        router.replace('/admin/login');
+      }
+    } else {
+      // User is not logged in
+      if (!isLoginPage) {
         router.replace('/admin/login');
       }
     }
-    if (!loading && user && allowedRoles.includes(user.role) && pathname === '/admin/login') {
-        router.replace('/admin/dashboard');
-    }
-
   }, [user, loading, router, pathname]);
 
   if (pathname === '/admin/login') {
-      return <>{children}</>;
+    return <>{children}</>;
   }
 
-
-  if (loading || !user) {
+  if (loading || !user || !allowedRoles.includes(user.role)) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
         <LoaderCircle className="h-10 w-10 animate-spin text-primary" />
       </div>
     );
   }
-  
-  if (!allowedRoles.includes(user.role)) {
-    return (
-       <div className="flex h-screen w-full items-center justify-center bg-background">
-        <p>You do not have permission to view this page.</p>
-      </div>
-    );
-  }
-
 
   return (
      <SidebarProvider>

@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import {
@@ -127,16 +128,25 @@ export default function SalesLayout({
   const router = useRouter();
   const pathname = usePathname();
 
-  const allowedRoles = ['sales-team'];
+  const allowedRoles = ['sales-team', 'sales-manager'];
 
   useEffect(() => {
-    if (!loading && pathname !== '/sales/login') {
-      if (!user || !allowedRoles.includes(user.role)) {
+    if (loading) return;
+
+    const isLoginPage = pathname === '/sales/login';
+
+    if (user) {
+      if (allowedRoles.includes(user.role)) {
+        if (isLoginPage) {
+          router.replace('/sales/dashboard');
+        }
+      } else {
         router.replace('/sales/login');
       }
-    }
-    if (!loading && user && allowedRoles.includes(user.role) && pathname === '/sales/login') {
-      router.replace('/sales/dashboard');
+    } else {
+      if (!isLoginPage) {
+        router.replace('/sales/login');
+      }
     }
   }, [user, loading, router, pathname]);
 
@@ -144,18 +154,10 @@ export default function SalesLayout({
     return <>{children}</>;
   }
 
-  if (loading || !user) {
+  if (loading || !user || !allowedRoles.includes(user.role)) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
         <LoaderCircle className="h-10 w-10 animate-spin text-primary" />
-      </div>
-    );
-  }
-
-  if (!allowedRoles.includes(user.role)) {
-    return (
-      <div className="flex h-screen w-full items-center justify-center bg-background">
-        <p>You do not have permission to view this page.</p>
       </div>
     );
   }

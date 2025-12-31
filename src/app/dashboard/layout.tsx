@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import {
@@ -129,33 +130,38 @@ export default function AuthenticatedLayout({
 }) {
   const { user, loading } = useUser();
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
-    if (!loading) {
-        // If not loading and there's no user, or the user is not a client, redirect to client login.
-        if (!user || user.role !== 'client') {
-            router.push('/login');
-        }
-    }
-  }, [user, loading, router]);
+    if (loading) return;
 
-  if (loading || !user) {
+    const isLoginPage = pathname === '/login' || pathname === '/signup';
+
+    if (user) {
+      if (user.role === 'client') {
+        if (isLoginPage) {
+          router.replace('/dashboard');
+        }
+      } else {
+        router.replace('/login');
+      }
+    } else {
+      if (!isLoginPage) {
+        router.replace('/login');
+      }
+    }
+  }, [user, loading, router, pathname]);
+
+  if (pathname === '/login' || pathname === '/signup') {
+    return <>{children}</>;
+  }
+
+  if (loading || !user || user.role !== 'client') {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
         <LoaderCircle className="h-10 w-10 animate-spin text-primary" />
       </div>
     );
-  }
-
-  // A final check before rendering children. If the role somehow is not 'client',
-  // this prevents a flash of incorrect content.
-  if (user.role !== 'client') {
-      return (
-         <div className="flex h-screen w-full items-center justify-center bg-background">
-          <p>Redirecting to login...</p>
-          <LoaderCircle className="h-10 w-10 animate-spin text-primary" />
-        </div>
-      )
   }
 
   return (

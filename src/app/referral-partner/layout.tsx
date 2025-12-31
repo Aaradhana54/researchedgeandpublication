@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import {
@@ -134,14 +135,22 @@ export default function ReferralPartnerLayout({
   const pathname = usePathname();
 
   useEffect(() => {
-    if (!loading) {
-      if (!user || user.role !== 'referral-partner') {
+    if (loading) return;
+
+    const isLoginPage = pathname === '/referral-partner/login';
+
+    if (user) {
+      if (user.role === 'referral-partner') {
+        if (isLoginPage) {
+          router.replace('/referral-partner/dashboard');
+        }
+      } else {
         router.replace('/referral-partner/login');
       }
-    }
-     // If the user is logged in as a partner and tries to visit the login page, redirect to dashboard
-    if (!loading && user && user.role === 'referral-partner' && pathname === '/referral-partner/login') {
-        router.replace('/referral-partner/dashboard');
+    } else {
+      if (!isLoginPage) {
+        router.replace('/referral-partner/login');
+      }
     }
   }, [user, loading, router, pathname]);
 
@@ -149,18 +158,10 @@ export default function ReferralPartnerLayout({
       return <>{children}</>;
   }
 
-  if (loading || !user) {
+  if (loading || !user || user.role !== 'referral-partner') {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
         <LoaderCircle className="h-10 w-10 animate-spin text-primary" />
-      </div>
-    );
-  }
-
-  if (user.role !== 'referral-partner') {
-    return (
-       <div className="flex h-screen w-full items-center justify-center bg-background">
-        <p>You do not have permission to view this page.</p>
       </div>
     );
   }
