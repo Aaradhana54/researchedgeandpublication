@@ -9,8 +9,8 @@ const CustomLogoIcon = ({ className }: { className?: string }) => (
     fill="none"
     xmlns="http://www.w3.org/2000/svg"
   >
-    <path d="M25 90V10H65C79.9183 10 90 20.0817 90 35C90 49.9183 79.9183 60 65 60H50" stroke="currentColor" strokeWidth="12" strokeLinecap="round" strokeLinejoin="round"/>
-    <path d="M50 60L75 90" stroke="currentColor" strokeWidth="12" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M20 80V20H50C66.5685 20 80 33.4315 80 50C80 66.5685 66.5685 80 50 80H20Z" stroke="currentColor" strokeWidth="12" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M50 50L80 80" stroke="currentColor" strokeWidth="12" strokeLinecap="round" strokeLinejoin="round"/>
   </svg>
 );
 
@@ -25,7 +25,7 @@ export function Logo({ className }: { className?: string }) {
       )}
     >
       <CustomLogoIcon className="h-7 w-7 transition-transform duration-300 group-hover:scale-110" />
-      <span className="font-headline tracking-wider">REDGE&P</span>
+      <span className="font-headline tracking-wider">Research Edge &amp; Publication</span>
     </Link>
   );
 }
