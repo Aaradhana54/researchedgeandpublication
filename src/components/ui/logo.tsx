@@ -1,7 +1,6 @@
 
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
-import { University } from 'lucide-react';
 
 export function Logo({ className }: { className?: string }) {
   return (
@@ -12,8 +11,10 @@ export function Logo({ className }: { className?: string }) {
         className
       )}
     >
-      <University className="h-7 w-7 transition-transform duration-300 group-hover:rotate-[-12deg]" />
-      <span className="font-headline tracking-wider">Revio Research</span>
+      <div className="h-7 w-7 flex items-center justify-center bg-primary text-primary-foreground rounded-md font-headline transition-transform duration-300 group-hover:rotate-[-12deg]">
+        R
+      </div>
+      <span className="font-headline tracking-wider">REDGE$P</span>
     </Link>
   );
 }
