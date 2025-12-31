@@ -11,6 +11,7 @@ import { Contact } from '@/components/sections/contact';
 import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
 import { FeedbackForm } from '@/components/sections/feedback-form';
+import { WhatsAppButton } from '@/components/whatsapp-button';
 
 export default function Home() {
   return (
@@ -28,6 +29,7 @@ export default function Home() {
         <Testimonials />
         <Contact />
         <FeedbackForm />
+        <WhatsAppButton phoneNumber="8889932922" />
       </main>
       <Footer />
     </div>
