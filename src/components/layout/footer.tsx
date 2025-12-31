@@ -1,10 +1,24 @@
 
+'use client';
+
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Logo } from "@/components/ui/logo";
-import { Mail, Phone, MapPin, Linkedin, Twitter, Facebook, Instagram } from "lucide-react";
+import { Mail, Phone, MapPin, Linkedin, Twitter, Facebook, Instagram, Shield, DollarSign, FileSignature } from "lucide-react";
 import Link from "next/link";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+  DropdownMenuGroup,
+} from '@/components/ui/dropdown-menu';
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
+  const [isPortalsMenuOpen, setIsPortalsMenuOpen] = useState(false);
+  const router = useRouter();
 
   const navItems = [
     { label: 'About', href: '#about' },
@@ -20,7 +34,35 @@ export function Footer() {
           
           {/* About Section */}
           <div className="space-y-4">
-            <Logo />
+            <DropdownMenu open={isPortalsMenuOpen} onOpenChange={setIsPortalsMenuOpen}>
+              <DropdownMenuTrigger asChild>
+                  <div onDoubleClick={() => setIsPortalsMenuOpen(true)} className="cursor-pointer inline-block">
+                      <Logo />
+                  </div>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start">
+                  <DropdownMenuGroup>
+                      <DropdownMenuLabel>Staff Portals</DropdownMenuLabel>
+                      <DropdownMenuItem onSelect={() => router.push('/admin/login')}>
+                        <Shield className="mr-2 h-4 w-4" />
+                        <span>Admin</span>
+                      </DropdownMenuItem>
+                       <DropdownMenuItem onSelect={() => router.push('/sales-manager/login')}>
+                        <DollarSign className="mr-2 h-4 w-4" />
+                        <span>Sales Manager</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onSelect={() => router.push('/sales/login')}>
+                        <DollarSign className="mr-2 h-4 w-4" />
+                        <span>Sales Team</span>
+                      </DropdownMenuItem>
+                       <DropdownMenuItem onSelect={() => router.push('/writing/login')}>
+                        <FileSignature className="mr-2 h-4 w-4" />
+                        <span>Writer</span>
+                      </DropdownMenuItem>
+                  </DropdownMenuGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
             <p className="text-sm text-muted-foreground">
               India’s trusted academic and publishing partner, transforming ideas into polished, publishable work.
             </p>

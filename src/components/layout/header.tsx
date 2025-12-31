@@ -4,7 +4,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { Menu, LogIn, ChevronDown, UserPlus, Shield, Handshake, DollarSign, FileSignature } from 'lucide-react';
+import { Menu, LogIn, ChevronDown, UserPlus, Handshake } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 import { useScrollSpy } from '@/hooks/use-scroll-spy';
@@ -22,7 +22,6 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  DropdownMenuGroup,
 } from '@/components/ui/dropdown-menu';
 import { ThemeToggleButton } from '../ui/theme-toggle-button';
 
@@ -39,7 +38,6 @@ const navItems = [
 export function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isPortalsMenuOpen, setIsPortalsMenuOpen] = useState(false);
   
   const sectionIds = navItems.map((item) => item.href);
   const activeId = useScrollSpy(sectionIds, { rootMargin: '-20% 0px -80% 0px' });
@@ -87,34 +85,7 @@ export function Header() {
       )}
     >
       <div className="container mx-auto flex h-20 items-center justify-between px-4">
-         <DropdownMenu open={isPortalsMenuOpen} onOpenChange={setIsPortalsMenuOpen}>
-            <DropdownMenuTrigger asChild>
-                <div onDoubleClick={() => setIsPortalsMenuOpen(true)} className="cursor-pointer">
-                    <Logo />
-                </div>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start">
-                <DropdownMenuGroup>
-                    <DropdownMenuLabel>Staff Portals</DropdownMenuLabel>
-                    <DropdownMenuItem onSelect={() => router.push('/admin/login')}>
-                      <Shield className="mr-2 h-4 w-4" />
-                      <span>Admin</span>
-                    </DropdownMenuItem>
-                     <DropdownMenuItem onSelect={() => router.push('/sales-manager/login')}>
-                      <DollarSign className="mr-2 h-4 w-4" />
-                      <span>Sales Manager</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onSelect={() => router.push('/sales/login')}>
-                      <DollarSign className="mr-2 h-4 w-4" />
-                      <span>Sales Team</span>
-                    </DropdownMenuItem>
-                     <DropdownMenuItem onSelect={() => router.push('/writing/login')}>
-                      <FileSignature className="mr-2 h-4 w-4" />
-                      <span>Writer</span>
-                    </DropdownMenuItem>
-                </DropdownMenuGroup>
-            </DropdownMenuContent>
-        </DropdownMenu>
+        <Logo />
 
         <nav className="hidden md:flex items-center gap-1">
           {navItems.map((item) => (
@@ -179,6 +150,11 @@ export function Header() {
                         <LogIn className="mr-2 h-4 w-4" />
                         <span>Client Login</span>
                     </DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => router.push('/signup')}>
+                        <UserPlus className="mr-2 h-4 w-4" />
+                        <span>Client Signup</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
                     <DropdownMenuItem onSelect={() => router.push('/referral-partner/login')}>
                         <Handshake className="mr-2 h-4 w-4" />
                         <span>Referral Partner</span>
@@ -200,9 +176,7 @@ export function Header() {
                 <SheetHeader className="border-b pb-4">
                     <SheetTitle className="sr-only">Main Menu</SheetTitle>
                     <SheetDescription className="sr-only">Navigate the Research Edge and Publication website.</SheetDescription>
-                    <div onDoubleClick={() => setIsPortalsMenuOpen(true)}>
-                      <Logo />
-                    </div>
+                    <Logo />
                 </SheetHeader>
                 <div className="flex flex-col h-full">
                   <nav className="flex flex-col gap-4 mt-8">
