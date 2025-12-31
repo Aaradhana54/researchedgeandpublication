@@ -87,54 +87,50 @@ export function Header() {
       )}
     >
       <div className="container mx-auto flex h-20 items-center justify-between px-4">
-         {!loading && !user ? (
-            <DropdownMenu open={isPortalsMenuOpen} onOpenChange={setIsPortalsMenuOpen}>
-                <DropdownMenuTrigger asChild>
-                    <div onDoubleClick={() => setIsPortalsMenuOpen(true)} className="cursor-pointer">
-                        <Logo />
-                    </div>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start">
-                    <DropdownMenuGroup>
-                        <DropdownMenuLabel>Client Portal</DropdownMenuLabel>
-                        <DropdownMenuItem onSelect={() => router.push('/login')}>
-                          <LogIn className="mr-2 h-4 w-4" />
-                          <span>Client Login</span>
-                        </DropdownMenuItem>
-                         <DropdownMenuItem onSelect={() => router.push('/signup')}>
-                          <UserPlus className="mr-2 h-4 w-4" />
-                          <span>Client Signup</span>
-                        </DropdownMenuItem>
-                    </DropdownMenuGroup>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuGroup>
-                        <DropdownMenuLabel>Staff Portals</DropdownMenuLabel>
-                        <DropdownMenuItem onSelect={() => router.push('/admin/login')}>
-                          <Shield className="mr-2 h-4 w-4" />
-                          <span>Admin</span>
-                        </DropdownMenuItem>
-                         <DropdownMenuItem onSelect={() => router.push('/sales-manager/login')}>
-                          <DollarSign className="mr-2 h-4 w-4" />
-                          <span>Sales Manager</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onSelect={() => router.push('/sales/login')}>
-                          <DollarSign className="mr-2 h-4 w-4" />
-                          <span>Sales Team</span>
-                        </DropdownMenuItem>
-                         <DropdownMenuItem onSelect={() => router.push('/referral-partner/login')}>
-                          <Handshake className="mr-2 h-4 w-4" />
-                          <span>Referral Partner</span>
-                        </DropdownMenuItem>
-                         <DropdownMenuItem onSelect={() => router.push('/writing/login')}>
-                          <FileSignature className="mr-2 h-4 w-4" />
-                          <span>Writer</span>
-                        </DropdownMenuItem>
-                    </DropdownMenuGroup>
-                </DropdownMenuContent>
-            </DropdownMenu>
-         ) : (
-            <Logo />
-         )}
+         <DropdownMenu open={isPortalsMenuOpen} onOpenChange={setIsPortalsMenuOpen}>
+            <DropdownMenuTrigger asChild>
+                <div onDoubleClick={() => setIsPortalsMenuOpen(true)} className="cursor-pointer">
+                    <Logo />
+                </div>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start">
+                <DropdownMenuGroup>
+                    <DropdownMenuLabel>Client Portal</DropdownMenuLabel>
+                    <DropdownMenuItem onSelect={() => router.push('/login')}>
+                      <LogIn className="mr-2 h-4 w-4" />
+                      <span>Client Login</span>
+                    </DropdownMenuItem>
+                     <DropdownMenuItem onSelect={() => router.push('/signup')}>
+                      <UserPlus className="mr-2 h-4 w-4" />
+                      <span>Client Signup</span>
+                    </DropdownMenuItem>
+                </DropdownMenuGroup>
+                <DropdownMenuSeparator />
+                <DropdownMenuGroup>
+                    <DropdownMenuLabel>Staff Portals</DropdownMenuLabel>
+                    <DropdownMenuItem onSelect={() => router.push('/admin/login')}>
+                      <Shield className="mr-2 h-4 w-4" />
+                      <span>Admin</span>
+                    </DropdownMenuItem>
+                     <DropdownMenuItem onSelect={() => router.push('/sales-manager/login')}>
+                      <DollarSign className="mr-2 h-4 w-4" />
+                      <span>Sales Manager</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => router.push('/sales/login')}>
+                      <DollarSign className="mr-2 h-4 w-4" />
+                      <span>Sales Team</span>
+                    </DropdownMenuItem>
+                     <DropdownMenuItem onSelect={() => router.push('/referral-partner/login')}>
+                      <Handshake className="mr-2 h-4 w-4" />
+                      <span>Referral Partner</span>
+                    </DropdownMenuItem>
+                     <DropdownMenuItem onSelect={() => router.push('/writing/login')}>
+                      <FileSignature className="mr-2 h-4 w-4" />
+                      <span>Writer</span>
+                    </DropdownMenuItem>
+                </DropdownMenuGroup>
+            </DropdownMenuContent>
+        </DropdownMenu>
 
         <nav className="hidden md:flex items-center gap-1">
           {navItems.map((item) => (
@@ -186,7 +182,26 @@ export function Header() {
                   </DropdownMenuContent>
                 </DropdownMenu>
             </div>
-          ) : null}
+          ) : (
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <Button>
+                        Login
+                        <ChevronDown className="ml-2 h-4 w-4" />
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                    <DropdownMenuItem onSelect={() => router.push('/login')}>
+                        <UserPlus className="mr-2 h-4 w-4" />
+                        <span>Client Login</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => router.push('/referral-partner/login')}>
+                        <Handshake className="mr-2 h-4 w-4" />
+                        <span>Referral Partner</span>
+                    </DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
+          )}
 
 
           <div className="md:hidden">
