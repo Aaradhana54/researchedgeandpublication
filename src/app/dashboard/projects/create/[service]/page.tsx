@@ -196,22 +196,6 @@ export default function CreateProjectPage() {
   
   const pageTitle = serviceDisplayNames[service];
   
-  const commonFileUpload = () => (
-     <div className="space-y-2">
-        <Label htmlFor="synopsisFile">Upload File (Optional)</Label>
-        <Input 
-          id="synopsisFile" 
-          name="synopsisFile" 
-          type="file" 
-          onChange={handleFileChange}
-          disabled={loading}
-          accept=".doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.pdf"
-        />
-        {uploading && <Progress value={uploadProgress} className="w-full" />}
-        {file && !loading && <p className="text-xs text-muted-foreground">Selected file: {file.name}</p>}
-      </div>
-  );
-
   const commonFields = ({ mobileRequired = false }: { mobileRequired?: boolean }) => (
     <div className="space-y-2">
         <Label htmlFor="mobile">Mobile No. (for this project){mobileRequired ? ' *' : ''}</Label>
@@ -240,7 +224,6 @@ export default function CreateProjectPage() {
           </Label>
       </div>
        {commonFields({ mobileRequired: true })}
-       {commonFileUpload()}
     </>
   );
 
@@ -274,8 +257,6 @@ export default function CreateProjectPage() {
       </div>
       
       {commonFields({ mobileRequired: false })}
-
-      {commonFileUpload()}
 
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
         <div className="space-y-2">
@@ -334,7 +315,6 @@ export default function CreateProjectPage() {
       </div>
 
       {commonFields({ mobileRequired: false })}
-      {commonFileUpload()}
 
       <div className="space-y-4">
         <div className="flex items-center space-x-2">
@@ -383,9 +363,6 @@ export default function CreateProjectPage() {
             Is your book ready?
         </Label>
       </div>
-
-      {commonFileUpload()}
-
     </>
   );
 
@@ -437,5 +414,3 @@ export default function CreateProjectPage() {
     </div>
   );
 }
-
-    
