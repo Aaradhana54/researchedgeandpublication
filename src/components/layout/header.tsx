@@ -44,10 +44,6 @@ export function Header() {
   const { user, loading } = useUser();
   const router = useRouter();
 
-  // State for single/double click dropdown
-  const [portalMenuOpen, setPortalMenuOpen] = useState(false);
-  const clickTimeout = useRef<NodeJS.Timeout | null>(null);
-
 
   useEffect(() => {
     const handleScroll = () => {
@@ -82,21 +78,6 @@ export function Header() {
       }
   }
   
-  const handlePortalClick = (event: React.MouseEvent<HTMLElement>) => {
-    // This uses the browser's `event.detail` property to detect click count.
-    if (event.detail === 1) { // Single-click
-      clickTimeout.current = setTimeout(() => {
-        router.push('/login');
-      }, 200); // 200ms delay to wait for a potential double click
-    } else if (event.detail === 2) { // Double-click
-      if (clickTimeout.current) {
-        clearTimeout(clickTimeout.current);
-      }
-      setPortalMenuOpen(true);
-    }
-  };
-
-
   return (
     <header
       className={cn(
@@ -159,11 +140,13 @@ export function Header() {
             </div>
           ) : (
             <div className="hidden md:flex items-center gap-2">
-                <DropdownMenu open={portalMenuOpen} onOpenChange={setPortalMenuOpen}>
+                <Button asChild>
+                    <Link href="/login">Login</Link>
+                </Button>
+                <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button onClick={handlePortalClick}>
-                      Login
-                      <ChevronDown className="ml-2 h-4 w-4" />
+                    <Button variant="outline" size="icon" className="h-10 w-10">
+                      <ChevronDown className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
