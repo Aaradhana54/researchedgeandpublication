@@ -83,21 +83,15 @@ export function Header() {
       }
   }
   
-  const handlePortalClick = () => {
-    if (clickTimeout.current) {
-      // This is a double click
-      clearTimeout(clickTimeout.current);
-      clickTimeout.current = null;
+  const handlePortalClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    if (e.detail === 2) {
+      // Double click
       setPortalMenuType('staff');
-      setPortalMenuOpen(true);
     } else {
-      // This is a single click, wait for a potential double click
-      clickTimeout.current = setTimeout(() => {
-        setPortalMenuType('client');
-        setPortalMenuOpen(true);
-        clickTimeout.current = null;
-      }, 250); // 250ms delay to differentiate single/double click
+      // Single click
+      setPortalMenuType('client');
     }
+    setPortalMenuOpen(true);
   };
 
 
@@ -174,11 +168,11 @@ export function Header() {
                     {portalMenuType === 'client' ? (
                        <DropdownMenuGroup>
                         <DropdownMenuLabel>Client Portal</DropdownMenuLabel>
-                        <DropdownMenuItem onClick={() => router.push('/login')}>
+                        <DropdownMenuItem onSelect={() => router.push('/login')}>
                           <Briefcase className="mr-2 h-4 w-4" />
                           <span>Client Login</span>
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => router.push('/signup')}>
+                        <DropdownMenuItem onSelect={() => router.push('/signup')}>
                           <User className="mr-2 h-4 w-4" />
                           <span>Client Signup</span>
                         </DropdownMenuItem>
@@ -186,23 +180,23 @@ export function Header() {
                     ) : (
                       <DropdownMenuGroup>
                         <DropdownMenuLabel>Staff Portals</DropdownMenuLabel>
-                        <DropdownMenuItem onClick={() => router.push('/admin/login')}>
+                        <DropdownMenuItem onSelect={() => router.push('/admin/login')}>
                           <Shield className="mr-2 h-4 w-4" />
                           <span>Admin Login</span>
                         </DropdownMenuItem>
-                         <DropdownMenuItem onClick={() => router.push('/sales-manager/login')}>
+                         <DropdownMenuItem onSelect={() => router.push('/sales-manager/login')}>
                           <TrendingUp className="mr-2 h-4 w-4" />
                           <span>Sales Manager</span>
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => router.push('/sales/login')}>
+                        <DropdownMenuItem onSelect={() => router.push('/sales/login')}>
                           <TrendingUp className="mr-2 h-4 w-4" />
                           <span>Sales Team</span>
                         </DropdownMenuItem>
-                         <DropdownMenuItem onClick={() => router.push('/referral-partner/login')}>
+                         <DropdownMenuItem onSelect={() => router.push('/referral-partner/login')}>
                           <Users className="mr-2 h-4 w-4" />
                           <span>Referral Partner</span>
                         </DropdownMenuItem>
-                         <DropdownMenuItem onClick={() => router.push('/writing/login')}>
+                         <DropdownMenuItem onSelect={() => router.push('/writing/login')}>
                           <PenTool className="mr-2 h-4 w-4" />
                           <span>Writer Login</span>
                         </DropdownMenuItem>
