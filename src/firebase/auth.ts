@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import {
@@ -57,7 +58,7 @@ export async function loginWithRole(email: string, password: string, requiredRol
 
 
 // --- Generic Login (to be phased out or used carefully) ---
-export async function login(email: string, password:string) {
+export async function login(email: string, password: string) {
   const userCredential = await signInWithEmailAndPassword(auth, email, password);
   return userCredential.user;
 }
@@ -122,14 +123,12 @@ export async function createUserAsAdmin(email: string, password: string, name: s
   const secondaryApp = initializeApp(firebaseConfig, secondaryAppName);
   const secondaryAuth = getAuth(secondaryApp);
   const firestoreInstance = getFirestore(getApp());
+  const mainAuth = getAuth(getApp());
 
   try {
     const userCredential = await createUserWithEmailAndPassword(secondaryAuth, email, password);
     const user = userCredential.user;
     
-    // Send verification email immediately
-    await sendEmailVerification(user);
-
     const userDocRef = doc(firestoreInstance, 'users', user.uid);
     const dataToSet: any = {
       uid: user.uid,
@@ -145,11 +144,19 @@ export async function createUserAsAdmin(email: string, password: string, name: s
 
     await setDoc(userDocRef, dataToSet);
 
+    // Send a password reset email instead of a simple verification.
+    // This allows the user to set their own password and verifies their email in one step.
+    await sendPasswordResetEmail(mainAuth, email);
+
     return user;
   } catch (error: any) {
     console.error("Error creating user as admin:", error);
     throw error;
   } finally {
+    // Sign out the user from the temporary instance before deleting the app
+    if (secondaryAuth.currentUser) {
+        await signOut(secondaryAuth);
+    }
     await deleteApp(secondaryApp);
   }
 }
