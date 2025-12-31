@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Logo } from "@/components/ui/logo";
 import { Mail, Phone, MapPin, Linkedin, Twitter, Facebook, Instagram, Shield, DollarSign, FileSignature } from "lucide-react";
@@ -19,6 +19,7 @@ export function Footer() {
   const currentYear = new Date().getFullYear();
   const [isPortalsMenuOpen, setIsPortalsMenuOpen] = useState(false);
   const router = useRouter();
+  const clickTimeout = useRef<NodeJS.Timeout | null>(null);
 
   const navItems = [
     { label: 'About', href: '#about' },
@@ -26,6 +27,23 @@ export function Footer() {
     { label: 'Process', href: '#process' },
     { label: 'Contact', href: '#contact' },
   ];
+
+  const handleLogoClick = () => {
+    if (clickTimeout.current) {
+      // This is a double click
+      clearTimeout(clickTimeout.current);
+      clickTimeout.current = null;
+      setIsPortalsMenuOpen(true);
+    } else {
+      // This is a single click, set a timeout
+      clickTimeout.current = setTimeout(() => {
+        // If timeout completes, it was a single click
+        // We can navigate or do nothing. Currently, single click on footer logo does nothing.
+        clickTimeout.current = null;
+      }, 300); // 300ms is a common double-click threshold
+    }
+  };
+
 
   return (
     <footer className="bg-secondary text-secondary-foreground border-t">
@@ -36,7 +54,7 @@ export function Footer() {
           <div className="space-y-4">
             <DropdownMenu open={isPortalsMenuOpen} onOpenChange={setIsPortalsMenuOpen}>
               <DropdownMenuTrigger asChild>
-                  <div onDoubleClick={() => setIsPortalsMenuOpen(true)} className="cursor-pointer inline-block">
+                  <div onClick={handleLogoClick} className="cursor-pointer inline-block">
                       <Logo />
                   </div>
               </DropdownMenuTrigger>
