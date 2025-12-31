@@ -2,7 +2,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { Menu, LogOut, ChevronDown, User, Shield, Briefcase, Users, TrendingUp, PenTool } from 'lucide-react';
 
@@ -44,6 +44,11 @@ export function Header() {
   const { user, loading } = useUser();
   const router = useRouter();
 
+  // State for single/double click dropdown
+  const [portalMenuOpen, setPortalMenuOpen] = useState(false);
+  const [portalMenuType, setPortalMenuType] = useState<'client' | 'staff'>('client');
+  const clickTimeout = useRef<NodeJS.Timeout | null>(null);
+
 
   useEffect(() => {
     const handleScroll = () => {
@@ -77,6 +82,24 @@ export function Header() {
           default: return '/';
       }
   }
+  
+  const handlePortalClick = () => {
+    if (clickTimeout.current) {
+      // This is a double click
+      clearTimeout(clickTimeout.current);
+      clickTimeout.current = null;
+      setPortalMenuType('staff');
+      setPortalMenuOpen(true);
+    } else {
+      // This is a single click, wait for a potential double click
+      clickTimeout.current = setTimeout(() => {
+        setPortalMenuType('client');
+        setPortalMenuOpen(true);
+        clickTimeout.current = null;
+      }, 250); // 250ms delay to differentiate single/double click
+    }
+  };
+
 
   return (
     <header
@@ -140,31 +163,40 @@ export function Header() {
             </div>
           ) : (
             <div className="hidden md:flex items-center gap-2">
-                <DropdownMenu>
+                <DropdownMenu open={portalMenuOpen} onOpenChange={setPortalMenuOpen}>
                   <DropdownMenuTrigger asChild>
-                    <Button>
+                    <Button onClick={handlePortalClick}>
                       Portals
                       <ChevronDown className="ml-2 h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuGroup>
-                        <DropdownMenuLabel>Logins</DropdownMenuLabel>
+                    {portalMenuType === 'client' ? (
+                       <DropdownMenuGroup>
+                        <DropdownMenuLabel>Client Portal</DropdownMenuLabel>
+                        <DropdownMenuItem onClick={() => router.push('/login')}>
+                          <Briefcase className="mr-2 h-4 w-4" />
+                          <span>Client Login</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => router.push('/signup')}>
+                          <User className="mr-2 h-4 w-4" />
+                          <span>Client Signup</span>
+                        </DropdownMenuItem>
+                      </DropdownMenuGroup>
+                    ) : (
+                      <DropdownMenuGroup>
+                        <DropdownMenuLabel>Staff Portals</DropdownMenuLabel>
                         <DropdownMenuItem onClick={() => router.push('/admin/login')}>
                           <Shield className="mr-2 h-4 w-4" />
                           <span>Admin Login</span>
                         </DropdownMenuItem>
                          <DropdownMenuItem onClick={() => router.push('/sales-manager/login')}>
                           <TrendingUp className="mr-2 h-4 w-4" />
-                          <span>Sales Manager Login</span>
+                          <span>Sales Manager</span>
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => router.push('/sales/login')}>
                           <TrendingUp className="mr-2 h-4 w-4" />
-                          <span>Sales Team Login</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => router.push('/login')}>
-                          <Briefcase className="mr-2 h-4 w-4" />
-                          <span>Client Login</span>
+                          <span>Sales Team</span>
                         </DropdownMenuItem>
                          <DropdownMenuItem onClick={() => router.push('/referral-partner/login')}>
                           <Users className="mr-2 h-4 w-4" />
@@ -175,14 +207,7 @@ export function Header() {
                           <span>Writer Login</span>
                         </DropdownMenuItem>
                     </DropdownMenuGroup>
-                    <DropdownMenuSeparator />
-                     <DropdownMenuGroup>
-                        <DropdownMenuLabel>Signups</DropdownMenuLabel>
-                        <DropdownMenuItem onClick={() => router.push('/signup')}>
-                          <User className="mr-2 h-4 w-4" />
-                          <span>Client Signup</span>
-                        </DropdownMenuItem>
-                    </DropdownMenuGroup>
+                    )}
                   </DropdownMenuContent>
                 </DropdownMenu>
             </div>
