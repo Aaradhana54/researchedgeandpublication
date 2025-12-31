@@ -11,8 +11,20 @@ export function Logo({ className }: { className?: string }) {
         className
       )}
     >
-      <div className="h-7 w-7 flex items-center justify-center bg-primary text-primary-foreground rounded-md font-headline transition-transform duration-300 group-hover:rotate-[-12deg]">
-        R
+      <div className="h-8 w-8 flex items-center justify-center bg-primary text-primary-foreground rounded-md transition-transform duration-300 group-hover:rotate-[-12deg]">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="h-5 w-5"
+        >
+          <path d="M8 3v18" />
+          <path d="M8 3a4 4 0 0 1 4 4h4a4 4 0 0 1 4 4v0a4 4 0 0 1-4 4H8" />
+        </svg>
       </div>
       <span className="font-headline tracking-wider">REDGE$P</span>
     </Link>
