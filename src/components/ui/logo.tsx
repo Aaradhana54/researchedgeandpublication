@@ -20,13 +20,14 @@ export function Logo({ className }: { className?: string }) {
           strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"
-          className="h-5 w-5"
+          className="h-6 w-6"
         >
-          <path d="M8 3v18" />
-          <path d="M8 3a4 4 0 0 1 4 4h4a4 4 0 0 1 4 4v0a4 4 0 0 1-4 4H8" />
+          <path d="M12 3H8a4 4 0 0 0-4 4v10a4 4 0 0 0 4 4h4" />
+          <path d="M8 12h8" />
+          <path d="M16 12h0a4 4 0 0 1 4 4v0a4 4 0 0 1-4 4h-4" />
         </svg>
       </div>
-      <span className="font-headline tracking-wider">REDGE$P</span>
+      <span className="font-headline tracking-wider">REDGE&amp;P</span>
     </Link>
   );
 }
