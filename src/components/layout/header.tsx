@@ -39,6 +39,7 @@ const navItems = [
 export function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isPortalsMenuOpen, setIsPortalsMenuOpen] = useState(false);
   
   const sectionIds = navItems.map((item) => item.href);
   const activeId = useScrollSpy(sectionIds, { rootMargin: '-20% 0px -80% 0px' });
@@ -87,9 +88,9 @@ export function Header() {
     >
       <div className="container mx-auto flex h-20 items-center justify-between px-4">
          {!loading && !user ? (
-            <DropdownMenu>
+            <DropdownMenu open={isPortalsMenuOpen} onOpenChange={setIsPortalsMenuOpen}>
                 <DropdownMenuTrigger asChild>
-                    <div>
+                    <div onDoubleClick={() => setIsPortalsMenuOpen(true)} className="cursor-pointer">
                         <Logo />
                     </div>
                 </DropdownMenuTrigger>
@@ -200,7 +201,9 @@ export function Header() {
                 <SheetHeader className="border-b pb-4">
                     <SheetTitle className="sr-only">Main Menu</SheetTitle>
                     <SheetDescription className="sr-only">Navigate the Research Edge and Publication website.</SheetDescription>
-                    <Logo />
+                    <div onDoubleClick={() => setIsPortalsMenuOpen(true)}>
+                      <Logo />
+                    </div>
                 </SheetHeader>
                 <div className="flex flex-col h-full">
                   <nav className="flex flex-col gap-4 mt-8">
