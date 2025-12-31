@@ -2,7 +2,7 @@
 'use client';
 
 import { useEffect, useState, createContext, useContext } from 'react';
-import { onAuthStateChanged, type User as FirebaseUser } from 'firebase/auth';
+import { onAuthStateChanged, signOut, type User as FirebaseUser } from 'firebase/auth';
 import { doc, onSnapshot, getFirestore } from 'firebase/firestore';
 import { useFirebaseApp } from '../provider';
 import type { UserProfile } from '@/lib/types';
