@@ -1,14 +1,84 @@
 
 'use client';
 
-import { useUser } from '@/firebase/auth/use-user';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { LoaderCircle } from 'lucide-react';
+import { useMemo, useEffect, useState } from 'react';
+import Link from 'next/link';
+import { useUser, useCollection, useFirestore } from '@/firebase';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { LoaderCircle, ClipboardList, CheckCircle, ArrowRight } from 'lucide-react';
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import type { Task } from '@/lib/types';
+
+function StatCard({
+  title,
+  value,
+  icon,
+  link,
+  linkText,
+}: {
+  title: string;
+  value: string | number;
+  icon: React.ReactNode;
+  link: string;
+  linkText: string;
+}) {
+  return (
+    <Card className="shadow-soft hover:shadow-lift transition-all duration-300">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-sm font-medium">{title}</CardTitle>
+        {icon}
+      </CardHeader>
+      <CardContent>
+        <div className="text-2xl font-bold">{value}</div>
+      </CardContent>
+       <CardFooter>
+        <Link
+          href={link}
+          className="text-sm font-medium text-primary hover:underline flex items-center gap-1"
+        >
+          {linkText} <ArrowRight className="h-4 w-4" />
+        </Link>
+      </CardFooter>
+    </Card>
+  );
+}
 
 export default function WritingDashboardPage() {
   const { user, loading: userLoading } = useUser();
+  const firestore = useFirestore();
 
-  if (userLoading || !user) {
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [loadingTasks, setLoadingTasks] = useState(true);
+  
+  useEffect(() => {
+    if (!user || !firestore) return;
+
+    setLoadingTasks(true);
+    const tasksQuery = query(
+      collection(firestore, 'tasks'),
+      where('assignedTo', '==', user.uid)
+    );
+
+    getDocs(tasksQuery)
+      .then(snapshot => {
+        const userTasks = snapshot.docs.map(doc => doc.data() as Task);
+        setTasks(userTasks);
+      })
+      .catch(console.error)
+      .finally(() => setLoadingTasks(false));
+
+  }, [user, firestore]);
+  
+
+  const loading = userLoading || loadingTasks;
+
+  const stats = useMemo(() => {
+    const activeTasks = tasks.filter(t => t.status !== 'completed').length;
+    const completedTasks = tasks.filter(t => t.status === 'completed').length;
+    return { activeTasks, completedTasks };
+  }, [tasks]);
+
+  if (loading || !user) {
     return (
        <div className="flex h-[calc(100vh-5rem)] w-full items-center justify-center bg-background">
         <LoaderCircle className="h-10 w-10 animate-spin text-primary" />
@@ -27,15 +97,22 @@ export default function WritingDashboardPage() {
         </p>
       </div>
       
-       <Card>
-            <CardHeader>
-                <CardTitle>Overview</CardTitle>
-                <CardDescription>Key metrics and assigned tasks will appear here.</CardDescription>
-            </CardHeader>
-            <CardContent>
-                <p>This section is under construction.</p>
-            </CardContent>
-       </Card>
+       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <StatCard
+            title="My Tasks"
+            value={stats.activeTasks}
+            icon={<ClipboardList className="h-4 w-4 text-muted-foreground" />}
+            link="/writing/tasks"
+            linkText="View Tasks"
+          />
+          <StatCard
+            title="Completed Tasks"
+            value={stats.completedTasks}
+            icon={<CheckCircle className="h-4 w-4 text-muted-foreground" />}
+            link="/writing/completed-leads"
+            linkText="View Completed"
+          />
+        </div>
     </div>
   );
 }
