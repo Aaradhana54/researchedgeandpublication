@@ -39,10 +39,14 @@ const navItems = [
 export function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  
   const sectionIds = navItems.map((item) => item.href);
   const activeId = useScrollSpy(sectionIds, { rootMargin: '-20% 0px -80% 0px' });
   const { user, loading } = useUser();
   const router = useRouter();
+  
+  const clickTimeout = useRef<NodeJS.Timeout | null>(null);
 
 
   useEffect(() => {
@@ -52,6 +56,22 @@ export function Header() {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+  
+  const handleLoginClick = () => {
+    if (clickTimeout.current) {
+      // This is a double click
+      clearTimeout(clickTimeout.current);
+      clickTimeout.current = null;
+      setIsDropdownOpen(true); // Open the dropdown
+    } else {
+      // This is a single click
+      clickTimeout.current = setTimeout(() => {
+        router.push('/login');
+        clickTimeout.current = null;
+      }, 250); // Wait for 250ms for a potential double click
+    }
+  };
+
 
   const handleLogout = async () => {
     await logout();
@@ -139,17 +159,14 @@ export function Header() {
                 </DropdownMenu>
             </div>
           ) : (
-            <div className="hidden md:flex items-center gap-2">
-                <Button asChild>
-                    <Link href="/login">Login</Link>
-                </Button>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="icon" className="h-10 w-10">
-                      <ChevronDown className="h-4 w-4" />
+             <div className="hidden md:flex items-center gap-2">
+               <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
+                <DropdownMenuTrigger asChild>
+                    <Button onClick={handleLoginClick} onDoubleClick={(e) => e.preventDefault()}>
+                      Login
                     </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
+                </DropdownMenuTrigger>
+                 <DropdownMenuContent align="end">
                       <DropdownMenuGroup>
                         <DropdownMenuLabel>Staff Portals</DropdownMenuLabel>
                         <DropdownMenuItem onSelect={() => router.push('/admin/login')}>
@@ -174,7 +191,7 @@ export function Header() {
                         </DropdownMenuItem>
                     </DropdownMenuGroup>
                   </DropdownMenuContent>
-                </DropdownMenu>
+               </DropdownMenu>
             </div>
           )}
 
