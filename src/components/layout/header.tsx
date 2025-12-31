@@ -95,18 +95,6 @@ export function Header() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start">
                 <DropdownMenuGroup>
-                    <DropdownMenuLabel>Client Portal</DropdownMenuLabel>
-                    <DropdownMenuItem onSelect={() => router.push('/login')}>
-                      <LogIn className="mr-2 h-4 w-4" />
-                      <span>Client Login</span>
-                    </DropdownMenuItem>
-                     <DropdownMenuItem onSelect={() => router.push('/signup')}>
-                      <UserPlus className="mr-2 h-4 w-4" />
-                      <span>Client Signup</span>
-                    </DropdownMenuItem>
-                </DropdownMenuGroup>
-                <DropdownMenuSeparator />
-                <DropdownMenuGroup>
                     <DropdownMenuLabel>Staff Portals</DropdownMenuLabel>
                     <DropdownMenuItem onSelect={() => router.push('/admin/login')}>
                       <Shield className="mr-2 h-4 w-4" />
@@ -119,10 +107,6 @@ export function Header() {
                     <DropdownMenuItem onSelect={() => router.push('/sales/login')}>
                       <DollarSign className="mr-2 h-4 w-4" />
                       <span>Sales Team</span>
-                    </DropdownMenuItem>
-                     <DropdownMenuItem onSelect={() => router.push('/referral-partner/login')}>
-                      <Handshake className="mr-2 h-4 w-4" />
-                      <span>Referral Partner</span>
                     </DropdownMenuItem>
                      <DropdownMenuItem onSelect={() => router.push('/writing/login')}>
                       <FileSignature className="mr-2 h-4 w-4" />
@@ -192,7 +176,7 @@ export function Header() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
                     <DropdownMenuItem onSelect={() => router.push('/login')}>
-                        <UserPlus className="mr-2 h-4 w-4" />
+                        <LogIn className="mr-2 h-4 w-4" />
                         <span>Client Login</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem onSelect={() => router.push('/referral-partner/login')}>
