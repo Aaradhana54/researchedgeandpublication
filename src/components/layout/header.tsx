@@ -4,7 +4,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { Menu, LogOut, ChevronDown, User, Shield, Briefcase, Users, TrendingUp, PenTool } from 'lucide-react';
+import { Menu, LogIn, ChevronDown, UserPlus, Shield, Handshake, DollarSign, FileSignature } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 import { useScrollSpy } from '@/hooks/use-scroll-spy';
@@ -83,15 +83,19 @@ export function Header() {
       }
   }
   
-  const handlePortalClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    if (e.detail === 2) {
-      // Double click
+  const handlePortalClick = (event: React.MouseEvent<HTMLElement>) => {
+    if (event.detail === 1) { // Single-click
+      clickTimeout.current = setTimeout(() => {
+        setPortalMenuType('client');
+        setPortalMenuOpen(true);
+      }, 200);
+    } else if (event.detail === 2) { // Double-click
+      if (clickTimeout.current) {
+        clearTimeout(clickTimeout.current);
+      }
       setPortalMenuType('staff');
-    } else {
-      // Single click
-      setPortalMenuType('client');
+      setPortalMenuOpen(true);
     }
-    setPortalMenuOpen(true);
   };
 
 
@@ -149,7 +153,7 @@ export function Header() {
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleLogout}>
-                      <LogOut className="mr-2 h-4 w-4" />
+                      <LogIn className="mr-2 h-4 w-4" />
                       <span>Log out</span>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -169,11 +173,11 @@ export function Header() {
                        <DropdownMenuGroup>
                         <DropdownMenuLabel>Client Portal</DropdownMenuLabel>
                         <DropdownMenuItem onSelect={() => router.push('/login')}>
-                          <Briefcase className="mr-2 h-4 w-4" />
+                          <LogIn className="mr-2 h-4 w-4" />
                           <span>Client Login</span>
                         </DropdownMenuItem>
                         <DropdownMenuItem onSelect={() => router.push('/signup')}>
-                          <User className="mr-2 h-4 w-4" />
+                          <UserPlus className="mr-2 h-4 w-4" />
                           <span>Client Signup</span>
                         </DropdownMenuItem>
                       </DropdownMenuGroup>
@@ -185,19 +189,19 @@ export function Header() {
                           <span>Admin Login</span>
                         </DropdownMenuItem>
                          <DropdownMenuItem onSelect={() => router.push('/sales-manager/login')}>
-                          <TrendingUp className="mr-2 h-4 w-4" />
+                          <DollarSign className="mr-2 h-4 w-4" />
                           <span>Sales Manager</span>
                         </DropdownMenuItem>
                         <DropdownMenuItem onSelect={() => router.push('/sales/login')}>
-                          <TrendingUp className="mr-2 h-4 w-4" />
+                          <DollarSign className="mr-2 h-4 w-4" />
                           <span>Sales Team</span>
                         </DropdownMenuItem>
                          <DropdownMenuItem onSelect={() => router.push('/referral-partner/login')}>
-                          <Users className="mr-2 h-4 w-4" />
+                          <Handshake className="mr-2 h-4 w-4" />
                           <span>Referral Partner</span>
                         </DropdownMenuItem>
                          <DropdownMenuItem onSelect={() => router.push('/writing/login')}>
-                          <PenTool className="mr-2 h-4 w-4" />
+                          <FileSignature className="mr-2 h-4 w-4" />
                           <span>Writer Login</span>
                         </DropdownMenuItem>
                     </DropdownMenuGroup>
@@ -245,7 +249,7 @@ export function Header() {
                             <Link href={getPortalPath()}>Go to Portal</Link>
                           </Button>
                           <Button variant="outline" onClick={() => { handleLogout(); setIsMobileMenuOpen(false); }}>
-                            <LogOut className="mr-2 h-4 w-4" />
+                            <LogIn className="mr-2 h-4 w-4" />
                             Log Out
                           </Button>
                         </>
