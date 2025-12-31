@@ -46,7 +46,6 @@ export function Header() {
 
   // State for single/double click dropdown
   const [portalMenuOpen, setPortalMenuOpen] = useState(false);
-  const [portalMenuType, setPortalMenuType] = useState<'client' | 'staff'>('client');
   const clickTimeout = useRef<NodeJS.Timeout | null>(null);
 
 
@@ -84,16 +83,15 @@ export function Header() {
   }
   
   const handlePortalClick = (event: React.MouseEvent<HTMLElement>) => {
+    // This uses the browser's `event.detail` property to detect click count.
     if (event.detail === 1) { // Single-click
       clickTimeout.current = setTimeout(() => {
-        setPortalMenuType('client');
-        setPortalMenuOpen(true);
-      }, 200);
+        router.push('/login');
+      }, 200); // 200ms delay to wait for a potential double click
     } else if (event.detail === 2) { // Double-click
       if (clickTimeout.current) {
         clearTimeout(clickTimeout.current);
       }
-      setPortalMenuType('staff');
       setPortalMenuOpen(true);
     }
   };
@@ -164,24 +162,11 @@ export function Header() {
                 <DropdownMenu open={portalMenuOpen} onOpenChange={setPortalMenuOpen}>
                   <DropdownMenuTrigger asChild>
                     <Button onClick={handlePortalClick}>
-                      Portals
+                      Login
                       <ChevronDown className="ml-2 h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    {portalMenuType === 'client' ? (
-                       <DropdownMenuGroup>
-                        <DropdownMenuLabel>Client Portal</DropdownMenuLabel>
-                        <DropdownMenuItem onSelect={() => router.push('/login')}>
-                          <LogIn className="mr-2 h-4 w-4" />
-                          <span>Client Login</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onSelect={() => router.push('/signup')}>
-                          <UserPlus className="mr-2 h-4 w-4" />
-                          <span>Client Signup</span>
-                        </DropdownMenuItem>
-                      </DropdownMenuGroup>
-                    ) : (
                       <DropdownMenuGroup>
                         <DropdownMenuLabel>Staff Portals</DropdownMenuLabel>
                         <DropdownMenuItem onSelect={() => router.push('/admin/login')}>
@@ -205,7 +190,6 @@ export function Header() {
                           <span>Writer Login</span>
                         </DropdownMenuItem>
                     </DropdownMenuGroup>
-                    )}
                   </DropdownMenuContent>
                 </DropdownMenu>
             </div>
