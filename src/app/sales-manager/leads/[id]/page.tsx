@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect, useMemo, Suspense } from 'react';
@@ -87,10 +88,13 @@ function LeadDetailPageContent() {
 
             // Fetch related user data
             if (leadType === 'project' && (leadData as Project).userId) {
-                const userDocRef = doc(firestore, 'users', (leadData as Project).userId);
-                const userSnap = await getDoc(userDocRef);
-                if (userSnap.exists()) {
-                    setClientUser(userSnap.data() as UserProfile);
+                const userId = (leadData as Project).userId;
+                if (!userId.startsWith('unregistered_')) {
+                    const userDocRef = doc(firestore, 'users', userId);
+                    const userSnap = await getDoc(userDocRef);
+                    if (userSnap.exists()) {
+                        setClientUser(userSnap.data() as UserProfile);
+                    }
                 }
             }
             
@@ -216,12 +220,14 @@ function LeadDetailPageContent() {
                                     </Button>
                                 </AssignLeadDialog>
                             )}
-                            <ConvertLeadDialog contactLead={contactLead} onLeadConverted={handleLeadConverted}>
-                                <Button>
-                                    <CheckCircle className="mr-2 h-4 w-4" />
-                                    Convert to Project
-                                </Button>
-                            </ConvertLeadDialog>
+                            {contactLead && (
+                                <ConvertLeadDialog contactLead={contactLead} onLeadConverted={handleLeadConverted}>
+                                    <Button>
+                                        <CheckCircle className="mr-2 h-4 w-4" />
+                                        Convert to Project
+                                    </Button>
+                                </ConvertLeadDialog>
+                            )}
                         </div>
                     )}
                 </div>
@@ -237,29 +243,41 @@ function LeadDetailPageContent() {
                         <CardContent>
                             <DetailItem label="Name" value={clientUser?.name || contactLead?.name} icon={UserIcon}/>
                             <DetailItem label="Email" value={clientUser?.email || contactLead?.email} icon={Mail}/>
-                            <DetailItem label="Phone" value={clientUser?.mobile || contactLead?.phone} icon={Phone}/>
-                            {project && <DetailItem label="Joined On" value={clientUser?.createdAt ? format(clientUser.createdAt.toDate(), 'PPP') : 'N/A'} />}
+                            <DetailItem label="Phone" value={project?.mobile || contactLead?.phone} icon={Phone}/>
+                            {project && clientUser && <DetailItem label="Joined On" value={clientUser?.createdAt ? format(clientUser.createdAt.toDate(), 'PPP') : 'N/A'} />}
                         </CardContent>
                     </Card>
 
                     {/* Project/Lead Details Section */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Lead Details</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <DetailItem label={isProject ? "Project Title" : "Lead Name"} value={leadTitle} icon={Briefcase}/>
-                            <DetailItem label="Service Type" value={project?.serviceType || contactLead?.serviceType} isBadge badgeVariant="secondary"/>
-                             {project?.topic && <DetailItem label="Topic" value={project.topic} />}
-                             {project?.courseLevel && <DetailItem label="Course Level" value={project.courseLevel} isBadge badgeVariant="outline"/>}
-                             {project?.referencingStyle && <DetailItem label="Referencing Style" value={project.referencingStyle} />}
-                             {project?.language && <DetailItem label="Language" value={project.language} />}
-                             {project?.pageCount && <DetailItem label="Page Count" value={project.pageCount} />}
-                             {project?.wordCount && <DetailItem label="Word Count" value={project.wordCount} />}
-                             {project?.deadline && <DetailItem label="Client Deadline" value={project.deadline ? format(project.deadline.toDate(), 'PPP') : 'Not specified'} />}
-                             {contactLead?.message && <DetailItem label="Message" value={contactLead.message} />}
-                        </CardContent>
-                    </Card>
+                    {isProject && project && (
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Project Details</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <DetailItem label="Project Title" value={project.title} icon={Briefcase}/>
+                                <DetailItem label="Service Type" value={project.serviceType} isBadge badgeVariant="secondary"/>
+                                {project.topic && <DetailItem label="Topic" value={project.topic} />}
+                                {project.courseLevel && <DetailItem label="Course Level" value={project.courseLevel} isBadge badgeVariant="outline"/>}
+                                {project.referencingStyle && <DetailItem label="Referencing Style" value={project.referencingStyle} />}
+                                {project.language && <DetailItem label="Language" value={project.language} />}
+                                {project.pageCount && <DetailItem label="Page Count" value={project.pageCount} />}
+                                {project.wordCount && <DetailItem label="Word Count" value={project.wordCount} />}
+                                {project.deadline && <DetailItem label="Client Deadline" value={project.deadline ? format(project.deadline.toDate(), 'PPP') : 'Not specified'} />}
+                            </CardContent>
+                        </Card>
+                    )}
+                     {!isProject && contactLead && (
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Lead Details</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <DetailItem label="Service of Interest" value={contactLead.serviceType} isBadge badgeVariant="secondary"/>
+                                {contactLead.message && <DetailItem label="Message" value={contactLead.message} />}
+                            </CardContent>
+                        </Card>
+                     )}
                 </div>
                  <div className="lg:col-span-1 space-y-8">
                      <Card>
@@ -267,8 +285,8 @@ function LeadDetailPageContent() {
                             <CardTitle>Status</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <Badge variant={getLeadStatusVariant(project?.status || contactLead?.status)} className="capitalize text-lg">
-                                {project?.status || contactLead?.status || 'Pending'}
+                            <Badge variant={getLeadStatusVariant(lead.status)} className="capitalize text-lg">
+                                {lead.status || 'Pending'}
                             </Badge>
                              {assignedSalesUser && (
                                 <div className="mt-4">
@@ -311,4 +329,3 @@ export default function LeadDetailPage() {
         </Suspense>
     );
 }
-

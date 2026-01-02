@@ -23,7 +23,7 @@ import { useToast } from '@/hooks/use-toast';
 import { CheckCircle, LoaderCircle } from 'lucide-react';
 import type { ContactLead } from '@/lib/types';
 import { useFirestore, useUser } from '@/firebase';
-import { doc, serverTimestamp, Timestamp, updateDoc, collection, addDoc } from 'firebase/firestore';
+import { doc, serverTimestamp, Timestamp, updateDoc, collection, addDoc, writeBatch } from 'firebase/firestore';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '../ui/form';
 import { errorEmitter } from '@/firebase/error-emitter';
@@ -75,15 +75,19 @@ export function ConvertLeadDialog({ children, contactLead, onLeadConverted }: { 
     setError(null);
 
     try {
+        const batch = writeBatch(firestore);
+
         // 1. Create a new project document
-        const projectsCollection = collection(firestore, 'projects');
+        const projectsCollectionRef = collection(firestore, 'projects');
+        const newProjectRef = doc(projectsCollectionRef); // Create a new doc ref to get the ID
+
         const projectData: any = {
-          // Use a special ID format for unregistered users
+          // Use a special ID format for unregistered users, to be handled by a backend function
           userId: `unregistered_${contactLead.email}`,
           title: data.title,
           mobile: contactLead.phone,
           serviceType: contactLead.serviceType,
-          status: 'approved',
+          status: 'approved', // The lead is converted directly to an approved project
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp(),
           dealAmount: data.dealAmount,
@@ -93,15 +97,17 @@ export function ConvertLeadDialog({ children, contactLead, onLeadConverted }: { 
           finalizedAt: serverTimestamp(),
           finalizedBy: user.uid,
           assignedSalesId: contactLead.assignedSalesId,
-          referredByPartnerId: contactLead.referredByPartnerId || null, // Add partner ID
+          referredByPartnerId: contactLead.referredByPartnerId || null,
         };
-        await addDoc(projectsCollection, projectData);
+        batch.set(newProjectRef, projectData);
         
-        // 2. Update the contact lead status
+        // 2. Update the contact lead status to 'converted'
         const leadDocRef = doc(firestore, 'contact_leads', contactLead.id);
-        await updateDoc(leadDocRef, {
+        batch.update(leadDocRef, {
             status: 'converted'
         });
+
+        await batch.commit();
         
         toast({
             title: 'Lead Converted!',
@@ -214,7 +220,7 @@ export function ConvertLeadDialog({ children, contactLead, onLeadConverted }: { 
                         )}
                     />
                      
-                    <DialogFooter className="mt-6">
+                    <DialogFooter className="mt-6 sticky bottom-0 bg-background py-4 -mx-6 px-6 border-t">
                         <DialogClose asChild>
                             <Button type="button" variant="secondary" disabled={loading}>Cancel</Button>
                         </DialogClose>
