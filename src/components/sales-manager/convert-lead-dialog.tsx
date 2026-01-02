@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState } from 'react';
@@ -98,6 +97,7 @@ export function ConvertLeadDialog({ children, contactLead, onLeadConverted }: { 
           finalizedBy: user.uid,
           assignedSalesId: contactLead.assignedSalesId,
           referredByPartnerId: contactLead.referredByPartnerId || null,
+          approvalEmailSent: true, // Mark email as sent
         };
         batch.set(newProjectRef, projectData);
         
@@ -111,7 +111,7 @@ export function ConvertLeadDialog({ children, contactLead, onLeadConverted }: { 
         const mailCollectionRef = collection(firestore, 'mail');
         const emailDocRef = doc(mailCollectionRef);
         batch.set(emailDocRef, {
-            to: contactLead.email,
+            to: [contactLead.email], // Ensure 'to' is an array
             message: {
                 subject: `Your Project "${data.title}" has been Approved!`,
                 html: `

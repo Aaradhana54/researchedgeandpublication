@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, ChangeEvent } from 'react';
@@ -101,6 +100,7 @@ export function ApproveProjectDialog({ children, project, clientEmail, onProject
                 finalDeadline: Timestamp.fromDate(new Date(data.finalDeadline)),
                 discussionNotes: data.discussionNotes,
                 paymentScreenshotUrl: screenshotUrl,
+                approvalEmailSent: true, // Mark email as sent
             };
             batch.update(projectDocRef, updateData);
 
@@ -108,7 +108,7 @@ export function ApproveProjectDialog({ children, project, clientEmail, onProject
             const mailCollectionRef = collection(firestore, 'mail');
             const emailDocRef = doc(mailCollectionRef); // Auto-generate ID
             batch.set(emailDocRef, {
-                to: clientEmail,
+                to: [clientEmail], // Ensure 'to' is an array
                 message: {
                     subject: `Your Project "${project.title}" has been Approved!`,
                     html: `

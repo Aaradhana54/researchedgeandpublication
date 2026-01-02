@@ -84,7 +84,7 @@ export function SendApprovalEmailButton({ project, client }: SendApprovalEmailBu
         // 1. Create the email document
         const mailRef = doc(collection(firestore, 'mail'));
         batch.set(mailRef, {
-             to: targetEmail,
+             to: [targetEmail], // Ensure 'to' is an array
             message: {
                 subject: `Your Project "${project.title}" has been Approved!`,
                 html: emailContent,
