@@ -203,7 +203,7 @@ export default function ProjectDetailPage() {
         <div className="p-4 sm:p-6 lg:p-8">
             <div className="mb-8 max-w-4xl mx-auto">
                  <Button variant="ghost" asChild className="mb-4 -ml-4">
-                    <Link href={backLink}>
+                    <Link href={'/admin/leads'}>
                         <ArrowLeft className="mr-2 h-4 w-4" />
                         Back to Projects
                     </Link>
@@ -333,3 +333,5 @@ export default function ProjectDetailPage() {
         </div>
     );
 }
+
+    
