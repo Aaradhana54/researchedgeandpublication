@@ -26,6 +26,7 @@ import type { UserRole } from '@/lib/types';
 import { createUserAsAdmin } from '@/firebase/auth'; 
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '../ui/form';
+import { getFirebaseErrorMessage } from '@/firebase/errors';
 
 const roles: UserRole[] = [
   'client',
@@ -76,7 +77,7 @@ export function CreateUserDialog({ children }: { children: React.ReactNode }) {
       setOpen(false);
     } catch (e: any) {
       console.error(e);
-      setError(e.message || 'An unexpected error occurred.');
+      setError(getFirebaseErrorMessage(e.code) || 'An unexpected error occurred.');
     } finally {
       setLoading(false);
     }
