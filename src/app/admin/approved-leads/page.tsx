@@ -1,8 +1,8 @@
 
 'use client';
 
-import { useMemo } from 'react';
-import { collection, query, where, updateDoc, doc, serverTimestamp } from 'firebase/firestore';
+import { useMemo, useState, useEffect } from 'react';
+import { collection, query, where, updateDoc, doc, serverTimestamp, getDocs } from 'firebase/firestore';
 import { useCollection, useFirestore } from '@/firebase';
 import type { Project, UserProfile, Task } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,6 +21,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { AssignWriterDialog } from '@/components/admin/assign-writer-dialog';
 import { useToast } from '@/hooks/use-toast';
+import { CreateClientAccountDialog } from '@/components/referral-partner/create-client-account-dialog';
 
 const getProjectStatusVariant = (status?: string): 'default' | 'secondary' | 'destructive' | 'outline' => {
   switch (status) {
@@ -42,41 +43,66 @@ const getProjectStatusVariant = (status?: string): 'default' | 'secondary' | 'de
 export default function ApprovedLeadsPage() {
   const firestore = useFirestore();
   const { toast } = useToast();
-
-  const projectsQuery = useMemo(() => {
-    if (!firestore) return null;
-    return query(
-        collection(firestore, 'projects'), 
-        where('status', 'in', ['approved', 'in-progress'])
-    );
-  }, [firestore]);
   
-  const usersQuery = useMemo(() => {
-    if (!firestore) return null;
-    return query(collection(firestore, 'users'));
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [usersMap, setUsersMap] = useState<Map<string, UserProfile>>(new Map());
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [writingTeam, setWritingTeam] = useState<UserProfile[]>([]);
+
+  const fetchApprovedLeadsData = async () => {
+    if (!firestore) return;
+    setLoading(true);
+
+    try {
+        // Fetch projects
+        const projectsQuery = query(
+            collection(firestore, 'projects'), 
+            where('status', 'in', ['approved', 'in-progress'])
+        );
+        const projectsSnap = await getDocs(projectsQuery);
+        const fetchedProjects = projectsSnap.docs.map(doc => ({ ...doc.data() as Project, id: doc.id }));
+        setProjects(fetchedProjects);
+
+        // Fetch users (clients and writers)
+        const userIds = new Set<string>();
+        fetchedProjects.forEach(p => {
+            if (p.userId) userIds.add(p.userId);
+            if (p.assignedWriterId) userIds.add(p.assignedWriterId);
+        });
+
+        const usersQuery = query(collection(firestore, 'users'));
+        const usersSnap = await getDocs(usersQuery);
+        const newUsersMap = new Map<string, UserProfile>();
+        const writers: UserProfile[] = [];
+        usersSnap.forEach(doc => {
+            const userData = { ...doc.data() as UserProfile, uid: doc.id };
+            newUsersMap.set(doc.id, userData);
+            if (userData.role === 'writing-team') {
+                writers.push(userData);
+            }
+        });
+        setUsersMap(newUsersMap);
+        setWritingTeam(writers);
+
+        // Fetch tasks
+        const tasksQuery = query(collection(firestore, 'tasks'));
+        const tasksSnap = await getDocs(tasksQuery);
+        const fetchedTasks = tasksSnap.docs.map(doc => ({ ...doc.data() as Task, id: doc.id }));
+        setTasks(fetchedTasks);
+
+    } catch (error) {
+        console.error("Error fetching approved leads data:", error);
+        toast({ variant: 'destructive', title: 'Error', description: 'Failed to load data.'});
+    } finally {
+        setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    fetchApprovedLeadsData();
   }, [firestore]);
 
-  const tasksQuery = useMemo(() => {
-    if (!firestore) return null;
-    return query(collection(firestore, 'tasks'));
-  }, [firestore]);
-
-
-  const { data: projects, loading: loadingProjects } = useCollection<Project>(projectsQuery);
-  const { data: users, loading: loadingUsers } = useCollection<UserProfile>(usersQuery);
-  const { data: tasks, loading: loadingTasks } = useCollection<Task>(tasksQuery);
-
-  const loading = loadingProjects || loadingUsers || loadingTasks;
-
-  const usersMap = useMemo(() => {
-    if (!users) return new Map();
-    return new Map(users.map((user) => [user.uid, user]));
-  }, [users]);
-  
-  const writingTeam = useMemo(() => {
-    if (!users) return [];
-    return users.filter(u => u.role === 'writing-team');
-  }, [users]);
 
   const assignedTasksMap = useMemo(() => {
     if (!tasks) return new Map();
@@ -91,7 +117,7 @@ export default function ApprovedLeadsPage() {
   const sortedProjects = useMemo(() => {
     if (!projects) return [];
     // Sort projects by creation date on the client side
-    return [...projects].sort((a, b) => b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime());
+    return [...projects].sort((a, b) => (b.createdAt?.toDate()?.getTime() || 0) - (a.createdAt?.toDate()?.getTime() || 0));
   }, [projects]);
 
   const onTaskCreated = async (projectId: string) => {
@@ -106,6 +132,7 @@ export default function ApprovedLeadsPage() {
         title: 'Project Updated',
         description: 'Project status has been set to "In Progress".',
       });
+      fetchApprovedLeadsData(); // Re-fetch to update the UI
     } catch (error: any) {
       toast({
         variant: 'destructive',
@@ -115,6 +142,13 @@ export default function ApprovedLeadsPage() {
     }
   };
 
+  const getClientInfo = (project: Project) => {
+      if (project.userId.startsWith('unregistered_')) {
+          const email = project.userId.split('_')[1];
+          return { name: `Unregistered (${email})`, email: email };
+      }
+      return usersMap.get(project.userId) || { name: 'Unknown User', email: ''};
+  }
 
   return (
     <div className="p-4 sm:p-6 lg:p-8">
@@ -150,9 +184,10 @@ export default function ApprovedLeadsPage() {
               <TableBody>
                 {sortedProjects.map((project) => {
                   if (!project.id) return null;
-                  const client = usersMap.get(project.userId);
+                  const client = getClientInfo(project);
                   const assignedTask = assignedTasksMap.get(project.id);
                   const assignedWriter = assignedTask ? usersMap.get(assignedTask.assignedTo) : null;
+                  const isUnregistered = project.userId.startsWith('unregistered_');
                   return (
                     <TableRow key={project.id}>
                       <TableCell className="font-medium">
@@ -186,15 +221,20 @@ export default function ApprovedLeadsPage() {
                          )}
                        </TableCell>
                       <TableCell className="text-right">
-                        {!assignedTask && project.status === 'approved' ? (
-                            <AssignWriterDialog 
-                                project={project} 
-                                writers={writingTeam}
-                                onTaskCreated={() => onTaskCreated(project.id!)}
-                            >
-                                <Button size="sm">Assign</Button>
-                            </AssignWriterDialog>
-                        ) : null}
+                         <div className="flex justify-end items-center gap-2">
+                            {isUnregistered && (
+                               <CreateClientAccountDialog project={project} onAccountCreated={fetchApprovedLeadsData} />
+                            )}
+                            {!assignedTask && project.status === 'approved' && !isUnregistered ? (
+                                <AssignWriterDialog 
+                                    project={project} 
+                                    writers={writingTeam}
+                                    onTaskCreated={() => onTaskCreated(project.id!)}
+                                >
+                                    <Button size="sm">Assign</Button>
+                                </AssignWriterDialog>
+                            ) : null}
+                         </div>
                       </TableCell>
                     </TableRow>
                   )

@@ -19,7 +19,6 @@ import {
 } from '@/components/ui/table';
 import { format } from 'date-fns';
 import Link from 'next/link';
-import { CreateClientAccountDialog } from '@/components/referral-partner/create-client-account-dialog';
 
 interface ConvertedProject extends Project {
     clientName?: string;
@@ -147,8 +146,7 @@ export default function ConvertedLeadsPage() {
                                 <TableHead>Project Title</TableHead>
                                 <TableHead>Client</TableHead>
                                 <TableHead>Date Finalized</TableHead>
-                                <TableHead>Deal Value</TableHead>
-                                <TableHead className="text-right">Actions</TableHead>
+                                <TableHead className="text-right">Deal Value</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -163,13 +161,8 @@ export default function ConvertedLeadsPage() {
                                     <TableCell>
                                         {project.finalizedAt ? format(project.finalizedAt.toDate(), 'PPP') : 'N/A'}
                                     </TableCell>
-                                    <TableCell className="font-medium">
+                                    <TableCell className="text-right font-medium">
                                         {project.dealAmount?.toLocaleString('en-IN', { style: 'currency', currency: 'INR' }) || 'N/A'}
-                                    </TableCell>
-                                    <TableCell className="text-right">
-                                        {project.userId.startsWith('unregistered_') && (
-                                            <CreateClientAccountDialog project={project} onAccountCreated={fetchConvertedLeads}/>
-                                        )}
                                     </TableCell>
                                 </TableRow>
                             ))}
