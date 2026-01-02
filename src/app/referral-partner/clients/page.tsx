@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useMemo }from 'react';
+import { useMemo }from 'use-memo-one';
 import { useUser } from '@/firebase/auth/use-user';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoaderCircle, Users } from 'lucide-react';
@@ -44,16 +44,25 @@ export default function ReferredClientsPage() {
     return query(collection(firestore, 'contact_leads'), where('referredByPartnerId', '==', user.uid));
   }, [user, firestore]);
 
-  // 3. Find all projects to determine which users are "converted"
-  const projectsQuery = useMemo(() => {
-    if (!firestore) return null;
-    // We fetch all projects with a status beyond 'pending' to check for conversions.
-    return query(collection(firestore, 'projects'), where('status', 'in', ['approved', 'in-progress', 'completed']));
-  }, [firestore]);
-
-
   const { data: referredUsers, loading: referralsLoading } = useCollection<UserProfile>(referredUsersQuery);
   const { data: submittedLeads, loading: leadsLoading } = useCollection<ContactLead>(submittedLeadsQuery);
+
+  const referredUserIds = useMemo(() => {
+      if (!referredUsers) return [];
+      return referredUsers.map(u => u.uid);
+  }, [referredUsers]);
+
+  // 3. Find projects ONLY for the users this partner has referred
+  const projectsQuery = useMemo(() => {
+    if (!firestore || referredUserIds.length === 0) return null;
+    // We fetch all projects with a status beyond 'pending' to check for conversions.
+    return query(
+        collection(firestore, 'projects'), 
+        where('userId', 'in', referredUserIds),
+        where('status', 'in', ['approved', 'in-progress', 'completed'])
+    );
+  }, [firestore, referredUserIds]);
+
   const { data: projects, loading: projectsLoading } = useCollection<Project>(projectsQuery);
 
   const loading = userLoading || referralsLoading || leadsLoading || projectsLoading;
