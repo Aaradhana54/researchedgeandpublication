@@ -28,7 +28,7 @@ export default function ClientChatPage() {
   // 1. Find a sales manager
   const salesManagerQuery = useMemo(() => {
     if (!firestore) return null;
-    return query(collection(firestore, 'users'), where('role', '==', 'sales-manager'), orderBy('name'), limit(1));
+    return query(collection(firestore, 'users'), where('role', '==', 'sales-manager'), limit(1));
   }, [firestore]);
 
   const { data: managers, loading: managersLoading } = useCollection<UserProfile>(salesManagerQuery);
