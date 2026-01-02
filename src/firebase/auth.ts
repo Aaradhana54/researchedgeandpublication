@@ -14,7 +14,7 @@ import { doc, setDoc, serverTimestamp, getDoc, getFirestore, deleteDoc } from 'f
 import { auth, firestore } from './client';
 import type { UserProfile, UserRole } from '@/lib/types';
 import { errorEmitter } from './error-emitter';
-import { FirestorePermissionError } from './errors';
+import { FirestorePermissionError, getFirebaseErrorMessage } from './errors';
 import { getApp, initializeApp, deleteApp } from 'firebase/app';
 import { firebaseConfig } from './config';
 
@@ -151,6 +151,7 @@ export async function createUserAsAdmin(email: string, password: string, name: s
     return user;
   } catch (error: any) {
     console.error("Error creating user as admin:", error);
+    // Re-throw the error to be caught by the calling component
     throw error;
   } finally {
     // Sign out the user from the temporary instance before deleting the app
