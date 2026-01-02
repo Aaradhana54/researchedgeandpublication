@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import {
@@ -122,45 +123,53 @@ export async function createUserAsAdmin(email: string, password: string, name: s
   const secondaryApp = initializeApp(firebaseConfig, secondaryAppName);
   const secondaryAuth = getAuth(secondaryApp);
   const firestoreInstance = getFirestore(getApp());
-  const mainAuth = getAuth(getApp());
 
   try {
     const userCredential = await createUserWithEmailAndPassword(secondaryAuth, email, password);
     const user = userCredential.user;
     
-    // Create the user profile document in Firestore
+    const batch = writeBatch(firestoreInstance);
+
+    // 1. Create the user profile document in Firestore
     const userDocRef = doc(firestoreInstance, 'users', user.uid);
-    const dataToSet: any = {
+    const userProfileData: any = {
       uid: user.uid,
       name,
       email,
       role,
       createdAt: serverTimestamp(),
+      emailVerified: true, // User is created by admin, so we can consider email verified.
     };
     if (role === 'referral-partner') {
-       dataToSet.referralCode = user.uid.substring(0, 8);
+       userProfileData.referralCode = user.uid.substring(0, 8);
     }
-    await setDoc(userDocRef, dataToSet);
+    batch.set(userDocRef, userProfileData);
+    
+    // 2. Create the email document for the Trigger Email extension
+    const mailDocRef = doc(collection(firestoreInstance, "mail"));
+    const roleName = role.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase());
+    
+    batch.set(mailDocRef, {
+        to: [email],
+        template: {
+            name: 'admin-created-user',
+            data: {
+                name: name,
+                role: roleName,
+                // The password reset link will be automatically generated and added by the extension
+            }
+        }
+    });
 
-    // Send a password reset email so the user can set their password
-    await sendPasswordResetEmail(mainAuth, email);
+    await batch.commit();
 
     return user;
 
   } catch (error: any) {
     console.error("Error creating user as admin:", error);
-    // Attempt to clean up the created auth user if firestore write fails, though this is not guaranteed
-     if (secondaryAuth.currentUser) {
-       // This part of cleanup is tricky and might fail if the user was just created
-       // and the session isn't fully established.
-       console.log("Attempting cleanup of partially created user.");
-     }
-    throw error;
+    throw error; // Re-throw the error to be caught by the calling UI
   } finally {
     // Ensure the temporary app is always cleaned up
-    if (secondaryAuth.currentUser) {
-        await signOut(secondaryAuth);
-    }
     await deleteApp(secondaryApp);
   }
 }

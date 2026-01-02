@@ -198,7 +198,9 @@ service cloud.firestore {
     
     // Collection for sending emails via the "Trigger Email" extension
     match /mail/{docId} {
-        allow create: if isSalesTeam() || isAdmin(); // Only sales team and admins can trigger emails.
+        // Allow Admins to create email documents.
+        // This is used for sending custom welcome emails to new users.
+        allow create: if isAdmin();
         allow read, update, delete: if false; // No one can read/modify/delete emails from the client.
     }
     
