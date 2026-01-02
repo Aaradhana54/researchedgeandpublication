@@ -10,7 +10,7 @@ import {
   sendEmailVerification,
   sendPasswordResetEmail,
 } from 'firebase/auth';
-import { doc, setDoc, serverTimestamp, getDoc, getFirestore, deleteDoc } from 'firebase/firestore';
+import { doc, setDoc, serverTimestamp, getDoc, getFirestore, deleteDoc, collection, writeBatch } from 'firebase/firestore';
 import { auth, firestore } from './client';
 import type { UserProfile, UserRole } from '@/lib/types';
 import { errorEmitter } from './error-emitter';
@@ -128,7 +128,10 @@ export async function createUserAsAdmin(email: string, password: string, name: s
   try {
     const userCredential = await createUserWithEmailAndPassword(secondaryAuth, email, password);
     const user = userCredential.user;
+
+    const batch = writeBatch(firestoreInstance);
     
+    // 1. Create the user profile document
     const userDocRef = doc(firestoreInstance, 'users', user.uid);
     const dataToSet: any = {
       uid: user.uid,
@@ -137,24 +140,43 @@ export async function createUserAsAdmin(email: string, password: string, name: s
       role,
       createdAt: serverTimestamp(),
     };
-    
     if (role === 'referral-partner') {
        dataToSet.referralCode = user.uid.substring(0, 8);
     }
+    batch.set(userDocRef, dataToSet);
 
-    await setDoc(userDocRef, dataToSet);
+    // 2. Create the email document
+    const passwordResetLink = await mainAuth.generatePasswordResetLink(email);
+    const roleName = role.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase());
 
-    // Send a password reset email instead of a simple verification.
-    // This allows the user to set their own password and verifies their email in one step.
-    await sendPasswordResetEmail(mainAuth, email);
+    const emailContent = `
+        <h1>Welcome to the Team, ${name}!</h1>
+        <p>An account has been created for you on the Research Edge and Publication platform.</p>
+        <p><strong>Your assigned role is:</strong> ${roleName}</p>
+        <p>To get started, please set your password by clicking the link below:</p>
+        <p><a href="${passwordResetLink}">Set Your Password</a></p>
+        <p>After setting your password, you can log in to your portal.</p>
+        <p>Thank you,</p>
+        <p>The Research Edge and Publication Team</p>
+    `;
+
+    const mailRef = doc(collection(firestoreInstance, 'mail'));
+    batch.set(mailRef, {
+        to: [email],
+        message: {
+            subject: `Welcome! Your new ${roleName} account is ready.`,
+            html: emailContent,
+        },
+    });
+
+    await batch.commit();
 
     return user;
+
   } catch (error: any) {
     console.error("Error creating user as admin:", error);
-    // Re-throw the error to be caught by the calling component
     throw error;
   } finally {
-    // Sign out the user from the temporary instance before deleting the app
     if (secondaryAuth.currentUser) {
         await signOut(secondaryAuth);
     }
