@@ -188,7 +188,7 @@ export default function ProjectDetailPage() {
         switch(loggedInUser?.role) {
             case 'admin':
             case 'sales-manager':
-                return '/admin/projects';
+                return '/admin/leads';
             case 'sales-team':
                 return '/sales/projects';
             case 'writing-team':
