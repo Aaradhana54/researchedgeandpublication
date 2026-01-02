@@ -63,7 +63,7 @@ service cloud.firestore {
         let forbiddenKeys = [
             'dealAmount', 'advanceReceived', 'discussionNotes', 'paymentScreenshotUrl', 
             'finalDeadline', 'finalizedAt', 'finalizedBy', 'assignedWriterId', 'assignedSalesId',
-            'approvalEmailSent'
+            'rejectionReason', 'referredByPartnerId', 'approvalEmailSent'
         ];
         
         let isCreatingOwnProject = request.auth != null && request.auth.uid == data.userId;
@@ -198,9 +198,8 @@ service cloud.firestore {
     
     // Collection for sending emails via the "Trigger Email" extension
     match /mail/{docId} {
-        // Allow Admins to create email documents.
-        // This is used for sending custom welcome emails to new users.
-        allow create: if isAdmin();
+        // Allow Admins, Sales Team, and Sales Managers to create email documents.
+        allow create: if isAdmin() || isSalesTeam();
         allow read, update, delete: if false; // No one can read/modify/delete emails from the client.
     }
     
