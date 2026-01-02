@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useMemo, useState, useEffect } from 'react';
@@ -27,10 +28,15 @@ export default function CompletedTasksPage() {
   const [loadingTasks, setLoadingTasks] = useState(true);
   const [tasksError, setTasksError] = useState<Error | null>(null);
 
+  const projectIds = useMemo(() => {
+    if (!tasks || tasks.length === 0) return [];
+    return Array.from(new Set(tasks.map(t => t.projectId)));
+  }, [tasks]);
+
   const projectsQuery = useMemo(() => {
-    if (!firestore) return null;
-    return query(collection(firestore, 'projects'));
-  }, [firestore]);
+    if (!firestore || projectIds.length === 0) return null;
+    return query(collection(firestore, 'projects'), where('__name__', 'in', projectIds));
+  }, [firestore, projectIds]);
 
 
   const { data: projects, loading: loadingProjects } = useCollection<Project>(projectsQuery);
@@ -153,7 +159,7 @@ export default function CompletedTasksPage() {
                         {task.updatedAt ? format(task.updatedAt.toDate(), 'PPP') : 'Not set'}
                       </TableCell>
                        <TableCell className="text-right">
-                           <Link href={`/admin/projects/${task.projectId}`} className="text-primary hover:underline text-sm font-medium">View Project</Link>
+                           <Link href={`/writing/projects/${task.projectId}`} className="text-primary hover:underline text-sm font-medium">View Project</Link>
                       </TableCell>
                     </TableRow>
                   )

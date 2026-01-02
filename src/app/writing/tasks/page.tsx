@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useMemo, useState, useEffect } from 'react';
@@ -47,10 +48,16 @@ export default function MyTasksPage() {
   const [loadingTasks, setLoadingTasks] = useState(true);
   const [tasksError, setTasksError] = useState<Error | null>(null);
 
+  const projectIds = useMemo(() => {
+    if (!tasks || tasks.length === 0) return [];
+    return Array.from(new Set(tasks.map(t => t.projectId)));
+  }, [tasks]);
+
   const projectsQuery = useMemo(() => {
-    if (!firestore) return null;
-    return query(collection(firestore, 'projects'));
-  }, [firestore]);
+    if (!firestore || projectIds.length === 0) return null;
+    // Firestore 'in' query is limited to 30 items. If you expect more, pagination is needed.
+    return query(collection(firestore, 'projects'), where('__name__', 'in', projectIds));
+  }, [firestore, projectIds]);
 
 
   const { data: projects, loading: loadingProjects } = useCollection<Project>(projectsQuery);

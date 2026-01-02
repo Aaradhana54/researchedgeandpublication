@@ -40,7 +40,7 @@ export default function AssignedLeadsPage() {
 
   const usersQuery = useMemo(() => {
     if (!firestore) return null;
-    return query(collection(firestore, 'users'), where('role', 'in', ['client', 'sales-team']));
+    return query(collection(firestore, 'users'), where('role', 'in', ['client', 'sales-team', 'sales-manager']));
   }, [firestore]);
 
   const { data: projects, loading: loadingProjects } = useCollection<Project>(projectsQuery);
@@ -112,7 +112,7 @@ export default function AssignedLeadsPage() {
                   return (
                     <TableRow key={`${lead.leadType}-${lead.id}`}>
                       <TableCell className="font-medium">
-                        <Link href={`/sales-manager/projects/${lead.id}`} className="hover:underline text-primary">
+                        <Link href={`/sales-manager/leads/${lead.id}?type=${lead.leadType.toLowerCase()}`} className="hover:underline text-primary">
                           {(lead as Project).title || lead.clientName}
                         </Link>
                          <div className="text-sm text-muted-foreground">{lead.leadType === 'Project' ? lead.clientName : (lead as ContactLead).email}</div>
