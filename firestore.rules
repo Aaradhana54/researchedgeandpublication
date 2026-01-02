@@ -62,7 +62,8 @@ service cloud.firestore {
         // List of fields a client is NOT allowed to set on creation.
         let forbiddenKeys = [
             'dealAmount', 'advanceReceived', 'discussionNotes', 'paymentScreenshotUrl', 
-            'finalDeadline', 'finalizedAt', 'finalizedBy', 'assignedWriterId', 'assignedSalesId'
+            'finalDeadline', 'finalizedAt', 'finalizedBy', 'assignedWriterId', 'assignedSalesId',
+            'approvalEmailSent'
         ];
         
         let isCreatingOwnProject = request.auth != null && request.auth.uid == data.userId;
@@ -103,10 +104,13 @@ service cloud.firestore {
       
       // Admins, sales team can update any project. Owners can update their own.
       // Writers can update a project's status to 'completed'.
+      // Sales team can update the approvalEmailSent flag.
       allow update: if isOwner(resource.data.userId) || isAdmin() || isSalesTeam() ||
-                     (isWriterAssignedToProject(resource.data) && 
+                     (isWritingTeam() && 
                       request.resource.data.status == 'completed' &&
-                      request.resource.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt']));
+                      request.resource.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt'])) ||
+                     (isSalesTeam() && 
+                      request.resource.diff(resource.data).affectedKeys().hasOnly(['approvalEmailSent']));
       
       allow delete: if isOwner(resource.data.userId) || isAdmin();
       

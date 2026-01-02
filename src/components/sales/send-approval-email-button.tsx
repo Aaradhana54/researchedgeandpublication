@@ -3,9 +3,9 @@
 
 import { useState } from 'react';
 import { useFirestore } from '@/firebase';
-import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { addDoc, collection, doc, writeBatch, serverTimestamp } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
-import { Mail, LoaderCircle } from 'lucide-react';
+import { Mail, LoaderCircle, Check } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { Project, UserProfile } from '@/lib/types';
 import {
@@ -31,11 +31,11 @@ export function SendApprovalEmailButton({ project, client }: SendApprovalEmailBu
   const { toast } = useToast();
 
   const handleSendEmail = async () => {
-    if (!firestore || !client || !client.email) {
+    if (!firestore || !client || !client.email || !project.id) {
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: 'Client email is not available.',
+        description: 'Client email or project ID is not available.',
       });
       return;
     }
@@ -58,15 +58,24 @@ export function SendApprovalEmailButton({ project, client }: SendApprovalEmailBu
             <p>Our writing and research team will begin work shortly. You can monitor the status of your project from your client dashboard.</p>
             <p>Thank you for choosing Research Edge and Publication.</p>
         `;
+        
+        const batch = writeBatch(firestore);
 
-        const mailCollection = collection(firestore, 'mail');
-        await addDoc(mailCollection, {
-            to: client.email,
+        // 1. Create the email document
+        const mailRef = doc(collection(firestore, 'mail'));
+        batch.set(mailRef, {
+             to: client.email,
             message: {
                 subject: `Your Project "${project.title}" has been Approved!`,
                 html: emailContent,
             },
         });
+
+        // 2. Update the project to mark email as sent
+        const projectRef = doc(firestore, 'projects', project.id);
+        batch.update(projectRef, { approvalEmailSent: true });
+        
+        await batch.commit();
 
         toast({
             title: 'Email Queued',
@@ -84,6 +93,15 @@ export function SendApprovalEmailButton({ project, client }: SendApprovalEmailBu
         setLoading(false);
     }
   };
+
+  if (project.approvalEmailSent) {
+      return (
+          <Button variant="ghost" size="sm" disabled>
+              <Check className="mr-2 h-4 w-4" />
+              Mail Sent
+          </Button>
+      );
+  }
 
   return (
     <AlertDialog>

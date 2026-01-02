@@ -79,6 +79,7 @@ export interface Project {
   assignedSalesId?: string; // UID of the sales person
   rejectionReason?: string;
   referredByPartnerId?: string; // UID of the referral partner for leads converted without signup
+  approvalEmailSent?: boolean; // Tracks if the approval email has been sent
 }
 
 export interface ContactLead {
