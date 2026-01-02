@@ -18,6 +18,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import Link from 'next/link';
+import { SendApprovalEmailButton } from '@/components/sales/send-approval-email-button';
 
 const getProjectStatusVariant = (status?: string): 'default' | 'secondary' | 'destructive' | 'outline' => {
   switch (status) {
@@ -68,11 +69,16 @@ export default function ApprovedLeadsPage() {
             
             const newUsersMap = new Map<string, UserProfile>();
             if (userIds.size > 0) {
-                 const usersQuery = query(collection(firestore, 'users'), where('uid', 'in', Array.from(userIds)));
-                 const usersSnap = await getDocs(usersQuery);
-                 usersSnap.forEach(doc => {
-                     newUsersMap.set(doc.id, doc.data() as UserProfile);
-                 });
+                 // Firestore 'in' query supports up to 30 elements
+                 const userIdsArray = Array.from(userIds);
+                 for (let i = 0; i < userIdsArray.length; i += 30) {
+                    const chunk = userIdsArray.slice(i, i + 30);
+                    const usersQuery = query(collection(firestore, 'users'), where('uid', 'in', chunk));
+                    const usersSnap = await getDocs(usersQuery);
+                    usersSnap.forEach(doc => {
+                        newUsersMap.set(doc.id, doc.data() as UserProfile);
+                    });
+                 }
             }
             
             setProjects(fetchedProjects);
@@ -122,12 +128,13 @@ export default function ApprovedLeadsPage() {
                   <TableHead>Project Title</TableHead>
                   <TableHead>Client</TableHead>
                   <TableHead>Deal Value</TableHead>
-                  <TableHead>Advance Paid</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {sortedProjects.map((project) => {
+                  if (!project.id) return null;
                   const client = usersMap.get(project.userId);
                   return (
                     <TableRow key={project.id}>
@@ -144,12 +151,12 @@ export default function ApprovedLeadsPage() {
                         {project.dealAmount ? project.dealAmount.toLocaleString('en-IN', { style: 'currency', currency: 'INR' }) : 'N/A'}
                       </TableCell>
                        <TableCell>
-                        {project.advanceReceived ? project.advanceReceived.toLocaleString('en-IN', { style: 'currency', currency: 'INR' }) : 'N/A'}
-                      </TableCell>
-                       <TableCell>
                            <Badge variant={getProjectStatusVariant(project.status)} className="capitalize">
                             {project.status || 'Pending'}
                            </Badge>
+                       </TableCell>
+                       <TableCell className="text-right">
+                            <SendApprovalEmailButton project={project} client={client} />
                        </TableCell>
                     </TableRow>
                   )

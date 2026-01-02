@@ -18,6 +18,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import Link from 'next/link';
+import { SendApprovalEmailButton } from '@/components/sales/send-approval-email-button';
 
 const getProjectStatusVariant = (status?: string): 'default' | 'secondary' | 'destructive' | 'outline' => {
   switch (status) {
@@ -43,7 +44,7 @@ export default function ApprovedLeadsPage() {
     if (!firestore) return null;
     return query(
         collection(firestore, 'projects'), 
-        where('status', '==', 'approved')
+        where('status', 'in', ['approved', 'in-progress', 'completed'])
     );
   }, [firestore]);
   
@@ -64,7 +65,11 @@ export default function ApprovedLeadsPage() {
   const sortedProjects = useMemo(() => {
     if (!projects) return [];
     // Sort projects by creation date on the client side
-    return [...projects].sort((a, b) => b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime());
+    return [...projects].sort((a, b) => {
+        if (!a.finalizedAt) return 1;
+        if (!b.finalizedAt) return -1;
+        return b.finalizedAt.toDate().getTime() - a.finalizedAt.toDate().getTime()
+    });
   }, [projects]);
 
   return (
@@ -92,17 +97,18 @@ export default function ApprovedLeadsPage() {
                   <TableHead>Project Title</TableHead>
                   <TableHead>Client</TableHead>
                   <TableHead>Deal Value</TableHead>
-                  <TableHead>Advance Paid</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {sortedProjects.map((project) => {
+                  if (!project.id) return null;
                   const client = usersMap.get(project.userId);
                   return (
                     <TableRow key={project.id}>
                       <TableCell className="font-medium">
-                        <Link href={`/admin/projects/${project.id}`} className="hover:underline text-primary">
+                        <Link href={`/sales-manager/leads/${project.id}?type=project`} className="hover:underline text-primary">
                           {project.title}
                         </Link>
                       </TableCell>
@@ -114,12 +120,12 @@ export default function ApprovedLeadsPage() {
                         {project.dealAmount ? project.dealAmount.toLocaleString('en-IN', { style: 'currency', currency: 'INR' }) : 'N/A'}
                       </TableCell>
                        <TableCell>
-                        {project.advanceReceived ? project.advanceReceived.toLocaleString('en-IN', { style: 'currency', currency: 'INR' }) : 'N/A'}
-                      </TableCell>
-                       <TableCell>
                            <Badge variant={getProjectStatusVariant(project.status)} className="capitalize">
                             {project.status || 'Pending'}
                            </Badge>
+                       </TableCell>
+                       <TableCell className="text-right">
+                            <SendApprovalEmailButton project={project} client={client} />
                        </TableCell>
                     </TableRow>
                   )
