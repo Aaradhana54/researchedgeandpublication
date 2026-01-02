@@ -3,7 +3,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { collection, query, orderBy } from 'firebase/firestore';
+import { collection, query, orderBy, where } from 'firebase/firestore';
 import { useCollection, useFirestore } from '@/firebase';
 import type { Project, UserProfile, ContactLead } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -212,14 +212,28 @@ export default function AllLeadsPage() {
     if (!firestore) return null;
     return query(collection(firestore, 'contact_leads'), orderBy('createdAt', 'desc'));
   }, [firestore]);
-
-  const usersQuery = useMemo(() => {
-    if (!firestore) return null;
-    return query(collection(firestore, 'users'), where('role', 'in', ['client', 'referral-partner']));
-  }, [firestore]);
-
+  
   const { data: projects, loading: loadingProjects } = useCollection<Project>(projectsQuery);
   const { data: contactLeads, loading: loadingContactLeads } = useCollection<ContactLead>(contactLeadsQuery);
+
+  const userIds = useMemo(() => {
+      const ids = new Set<string>();
+      projects?.forEach(p => ids.add(p.userId));
+      contactLeads?.forEach(l => {
+        if(l.referredByPartnerId) ids.add(l.referredByPartnerId);
+      });
+      return Array.from(ids);
+  }, [projects, contactLeads]);
+
+  const usersQuery = useMemo(() => {
+    if (!firestore || userIds.length === 0) return null;
+    // Chunk the userIds array to avoid hitting Firestore's 30-item limit for 'in' queries
+    if (userIds.length > 10) {
+      console.warn("Large number of users to fetch, this might become slow. Consider pagination or optimizing queries.");
+    }
+    return query(collection(firestore, 'users'), where('__name__', 'in', userIds));
+  }, [firestore, userIds]);
+
   const { data: users, loading: loadingUsers } = useCollection<UserProfile>(usersQuery);
 
   const loading = loadingProjects || loadingUsers || loadingContactLeads;
