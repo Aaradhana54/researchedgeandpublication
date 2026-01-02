@@ -125,12 +125,11 @@ export async function createUserAsAdmin(email: string, password: string, name: s
   const firestoreInstance = getFirestore(getApp());
 
   try {
+    // Step 1: Create the user in a separate auth instance
     const userCredential = await createUserWithEmailAndPassword(secondaryAuth, email, password);
     const user = userCredential.user;
     
-    const batch = writeBatch(firestoreInstance);
-
-    // 1. Create the user profile document in Firestore
+    // Step 2: Create the user profile document in Firestore
     const userDocRef = doc(firestoreInstance, 'users', user.uid);
     const userProfileData: any = {
       uid: user.uid,
@@ -138,30 +137,16 @@ export async function createUserAsAdmin(email: string, password: string, name: s
       email,
       role,
       createdAt: serverTimestamp(),
-      emailVerified: true, // User is created by admin, so we can consider email verified.
+      emailVerified: true, // User is created by admin, we can consider email verified
     };
     if (role === 'referral-partner') {
        userProfileData.referralCode = user.uid.substring(0, 8);
     }
-    batch.set(userDocRef, userProfileData);
+    await setDoc(userDocRef, userProfileData);
     
-    // 2. Create the email document for the Trigger Email extension
-    const mailDocRef = doc(collection(firestoreInstance, "mail"));
-    const roleName = role.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase());
-    
-    batch.set(mailDocRef, {
-        to: [email],
-        template: {
-            name: 'admin-created-user',
-            data: {
-                name: name,
-                role: roleName,
-                uid: user.uid, // Provide the UID for the password reset link
-            }
-        }
-    });
-
-    await batch.commit();
+    // Step 3: Use the main auth instance to send a password reset email
+    const mainAuth = getAuth(getApp());
+    await sendPasswordResetEmail(mainAuth, email);
 
     return user;
 
