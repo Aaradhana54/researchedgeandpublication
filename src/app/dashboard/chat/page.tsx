@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect, useMemo, useRef } from 'react';
@@ -34,13 +35,13 @@ export default function ClientChatPage() {
 
   // 2. Once we have a manager, find or create the chat
   useEffect(() => {
-    if (userLoading || managersLoading || !user || !managers) return;
+    if (userLoading || managersLoading || !user) return;
     
-    const manager = managers[0];
-    if (!manager) {
+    if (!managers || managers.length === 0) {
         setLoading(false);
         return;
     }
+    const manager = managers[0];
     setSalesManager(manager);
 
     const generatedChatId = [user.uid, manager.uid].sort().join('_');

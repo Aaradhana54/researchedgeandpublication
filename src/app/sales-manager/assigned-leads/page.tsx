@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useMemo } from 'react';
@@ -39,7 +40,7 @@ export default function AssignedLeadsPage() {
 
   const usersQuery = useMemo(() => {
     if (!firestore) return null;
-    return query(collection(firestore, 'users'));
+    return query(collection(firestore, 'users'), where('role', 'in', ['client', 'sales-team']));
   }, [firestore]);
 
   const { data: projects, loading: loadingProjects } = useCollection<Project>(projectsQuery);
