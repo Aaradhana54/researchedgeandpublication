@@ -78,15 +78,14 @@ export function ConvertLeadDialog({ children, contactLead, onLeadConverted }: { 
 
         // 1. Create a new project document
         const projectsCollectionRef = collection(firestore, 'projects');
-        const newProjectRef = doc(projectsCollectionRef); // Create a new doc ref to get the ID
+        const newProjectRef = doc(projectsCollectionRef);
 
         const projectData: any = {
-          // Use a special ID format for unregistered users, to be handled by a backend function
           userId: `unregistered_${contactLead.email}`,
           title: data.title,
           mobile: contactLead.phone,
           serviceType: contactLead.serviceType,
-          status: 'approved', // The lead is converted directly to an approved project
+          status: 'approved',
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp(),
           dealAmount: data.dealAmount,
@@ -97,7 +96,7 @@ export function ConvertLeadDialog({ children, contactLead, onLeadConverted }: { 
           finalizedBy: user.uid,
           assignedSalesId: contactLead.assignedSalesId,
           referredByPartnerId: contactLead.referredByPartnerId || null,
-          approvalEmailSent: true, // Mark email as sent
+          approvalEmailSent: false, // Set to false, email will be sent manually
         };
         batch.set(newProjectRef, projectData);
         
@@ -107,27 +106,11 @@ export function ConvertLeadDialog({ children, contactLead, onLeadConverted }: { 
             status: 'converted'
         });
 
-        // 3. Prepare email document for Trigger Email extension
-        const mailCollectionRef = collection(firestore, 'mail');
-        const emailDocRef = doc(mailCollectionRef);
-        batch.set(emailDocRef, {
-            to: [contactLead.email], // Ensure 'to' is an array
-            message: {
-                subject: `Your Project "${data.title}" has been Approved!`,
-                html: `
-                    <h1>Congratulations!</h1>
-                    <p>We are excited to let you know that your inquiry has been converted into a project: <strong>${data.title}</strong>. It has been officially approved and finalized by our team.</p>
-                    <p>Our team will begin work shortly. You will receive further instructions on how to create your client account to track the project's progress.</p>
-                    <p>Thank you for choosing Research Edge and Publication.</p>
-                `,
-            }
-        });
-
         await batch.commit();
         
         toast({
             title: 'Lead Converted!',
-            description: 'The lead has been converted to an approved project and a notification has been sent.',
+            description: 'The lead has been converted to an approved project.',
         });
         
         onLeadConverted();
@@ -136,7 +119,7 @@ export function ConvertLeadDialog({ children, contactLead, onLeadConverted }: { 
     } catch (err: any) {
          if (err.code === 'permission-denied') {
           const permissionError = new FirestorePermissionError({
-            path: `projects / contact_leads / mail`,
+            path: `projects or contact_leads`,
             operation: 'write',
             requestResourceData: "redacted_for_brevity",
           }, err);
