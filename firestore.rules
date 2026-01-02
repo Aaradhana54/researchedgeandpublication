@@ -48,10 +48,13 @@ service cloud.firestore {
        return isWritingTeam() && request.auth.uid == project.assignedWriterId;
     }
 
-    function isAllowedToCreateOwnProfile() {
-      return request.auth != null && 
-             request.auth.uid == request.resource.data.uid &&
-             (request.resource.data.role == 'client' || request.resource.data.role == 'referral-partner');
+    function isAllowedToCreateOwnProfile(userId) {
+      let isCreatingOwnDoc = request.auth != null && request.auth.uid == userId;
+      let data = request.resource.data;
+      let isValidRole = data.role == 'client' || data.role == 'referral-partner';
+      let uidMatches = data.uid == request.auth.uid;
+
+      return isCreatingOwnDoc && isValidRole && uidMatches;
     }
     
     function isClientCreatingOwnProject() {
@@ -72,7 +75,7 @@ service cloud.firestore {
     match /users/{userId} {
       // New users can create their own profile with 'client' or 'referral-partner' role.
       // Admins can create any user with any role.
-      allow create: if isAllowedToCreateOwnProfile() || isAdmin();
+      allow create: if isAllowedToCreateOwnProfile(userId) || isAdmin();
 
       // Users can read their own profile. Admins can read any profile.
       // Referral partners can read profiles of clients they referred.
