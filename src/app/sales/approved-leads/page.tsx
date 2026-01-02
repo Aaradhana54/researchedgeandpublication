@@ -1,8 +1,8 @@
 
 'use client';
 
-import { useMemo } from 'react';
-import { collection, query, where } from 'firebase/firestore';
+import { useMemo, useState, useEffect } from 'react';
+import { collection, query, where, getDocs, type Query, type DocumentData } from 'firebase/firestore';
 import { useCollection, useFirestore } from '@/firebase';
 import type { Project, UserProfile } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -38,6 +38,8 @@ const getProjectStatusVariant = (status?: string): 'default' | 'secondary' | 'de
 
 export default function ApprovedLeadsPage() {
   const firestore = useFirestore();
+  const [usersMap, setUsersMap] = useState<Map<string, UserProfile>>(new Map());
+  const [loadingUsers, setLoadingUsers] = useState(true);
 
   const projectsQuery = useMemo(() => {
     if (!firestore) return null;
@@ -47,23 +49,47 @@ export default function ApprovedLeadsPage() {
     );
   }, [firestore]);
   
-  const usersQuery = useMemo(() => {
-    if (!firestore) return null;
-    return query(collection(firestore, 'users'));
-  }, [firestore]);
-
   const { data: projects, loading: loadingProjects } = useCollection<Project>(projectsQuery);
-  const { data: users, loading: loadingUsers } = useCollection<UserProfile>(usersQuery);
-  const loading = loadingProjects || loadingUsers;
 
-  const usersMap = useMemo(() => {
-    if (!users) return new Map();
-    return new Map(users.map((user) => [user.uid, user]));
-  }, [users]);
+  useEffect(() => {
+    if (!firestore || !projects || projects.length === 0) {
+      if (!loadingProjects) setLoadingUsers(false);
+      return;
+    }
+
+    const fetchUsers = async () => {
+      setLoadingUsers(true);
+      const userIds = Array.from(new Set(projects.map(p => p.userId).filter(Boolean)));
+      const newUsersMap = new Map<string, UserProfile>();
+      
+      if (userIds.length > 0) {
+        // Fetch users in chunks of 10 to satisfy Firestore 'in' query limit
+        const chunks = [];
+        for (let i = 0; i < userIds.length; i += 10) {
+            chunks.push(userIds.slice(i, i + 10));
+        }
+
+        for (const chunk of chunks) {
+            const usersQuery = query(collection(firestore, 'users'), where('uid', 'in', chunk));
+            const querySnapshot = await getDocs(usersQuery);
+            querySnapshot.forEach(doc => {
+                newUsersMap.set(doc.id, doc.data() as UserProfile);
+            });
+        }
+      }
+      setUsersMap(newUsersMap);
+      setLoadingUsers(false);
+    };
+
+    fetchUsers();
+
+  }, [firestore, projects, loadingProjects]);
+
+
+  const loading = loadingProjects || loadingUsers;
   
   const sortedProjects = useMemo(() => {
     if (!projects) return [];
-    // Sort projects by creation date on the client side
     return [...projects].sort((a, b) => b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime());
   }, [projects]);
 
