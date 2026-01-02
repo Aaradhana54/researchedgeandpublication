@@ -2,8 +2,8 @@
 'use client';
 
 import { useMemo, useState, useEffect } from 'react';
-import { collection, query, where, getDocs, type Query, type DocumentData } from 'firebase/firestore';
-import { useCollection, useFirestore } from '@/firebase';
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import { useFirestore, useUser } from '@/firebase';
 import type { Project, UserProfile } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoaderCircle, CheckCircle } from 'lucide-react';
@@ -38,72 +38,76 @@ const getProjectStatusVariant = (status?: string): 'default' | 'secondary' | 'de
 
 export default function ApprovedLeadsPage() {
   const firestore = useFirestore();
-  const [usersMap, setUsersMap] = useState<Map<string, UserProfile>>(new Map());
-  const [loadingUsers, setLoadingUsers] = useState(true);
+  const { user, loading: userLoading } = useUser();
 
-  const projectsQuery = useMemo(() => {
-    if (!firestore) return null;
-    return query(
-        collection(firestore, 'projects'), 
-        where('status', '==', 'approved')
-    );
-  }, [firestore]);
-  
-  const { data: projects, loading: loadingProjects } = useCollection<Project>(projectsQuery);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [usersMap, setUsersMap] = useState<Map<string, UserProfile>>(new Map());
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!firestore || !projects || projects.length === 0) {
-      if (!loadingProjects) setLoadingUsers(false);
-      return;
+    if (userLoading || !firestore || !user) {
+        if (!userLoading) setLoading(false);
+        return;
     }
 
-    const fetchUsers = async () => {
-      setLoadingUsers(true);
-      const userIds = Array.from(new Set(projects.map(p => p.userId).filter(Boolean)));
-      const newUsersMap = new Map<string, UserProfile>();
-      
-      if (userIds.length > 0) {
-        // Fetch users in chunks of 10 to satisfy Firestore 'in' query limit
-        const chunks = [];
-        for (let i = 0; i < userIds.length; i += 10) {
-            chunks.push(userIds.slice(i, i + 10));
-        }
+    const fetchApprovedLeads = async () => {
+        setLoading(true);
+        try {
+            const projectsQuery = query(
+                collection(firestore, 'projects'),
+                where('finalizedBy', '==', user.uid),
+                where('status', 'in', ['approved', 'in-progress', 'completed'])
+            );
+            const projectsSnap = await getDocs(projectsQuery);
+            const fetchedProjects = projectsSnap.docs.map(doc => ({...doc.data() as Project, id: doc.id}));
 
-        for (const chunk of chunks) {
-            const usersQuery = query(collection(firestore, 'users'), where('uid', 'in', chunk));
-            const querySnapshot = await getDocs(usersQuery);
-            querySnapshot.forEach(doc => {
-                newUsersMap.set(doc.id, doc.data() as UserProfile);
+            const userIds = new Set<string>();
+            fetchedProjects.forEach(p => {
+                if(p.userId) userIds.add(p.userId);
             });
+            
+            const newUsersMap = new Map<string, UserProfile>();
+            if (userIds.size > 0) {
+                 const usersQuery = query(collection(firestore, 'users'), where('uid', 'in', Array.from(userIds)));
+                 const usersSnap = await getDocs(usersQuery);
+                 usersSnap.forEach(doc => {
+                     newUsersMap.set(doc.id, doc.data() as UserProfile);
+                 });
+            }
+            
+            setProjects(fetchedProjects);
+            setUsersMap(newUsersMap);
+
+        } catch (error) {
+            console.error("Error fetching approved leads:", error);
+        } finally {
+            setLoading(false);
         }
-      }
-      setUsersMap(newUsersMap);
-      setLoadingUsers(false);
-    };
+    }
 
-    fetchUsers();
+    fetchApprovedLeads();
+  }, [firestore, user, userLoading]);
 
-  }, [firestore, projects, loadingProjects]);
-
-
-  const loading = loadingProjects || loadingUsers;
-  
   const sortedProjects = useMemo(() => {
     if (!projects) return [];
-    return [...projects].sort((a, b) => b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime());
+    return [...projects].sort((a, b) => {
+        if (!a.finalizedAt) return 1;
+        if (!b.finalizedAt) return -1;
+        return b.finalizedAt.toDate().getTime() - a.finalizedAt.toDate().getTime()
+    });
   }, [projects]);
 
   return (
     <div className="p-4 sm:p-6 lg:p-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight">Approved Leads</h1>
-        <p className="text-muted-foreground">Monitor projects that have been approved.</p>
+        <h1 className="text-3xl font-bold tracking-tight">Your Approved Leads</h1>
+        <p className="text-muted-foreground">Monitor projects that you have successfully finalized.</p>
       </div>
       <Card>
         <CardHeader>
-          <CardTitle>Approved Projects</CardTitle>
+          <CardTitle>Finalized Projects</CardTitle>
           <CardDescription>
-            These are the deals that have been finalized and are ready for the next stage.
+            These are the deals that you have finalized and are ready for the next stage.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -128,7 +132,7 @@ export default function ApprovedLeadsPage() {
                   return (
                     <TableRow key={project.id}>
                       <TableCell className="font-medium">
-                        <Link href={`/admin/projects/${project.id}`} className="hover:underline text-primary">
+                        <Link href={`/sales/projects/${project.id}`} className="hover:underline text-primary">
                           {project.title}
                         </Link>
                       </TableCell>
@@ -156,7 +160,7 @@ export default function ApprovedLeadsPage() {
             <div className="text-center p-12 text-muted-foreground">
                 <CheckCircle className="mx-auto w-12 h-12 mb-4" />
                 <h3 className="text-lg font-semibold">No Approved Leads</h3>
-                <p>There are currently no projects with an 'approved' status.</p>
+                <p>You have not finalized any deals yet.</p>
             </div>
           )}
         </CardContent>
