@@ -76,6 +76,7 @@ export interface Project {
   finalizedAt?: Timestamp;
   finalizedBy?: string; // UID of the sales person
   assignedWriterId?: string; // UID of the writer
+  assignedSalesId?: string; // UID of the sales person
   rejectionReason?: string;
   referredByPartnerId?: string; // UID of the referral partner for leads converted without signup
 }
@@ -177,4 +178,19 @@ export interface Feedback {
   status: FeedbackStatus;
   createdAt: Timestamp;
 }
-    
+
+export interface Chat {
+    id?: string;
+    participants: string[];
+    participantNames: { [key: string]: string };
+    lastMessage?: string;
+    lastMessageAt?: Timestamp;
+    lastMessageSenderId?: string;
+}
+
+export interface ChatMessage {
+    id?: string;
+    senderId: string;
+    text: string;
+    createdAt: Timestamp;
+}
