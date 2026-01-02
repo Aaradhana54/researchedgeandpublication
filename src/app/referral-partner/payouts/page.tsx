@@ -1,12 +1,12 @@
 
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useUser } from '@/firebase/auth/use-user';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoaderCircle, Banknote, Receipt } from 'lucide-react';
 import { useCollection, useFirestore } from '@/firebase';
-import { collection, query, where, orderBy } from 'firebase/firestore';
+import { collection, query, where, orderBy, getDocs } from 'firebase/firestore';
 import type { Payout, Project, UserProfile } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { RequestPayoutDialog } from '@/components/referral-partner/request-payout-dialog';
@@ -26,11 +26,12 @@ const COMMISSION_PER_PROJECT = 5000;
 export default function PayoutsPage() {
   const { user, loading: userLoading } = useUser();
   const firestore = useFirestore();
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [loadingProjects, setLoadingProjects] = useState(true);
 
   // Get all payouts for the current partner
   const payoutsQuery = useMemo(() => {
     if (!user || !firestore) return null;
-    // Remove orderBy from the query to avoid needing a composite index
     return query(collection(firestore, 'payouts'), where('userId', '==', user.uid));
   }, [user, firestore]);
 
@@ -41,34 +42,53 @@ export default function PayoutsPage() {
     if (!payouts) return [];
     return [...payouts].sort((a, b) => b.requestDate.toDate().getTime() - a.requestDate.toDate().getTime());
   }, [payouts]);
+  
+  useEffect(() => {
+      if (!user || !firestore || !user.referralCode) {
+          if (!userLoading) setLoadingProjects(false);
+          return;
+      }
+      
+      const fetchProjectsForCommission = async () => {
+          setLoadingProjects(true);
+          try {
+              // Get all users referred by the partner
+              const referredUsersQuery = query(collection(firestore, 'users'), where('referredBy', '==', user.referralCode));
+              const usersSnapshot = await getDocs(referredUsersQuery);
+              const userIds = usersSnapshot.docs.map(doc => doc.id);
 
-  // Find all users referred by the current partner
-  const referredUsersQuery = useMemo(() => {
-    if (!user || !firestore || !user.referralCode) return null;
-    return query(collection(firestore, 'users'), where('referredBy', '==', user.referralCode));
-  }, [user, firestore]);
+              if (userIds.length === 0) {
+                  setProjects([]);
+                  setLoadingProjects(false);
+                  return;
+              }
+              
+              // Get all projects for those referred users
+              const projectsQuery = query(
+                  collection(firestore, 'projects'), 
+                  where('userId', 'in', userIds),
+                  where('status', 'in', ['approved', 'in-progress', 'completed'])
+              );
+              const projectsSnapshot = await getDocs(projectsQuery);
+              const fetchedProjects = projectsSnapshot.docs.map(doc => doc.data() as Project);
+              setProjects(fetchedProjects);
 
-  const { data: referredUsers, loading: referralsLoading } = useCollection<UserProfile>(referredUsersQuery);
+          } catch (e) {
+              console.error("Error fetching projects for commission:", e);
+          } finally {
+              setLoadingProjects(false);
+          }
+      };
 
-  // Get the IDs of the referred users
-  const referredUserIds = useMemo(() => {
-    if (!referredUsers || referredUsers.length === 0) return [];
-    return referredUsers.map(u => u.uid);
-  }, [referredUsers]);
+      fetchProjectsForCommission();
 
-  // Find all projects created by those referred users
-  const projectsOfReferredUsersQuery = useMemo(() => {
-    if (!firestore || referredUserIds.length === 0) return null;
-    return query(collection(firestore, 'projects'), where('userId', 'in', referredUserIds));
-  }, [firestore, referredUserIds]);
+  }, [user, firestore, userLoading]);
 
-  const { data: projects, loading: projectsLoading } = useCollection<Project>(projectsOfReferredUsersQuery);
-
-  const loading = userLoading || payoutsLoading || projectsLoading || referralsLoading;
+  const loading = userLoading || payoutsLoading || loadingProjects;
 
   // Calculate commission based on fetched data
   const availableCommission = useMemo(() => {
-    const commissionableProjects = projects?.filter(p => p.status === 'approved' || p.status === 'in-progress' || p.status === 'completed').length ?? 0;
+    const commissionableProjects = projects?.length ?? 0;
     const totalCommissionEarned = commissionableProjects * COMMISSION_PER_PROJECT;
     const totalPaidOut = payouts?.filter(p => p.status === 'paid').reduce((acc, p) => acc + p.amount, 0) ?? 0;
     return totalCommissionEarned - totalPaidOut;
