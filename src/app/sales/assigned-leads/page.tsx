@@ -2,7 +2,7 @@
 'use client';
 
 import { useMemo, useState, useEffect } from 'react';
-import { collection, query, where, getDocs, type Query, type DocumentData } from 'firebase/firestore';
+import { collection, query, where, getDocs, Query, DocumentData } from 'firebase/firestore';
 import { useFirestore, useUser } from '@/firebase';
 import type { Project, UserProfile, ContactLead } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -209,7 +209,7 @@ export default function AssignedLeadsPage() {
         const fetchAllData = async () => {
             setLoading(true);
             try {
-                // Fetch assigned projects
+                // Fetch assigned projects that are pending
                 const projectsQuery = query(
                     collection(firestore, 'projects'),
                     where('assignedSalesId', '==', user.uid),
@@ -219,7 +219,7 @@ export default function AssignedLeadsPage() {
                 const fetchedProjects = projectsSnap.docs.map(doc => ({...doc.data() as Project, id: doc.id}));
                 setProjects(fetchedProjects);
 
-                // Fetch assigned contact leads
+                // Fetch assigned contact leads that are new
                 const contactLeadsQuery = query(
                     collection(firestore, 'contact_leads'),
                     where('assignedSalesId', '==', user.uid),
@@ -231,7 +231,11 @@ export default function AssignedLeadsPage() {
 
                 // Gather all unique user IDs needed for client/partner names
                 const userIds = new Set<string>();
-                fetchedProjects.forEach(p => userIds.add(p.userId));
+                fetchedProjects.forEach(p => {
+                    if (!p.userId.startsWith('unregistered_')) {
+                        userIds.add(p.userId);
+                    }
+                });
                 fetchedContactLeads.forEach(l => {
                     if (l.referredByPartnerId) userIds.add(l.referredByPartnerId);
                 });
@@ -239,17 +243,21 @@ export default function AssignedLeadsPage() {
                 // Fetch user profiles if there are any IDs to fetch
                 const newUsersMap = new Map<string, UserProfile>();
                 if (userIds.size > 0) {
-                     const usersQuery = query(collection(firestore, 'users'), where('uid', 'in', Array.from(userIds)));
-                     const usersSnap = await getDocs(usersQuery);
-                     usersSnap.forEach(doc => {
-                         newUsersMap.set(doc.id, doc.data() as UserProfile);
-                     });
+                     const userIdsArray = Array.from(userIds);
+                     // Firestore 'in' query supports up to 30 elements
+                     for (let i = 0; i < userIdsArray.length; i += 30) {
+                        const chunk = userIdsArray.slice(i, i + 30);
+                        const usersQuery = query(collection(firestore, 'users'), where('uid', 'in', chunk));
+                        const usersSnap = await getDocs(usersQuery);
+                        usersSnap.forEach(doc => {
+                           newUsersMap.set(doc.id, doc.data() as UserProfile);
+                        });
+                     }
                 }
                 setUsersMap(newUsersMap);
 
             } catch (error) {
                 console.error("Error fetching assigned leads data:", error);
-                // Optionally set an error state here to show in the UI
             } finally {
                 setLoading(false);
             }
@@ -276,7 +284,7 @@ export default function AssignedLeadsPage() {
                 <CardHeader>
                     <CardTitle>Your Active Leads</CardTitle>
                     <CardDescription>
-                        This is a list of all pending leads assigned to you. Approved leads will be removed from this list.
+                        This is a list of all pending leads assigned to you. Approved or rejected leads will be removed from this list.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -323,5 +331,3 @@ export default function AssignedLeadsPage() {
         </div>
     );
 }
-
-    
