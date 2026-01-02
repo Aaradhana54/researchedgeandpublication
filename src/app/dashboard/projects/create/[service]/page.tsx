@@ -23,7 +23,6 @@ import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { Progress } from '@/components/ui/progress';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
-import { assignLeadToSalesPerson } from '@/firebase/utils';
 
 
 const serviceDisplayNames: Record<ProjectServiceType, string> = {
@@ -87,7 +86,6 @@ export default function CreateProjectPage() {
     
     const processFormSubmission = async (synopsisUrl = '') => {
         try {
-            const assignedSalesId = await assignLeadToSalesPerson(firestore);
             const dataToSave: any = {
               userId: user.uid,
               title: rawFormData.title as string,
@@ -95,7 +93,7 @@ export default function CreateProjectPage() {
               status: 'pending',
               createdAt: serverTimestamp(),
               updatedAt: serverTimestamp(),
-              assignedSalesId: assignedSalesId,
+              assignedSalesId: null,
               synopsisFileUrl: synopsisUrl,
               mobile: (rawFormData.mobile as string) || null,
               topic: (rawFormData.topic as string) || null,

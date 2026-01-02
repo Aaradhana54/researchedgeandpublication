@@ -16,7 +16,6 @@ import { useToast } from '@/hooks/use-toast';
 import { LoaderCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { assignLeadToSalesPerson } from '@/firebase/utils';
 
 const services = [
   'Thesis & Dissertation Writing',
@@ -50,8 +49,6 @@ export function Contact() {
     try {
       const formData = new FormData(event.currentTarget);
       
-      const assignedSalesId = await assignLeadToSalesPerson(firestore);
-      
       const data = {
         name: formData.get('name') as string,
         email: formData.get('email') as string,
@@ -60,7 +57,7 @@ export function Contact() {
         message: formData.get('message') as string,
         status: 'new',
         createdAt: serverTimestamp(),
-        assignedSalesId: assignedSalesId, 
+        assignedSalesId: null, 
       };
 
       if (!data.name || !data.email || !data.phone) {

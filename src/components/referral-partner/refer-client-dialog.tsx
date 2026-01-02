@@ -25,7 +25,6 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { useFirestore, useUser } from '@/firebase';
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { assignLeadToSalesPerson } from '@/firebase/utils';
 
 const services = [
   'Thesis & Dissertation Writing',
@@ -75,14 +74,13 @@ export function ReferClientDialog({ children }: { children: React.ReactNode }) {
     setError(null);
 
     try {
-      const assignedSalesId = await assignLeadToSalesPerson(firestore);
       const leadsCollection = collection(firestore, 'contact_leads');
       await addDoc(leadsCollection, {
         ...data,
         referredByPartnerId: partnerUser.uid,
         status: 'new',
         createdAt: serverTimestamp(),
-        assignedSalesId: assignedSalesId,
+        assignedSalesId: null,
       });
 
       toast({
