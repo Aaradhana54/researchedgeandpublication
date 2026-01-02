@@ -8,7 +8,7 @@ import {
   getDocs,
   doc,
   getDoc,
-  updateDoc,
+  setDoc,
   type Firestore,
 } from 'firebase/firestore';
 
@@ -45,7 +45,8 @@ export async function assignLeadToSalesPerson(firestore: Firestore): Promise<str
     const nextIndex = (lastIndex + 1) % salesTeam.length;
     const assignedSalesPerson = salesTeam[nextIndex];
 
-    await updateDoc(metadataRef, { salesLeadIndex: nextIndex });
+    // Use setDoc with merge:true to create the document if it doesn't exist, or update it if it does.
+    await setDoc(metadataRef, { salesLeadIndex: nextIndex }, { merge: true });
 
     return assignedSalesPerson.uid;
   } catch (error) {
