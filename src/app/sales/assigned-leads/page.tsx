@@ -232,7 +232,7 @@ export default function AssignedLeadsPage() {
                 // Gather all unique user IDs needed for client/partner names
                 const userIds = new Set<string>();
                 fetchedProjects.forEach(p => {
-                    if (!p.userId.startsWith('unregistered_')) {
+                    if (p.userId && !p.userId.startsWith('unregistered_')) {
                         userIds.add(p.userId);
                     }
                 });
@@ -244,7 +244,7 @@ export default function AssignedLeadsPage() {
                 const newUsersMap = new Map<string, UserProfile>();
                 if (userIds.size > 0) {
                      const userIdsArray = Array.from(userIds);
-                     // Firestore 'in' query supports up to 30 elements
+                     // Firestore 'in' query supports up to 30 elements at a time
                      for (let i = 0; i < userIdsArray.length; i += 30) {
                         const chunk = userIdsArray.slice(i, i + 30);
                         const usersQuery = query(collection(firestore, 'users'), where('uid', 'in', chunk));
@@ -267,7 +267,7 @@ export default function AssignedLeadsPage() {
     }, [firestore, user, userLoading]);
 
     const { clientLeads, partnerLeads, websiteLeads, allLeadsCount } = useMemo(() => {
-        const clientLeads = projects.filter(p => !p.userId.startsWith('unregistered_'));
+        const clientLeads = projects.filter(p => p.userId && !p.userId.startsWith('unregistered_'));
         const partnerLeads = contactLeads.filter(l => !!l.referredByPartnerId);
         const websiteLeads = contactLeads.filter(l => !l.referredByPartnerId);
         const allLeadsCount = clientLeads.length + partnerLeads.length + websiteLeads.length;
