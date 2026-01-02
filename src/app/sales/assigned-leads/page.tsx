@@ -213,13 +213,28 @@ export default function AssignedLeadsPage() {
     );
   }, [firestore, user]);
 
-  const usersQuery = useMemo(() => {
-    if (!firestore) return null;
-    return query(collection(firestore, 'users'));
-  }, [firestore]);
-
   const { data: projects, loading: loadingProjects } = useCollection<Project>(projectsQuery);
   const { data: contactLeads, loading: loadingContactLeads } = useCollection<ContactLead>(contactLeadsQuery);
+
+  const userIds = useMemo(() => {
+    const ids = new Set<string>();
+    if (projects) {
+        projects.forEach(p => ids.add(p.userId));
+    }
+    if (contactLeads) {
+        contactLeads.forEach(l => {
+            if (l.referredByPartnerId) ids.add(l.referredByPartnerId);
+        });
+    }
+    return Array.from(ids).filter(Boolean); // Filter out any undefined/null ids
+  }, [projects, contactLeads]);
+
+
+  const usersQuery = useMemo(() => {
+    if (!firestore || userIds.length === 0) return null;
+    return query(collection(firestore, 'users'), where('uid', 'in', userIds));
+  }, [firestore, userIds]);
+
   const { data: users, loading: loadingUsers } = useCollection<UserProfile>(usersQuery);
 
   const loading = loadingProjects || loadingUsers || loadingContactLeads;
@@ -244,7 +259,7 @@ export default function AssignedLeadsPage() {
       return contactLeads.filter(l => !l.referredByPartnerId);
   }, [contactLeads]);
   
-  const allLeadsCount = (projects?.length || 0) + (contactLeads?.length || 0);
+  const allLeadsCount = clientLeads.length + partnerLeads.length + websiteLeads.length;
 
   return (
     <div className="p-4 sm:p-6 lg:p-8">
@@ -274,11 +289,11 @@ export default function AssignedLeadsPage() {
                 </TabsList>
                 <TabsContent value="all">
                      {allLeadsCount > 0 ? (
-                        <>
+                        <div className="space-y-8">
                             {clientLeads.length > 0 && <ClientLeadsTable projects={clientLeads} usersMap={usersMap} />}
                             {partnerLeads.length > 0 && <PartnerLeadsTable leads={partnerLeads} usersMap={usersMap} />}
                             {websiteLeads.length > 0 && <WebsiteLeadsTable leads={websiteLeads} />}
-                        </>
+                        </div>
                     ) : (
                          <div className="text-center p-12 text-muted-foreground">
                             <FolderKanban className="mx-auto w-12 h-12 mb-4" />
