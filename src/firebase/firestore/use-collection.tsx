@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
@@ -10,71 +11,95 @@ interface CollectionState<T> {
   data: T[] | null;
   loading: boolean;
   error: Error | null;
+  mutate: () => void;
 }
 
-function getQueryPath<T>(query: Query<T>): string | null {
-  try {
-    // This uses a non-public but currently stable property to get the path.
-    // It's better than nothing for creating a stable dependency key.
-    return (query as any)._query.path.segments.join('/');
-  } catch (e) {
-    // Fallback if the internal property changes
-    console.warn("Could not determine query path for useCollection dependency.", e);
-    return null;
-  }
+function getQueryPath(query: Query): string {
+    // A more robust way to get the path, falling back to older internal properties.
+    if ((query as any)._query) {
+        // This works for v9+ of the SDK
+        const path = (query as any)._query.path;
+        if (path && path.segments) {
+            return path.segments.join('/');
+        }
+    }
+    
+    // Fallback for older/different internal structures.
+    if ((query as any).path) {
+        return (query as any).path;
+    }
+    
+    console.warn("Could not determine query path for useCollection dependency.");
+    // As a last resort, try to serialize the query to create a somewhat unique key.
+    // This is not ideal as it can be verbose and might change between renders for the same logical query.
+    try {
+        return JSON.stringify(query);
+    } catch {
+        return 'unknown-query-path';
+    }
 }
+
 
 export function useCollection<T extends DocumentData>(
   query: Query<T> | null
-) {
+): CollectionState<T> {
   const [state, setState] = useState<CollectionState<T>>({
     data: null,
     loading: true,
     error: null,
+    mutate: () => {},
   });
 
   const errorEmittedRef = useRef(false);
-  const queryPath = query ? getQueryPath(query) : null;
-
-  useEffect(() => {
+  // Use a combination of the query path and the internal query constraints to form a more stable key.
+  const queryKey = query ? getQueryPath(query) + JSON.stringify((query as any)._query?.constraints) : null;
+  
+  const mutate = () => {
     if (!query) {
-      setState({ data: null, loading: false, error: null });
-      return () => {};
+      setState({ data: null, loading: false, error: null, mutate });
+      return;
     }
-    
-    // Reset state and error flag when the query changes
-    setState({ data: null, loading: true, error: null });
-    errorEmittedRef.current = false;
 
+    setState((prevState) => ({ ...prevState, loading: true, error: null }));
+    errorEmittedRef.current = false;
+    
     const unsubscribe = onSnapshot(
       query,
       (querySnapshot) => {
         const data = querySnapshot.docs.map(
           (doc) => ({ ...(doc.data() as T), id: doc.id })
         );
-        setState({ data, loading: false, error: null });
+        setState({ data, loading: false, error: null, mutate });
       },
       (error) => {
         if (error.code === 'permission-denied' && !errorEmittedRef.current) {
           const permissionError = new FirestorePermissionError(
             {
-              path: queryPath || 'unknown query path',
+              path: getQueryPath(query) || 'unknown query path',
               operation: 'list',
             },
             error
           );
           errorEmitter.emit('permission-error', permissionError);
-          // Set the flag to prevent re-emitting for this specific query instance
-          errorEmittedRef.current = true; 
+          errorEmittedRef.current = true;
         }
         console.error('useCollection error:', error);
-        setState({ data: null, loading: false, error });
+        setState({ data: null, loading: false, error, mutate });
       }
     );
+     return unsubscribe;
+  };
 
-    return () => unsubscribe();
+
+  useEffect(() => {
+    const unsubscribe = mutate();
+    return () => {
+        if (unsubscribe) {
+            unsubscribe();
+        }
+    };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [queryPath]); // Only re-run the effect if the query's stable path changes.
+  }, [queryKey]);
 
-  return state;
+  return { ...state, mutate };
 }

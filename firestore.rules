@@ -111,6 +111,7 @@ service cloud.firestore {
       allow delete: if isOwner(resource.data.userId) || isAdmin();
       
       // Authenticated users (clients, admins, partners, sales, writers) can list projects.
+      // Sales team can list projects they finalized.
       allow list: if request.auth != null;
     }
     
