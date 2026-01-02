@@ -124,7 +124,11 @@ function PartnerLeadsTable({ leads, usersMap }: { leads: ContactLead[], usersMap
                   const partner = usersMap.get(lead.referredByPartnerId!);
                   return (
                     <TableRow key={lead.id}>
-                      <TableCell className="font-medium">{lead.name}</TableCell>
+                      <TableCell className="font-medium">
+                        <Link href={`/sales/leads/${lead.id}`} className="hover:underline text-primary">
+                          {lead.name}
+                        </Link>
+                      </TableCell>
                       <TableCell>
                         <div className="font-medium">{lead.email}</div>
                         <div className="text-sm text-muted-foreground">{lead.phone}</div>
@@ -170,7 +174,11 @@ function WebsiteLeadsTable({ leads }: { leads: ContactLead[]}) {
             <TableBody>
             {leads.map((lead) => (
                 <TableRow key={lead.id}>
-                    <TableCell className="font-medium">{lead.name}</TableCell>
+                    <TableCell className="font-medium">
+                       <Link href={`/sales/leads/${lead.id}`} className="hover:underline text-primary">
+                          {lead.name}
+                        </Link>
+                    </TableCell>
                     <TableCell>
                     <div className="font-medium">{lead.email}</div>
                     <div className="text-sm text-muted-foreground">{lead.phone}</div>
