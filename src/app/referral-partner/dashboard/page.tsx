@@ -2,12 +2,12 @@
 
 'use client';
 
-import { useMemo }from 'react';
+import { useMemo, useState, useEffect }from 'react';
 import { useUser } from '@/firebase/auth/use-user';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoaderCircle, Copy, Users, CheckCircle, DollarSign, Wallet, Share2 } from 'lucide-react';
-import { useCollection, useFirestore } from '@/firebase';
-import { collection, query, where } from 'firebase/firestore';
+import { useFirestore } from '@/firebase';
+import { collection, query, where, getDocs, type Query, type DocumentData } from 'firebase/firestore';
 import type { UserProfile, Payout, Project, ContactLead } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -33,43 +33,68 @@ export default function ReferralDashboardPage() {
   const { user, loading: userLoading } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
-
-  const referredUsersQuery = useMemo(() => {
-    if (!user || !firestore || !user.referralCode) return null;
-    return query(collection(firestore, 'users'), where('referredBy', '==', user.referralCode));
-  }, [user, firestore]);
   
-  const submittedLeadsQuery = useMemo(() => {
-    if (!user || !firestore) return null;
-    return query(collection(firestore, 'contact_leads'), where('referredByPartnerId', '==', user.uid));
-  }, [user, firestore]);
+  const [referredUsers, setReferredUsers] = useState<UserProfile[]>([]);
+  const [submittedLeads, setSubmittedLeads] = useState<ContactLead[]>([]);
+  const [payouts, setPayouts] = useState<Payout[]>([]);
+  const [partnerProjects, setPartnerProjects] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(true);
 
+  useEffect(() => {
+    if (userLoading || !firestore || !user) {
+      if(!userLoading) setLoading(false);
+      return;
+    }
 
-  const { data: referredUsers, loading: referralsLoading } = useCollection<UserProfile>(referredUsersQuery);
-  const { data: submittedLeads, loading: leadsLoading } = useCollection<ContactLead>(submittedLeadsQuery);
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        // Fetch users referred by code
+        const referredUsersQuery = user.referralCode ? query(collection(firestore, 'users'), where('referredBy', '==', user.referralCode)) : null;
+        const referredUsersSnap = referredUsersQuery ? await getDocs(referredUsersQuery) : { docs: [] };
+        const fetchedReferredUsers = referredUsersSnap.docs.map(doc => doc.data() as UserProfile);
+        setReferredUsers(fetchedReferredUsers);
+        const referredUserIds = fetchedReferredUsers.map(u => u.uid);
+        
+        // Fetch leads submitted by partner
+        const submittedLeadsQuery = query(collection(firestore, 'contact_leads'), where('referredByPartnerId', '==', user.uid));
+        const submittedLeadsSnap = await getDocs(submittedLeadsQuery);
+        setSubmittedLeads(submittedLeadsSnap.docs.map(doc => ({...doc.data() as ContactLead, id: doc.id})));
 
-  const referredUserIds = useMemo(() => {
-    if (!referredUsers || referredUsers.length === 0) return [];
-    return referredUsers.map(u => u.uid);
-  }, [referredUsers]);
+        // Fetch payouts
+        const payoutsQuery = query(collection(firestore, 'payouts'), where('userId', '==', user.uid));
+        const payoutsSnap = await getDocs(payoutsQuery);
+        setPayouts(payoutsSnap.docs.map(doc => ({...doc.data() as Payout, id: doc.id})));
 
-  // Fetch ALL projects, then filter client-side. This is less efficient but avoids complex index requirements.
-  const allProjectsQuery = useMemo(() => {
-    if (!firestore) return null;
-    return query(collection(firestore, 'projects'));
-  }, [firestore]);
+        // Fetch projects relevant to this partner
+        const projectsQueries: Query<DocumentData>[] = [];
+        if (referredUserIds.length > 0) {
+          projectsQueries.push(query(collection(firestore, 'projects'), where('userId', 'in', referredUserIds)));
+        }
+        projectsQueries.push(query(collection(firestore, 'projects'), where('referredByPartnerId', '==', user.uid)));
+        
+        const projectSnapshots = await Promise.all(projectsQueries.map(q => getDocs(q)));
+        const projectsMap = new Map<string, Project>();
+        projectSnapshots.forEach(snapshot => {
+          snapshot.docs.forEach(doc => {
+            if(!projectsMap.has(doc.id)) {
+              projectsMap.set(doc.id, {...doc.data() as Project, id: doc.id});
+            }
+          });
+        });
+        setPartnerProjects(Array.from(projectsMap.values()));
 
+      } catch (error) {
+        console.error("Error fetching partner dashboard data:", error);
+        toast({ variant: 'destructive', title: 'Error', description: 'Could not load dashboard data.'});
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchData();
+  }, [user, firestore, userLoading, toast]);
 
-  const { data: allProjects, loading: projectsLoading } = useCollection<Project>(allProjectsQuery);
-
-  const payoutsQuery = useMemo(() => {
-    if (!user || !firestore) return null;
-    return query(collection(firestore, 'payouts'), where('userId', '==', user.uid));
-  }, [user, firestore]);
-
-  const { data: payouts, loading: payoutsLoading } = useCollection<Payout>(payoutsQuery);
-
-  const loading = userLoading || referralsLoading || projectsLoading || payoutsLoading || leadsLoading;
 
   const referralLink = useMemo(() => {
     if (typeof window === 'undefined' || !user?.referralCode) return '';
@@ -80,22 +105,12 @@ export default function ReferralDashboardPage() {
   const stats = useMemo(() => {
     if (!user) return { totalReferred: 0, convertedClients: 0, availableCommission: 0, totalCommissionEarned: 0 };
     
-    // Total referred is sign-ups + manual submissions
     const totalReferred = (referredUsers?.length ?? 0) + (submittedLeads?.length ?? 0);
     
-    // Filter projects that belong to the partner
-    const partnerProjects = allProjects?.filter(p => 
-      (referredUserIds.includes(p.userId)) || // Project by a user who signed up with the code
-      (p.referredByPartnerId === user.uid)     // Project from a lead converted by sales
-    ) ?? [];
-    
-    // A client is converted if they have a project that is approved, in-progress, or completed.
     const commissionableProjects = partnerProjects.filter(p => ['approved', 'in-progress', 'completed'].includes(p.status || ''));
     
-    // Count unique clients for "Converted Clients" stat
     const convertedClientIds = new Set<string>();
     commissionableProjects.forEach(p => {
-        // We use userId for registered users, and a composite for unregistered to count them
         const clientId = p.userId.startsWith('unregistered_') ? p.id : p.userId;
         if(clientId) convertedClientIds.add(clientId);
     });
@@ -113,7 +128,7 @@ export default function ReferralDashboardPage() {
       availableCommission,
       totalCommissionEarned,
     };
-  }, [user, referredUsers, submittedLeads, allProjects, payouts, referredUserIds]);
+  }, [user, referredUsers, submittedLeads, partnerProjects, payouts]);
 
   const handleCopyLink = () => {
     if (!referralLink) return;
