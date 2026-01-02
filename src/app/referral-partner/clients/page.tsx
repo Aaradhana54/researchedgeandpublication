@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useMemo }from 'use-memo-one';
+import { useMemo } from 'react';
 import { useUser } from '@/firebase/auth/use-user';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoaderCircle, Users } from 'lucide-react';
