@@ -273,7 +273,19 @@ export default function AssignedLeadsPage() {
                     <TabsTrigger value="website">Website Leads ({websiteLeads.length})</TabsTrigger>
                 </TabsList>
                 <TabsContent value="all">
-                    <ClientLeadsTable projects={clientLeads} usersMap={usersMap} />
+                     {allLeadsCount > 0 ? (
+                        <>
+                            {clientLeads.length > 0 && <ClientLeadsTable projects={clientLeads} usersMap={usersMap} />}
+                            {partnerLeads.length > 0 && <PartnerLeadsTable leads={partnerLeads} usersMap={usersMap} />}
+                            {websiteLeads.length > 0 && <WebsiteLeadsTable leads={websiteLeads} />}
+                        </>
+                    ) : (
+                         <div className="text-center p-12 text-muted-foreground">
+                            <FolderKanban className="mx-auto w-12 h-12 mb-4" />
+                            <h3 className="text-lg font-semibold">No Assigned Leads</h3>
+                            <p>You have no active leads assigned to you.</p>
+                        </div>
+                    )}
                 </TabsContent>
                 <TabsContent value="clients">
                     <ClientLeadsTable projects={clientLeads} usersMap={usersMap} />
