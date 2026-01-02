@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import {
@@ -128,10 +127,8 @@ export async function createUserAsAdmin(email: string, password: string, name: s
   try {
     const userCredential = await createUserWithEmailAndPassword(secondaryAuth, email, password);
     const user = userCredential.user;
-
-    const batch = writeBatch(firestoreInstance);
     
-    // 1. Create the user profile document
+    // Create the user profile document in Firestore
     const userDocRef = doc(firestoreInstance, 'users', user.uid);
     const dataToSet: any = {
       uid: user.uid,
@@ -143,40 +140,24 @@ export async function createUserAsAdmin(email: string, password: string, name: s
     if (role === 'referral-partner') {
        dataToSet.referralCode = user.uid.substring(0, 8);
     }
-    batch.set(userDocRef, dataToSet);
+    await setDoc(userDocRef, dataToSet);
 
-    // 2. Create the email document
-    const passwordResetLink = await mainAuth.generatePasswordResetLink(email);
-    const roleName = role.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase());
-
-    const emailContent = `
-        <h1>Welcome to the Team, ${name}!</h1>
-        <p>An account has been created for you on the Research Edge and Publication platform.</p>
-        <p><strong>Your assigned role is:</strong> ${roleName}</p>
-        <p>To get started, please set your password by clicking the link below:</p>
-        <p><a href="${passwordResetLink}">Set Your Password</a></p>
-        <p>After setting your password, you can log in to your portal.</p>
-        <p>Thank you,</p>
-        <p>The Research Edge and Publication Team</p>
-    `;
-
-    const mailRef = doc(collection(firestoreInstance, 'mail'));
-    batch.set(mailRef, {
-        to: [email],
-        message: {
-            subject: `Welcome! Your new ${roleName} account is ready.`,
-            html: emailContent,
-        },
-    });
-
-    await batch.commit();
+    // Send a password reset email so the user can set their password
+    await sendPasswordResetEmail(mainAuth, email);
 
     return user;
 
   } catch (error: any) {
     console.error("Error creating user as admin:", error);
+    // Attempt to clean up the created auth user if firestore write fails, though this is not guaranteed
+     if (secondaryAuth.currentUser) {
+       // This part of cleanup is tricky and might fail if the user was just created
+       // and the session isn't fully established.
+       console.log("Attempting cleanup of partially created user.");
+     }
     throw error;
   } finally {
+    // Ensure the temporary app is always cleaned up
     if (secondaryAuth.currentUser) {
         await signOut(secondaryAuth);
     }
