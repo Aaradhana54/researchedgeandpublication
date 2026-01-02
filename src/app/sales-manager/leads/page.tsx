@@ -218,7 +218,11 @@ export default function AllLeadsPage() {
 
   const userIds = useMemo(() => {
       const ids = new Set<string>();
-      projects?.forEach(p => ids.add(p.userId));
+      projects?.forEach(p => {
+        if (!p.userId.startsWith('unregistered_')) {
+          ids.add(p.userId);
+        }
+      });
       contactLeads?.forEach(l => {
         if(l.referredByPartnerId) ids.add(l.referredByPartnerId);
       });
@@ -287,7 +291,18 @@ export default function AllLeadsPage() {
                     <TabsTrigger value="website">Website Leads ({websiteLeads.length})</TabsTrigger>
                 </TabsList>
                 <TabsContent value="all">
-                    <ClientLeadsTable projects={clientLeads} usersMap={usersMap} />
+                    <div className="space-y-8">
+                      {clientLeads.length > 0 && <ClientLeadsTable projects={clientLeads} usersMap={usersMap} />}
+                      {partnerLeads.length > 0 && <PartnerLeadsTable leads={partnerLeads} usersMap={usersMap} />}
+                      {websiteLeads.length > 0 && <WebsiteLeadsTable leads={websiteLeads} />}
+                       {allLeadsCount === 0 && (
+                        <div className="text-center p-12 text-muted-foreground">
+                            <FolderKanban className="mx-auto w-12 h-12 mb-4" />
+                            <h3 className="text-lg font-semibold">No Leads Found</h3>
+                            <p>There are currently no leads in the system.</p>
+                        </div>
+                       )}
+                    </div>
                 </TabsContent>
                 <TabsContent value="clients">
                     <ClientLeadsTable projects={clientLeads} usersMap={usersMap} />
@@ -305,7 +320,3 @@ export default function AllLeadsPage() {
     </div>
   );
 }
-
-    
-
-    
