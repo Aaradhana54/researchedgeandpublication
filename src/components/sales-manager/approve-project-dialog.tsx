@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, ChangeEvent } from 'react';
@@ -22,7 +23,7 @@ import { useToast } from '@/hooks/use-toast';
 import { CheckCircle, LoaderCircle } from 'lucide-react';
 import type { Project } from '@/lib/types';
 import { useFirestore, useUser, useStorage } from '@/firebase';
-import { doc, serverTimestamp, Timestamp, updateDoc } from 'firebase/firestore';
+import { doc, serverTimestamp, Timestamp, updateDoc, collection, addDoc, writeBatch } from 'firebase/firestore';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '../ui/form';
@@ -46,7 +47,7 @@ const ApproveProjectSchema = z.object({
 
 type ApproveProjectForm = z.infer<typeof ApproveProjectSchema>;
 
-export function ApproveProjectDialog({ children, project, onProjectApproved }: { children: React.ReactNode, project: Project, onProjectApproved: () => void }) {
+export function ApproveProjectDialog({ children, project, clientEmail, onProjectApproved }: { children: React.ReactNode, project: Project, clientEmail?: string, onProjectApproved: () => void }) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -77,15 +78,18 @@ export function ApproveProjectDialog({ children, project, onProjectApproved }: {
 
 
   const onSubmit = async (data: ApproveProjectForm) => {
-    if (!project.id || !firestore || !user) {
-        setError('An unexpected error occurred. Missing required context.');
+    if (!project.id || !firestore || !user || !clientEmail) {
+        setError('An unexpected error occurred. Missing required context (Project ID, user, or client email).');
         return;
     }
     setLoading(true);
     setError(null);
 
     const processApproval = async (screenshotUrl = '') => {
+        const batch = writeBatch(firestore);
+
         try {
+            // 1. Prepare project update
             const projectDocRef = doc(firestore, 'projects', project.id!);
             const updateData: any = {
                 status: 'approved',
@@ -98,12 +102,30 @@ export function ApproveProjectDialog({ children, project, onProjectApproved }: {
                 discussionNotes: data.discussionNotes,
                 paymentScreenshotUrl: screenshotUrl,
             };
+            batch.update(projectDocRef, updateData);
 
-            await updateDoc(projectDocRef, updateData);
+            // 2. Prepare email document
+            const mailCollectionRef = collection(firestore, 'mail');
+            const emailDocRef = doc(mailCollectionRef); // Auto-generate ID
+            batch.set(emailDocRef, {
+                to: clientEmail,
+                message: {
+                    subject: `Your Project "${project.title}" has been Approved!`,
+                    html: `
+                        <h1>Congratulations!</h1>
+                        <p>We are excited to let you know that your project, <strong>${project.title}</strong>, has been officially approved and finalized by our team.</p>
+                        <p>Our writing and research team will begin work shortly. You can monitor the status of your project from your client dashboard.</p>
+                        <p>Thank you for choosing Research Edge and Publication.</p>
+                    `,
+                }
+            });
+
+            // 3. Commit batch write
+            await batch.commit();
             
             toast({
                 title: 'Project Approved!',
-                description: 'The deal has been finalized and the project is now approved.',
+                description: 'The deal has been finalized and an approval email has been queued for the client.',
             });
             
             onProjectApproved(); // Callback to refresh parent state
@@ -112,8 +134,8 @@ export function ApproveProjectDialog({ children, project, onProjectApproved }: {
         } catch (err: any) {
              if (err.code === 'permission-denied') {
               const permissionError = new FirestorePermissionError({
-                path: `projects/${project.id}`,
-                operation: 'update',
+                path: `projects/${project.id} or mail collection`,
+                operation: 'write',
                 requestResourceData: "redacted_for_brevity",
               }, err);
               errorEmitter.emit('permission-error', permissionError);

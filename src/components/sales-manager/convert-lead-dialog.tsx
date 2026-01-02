@@ -107,11 +107,27 @@ export function ConvertLeadDialog({ children, contactLead, onLeadConverted }: { 
             status: 'converted'
         });
 
+        // 3. Prepare email document for Trigger Email extension
+        const mailCollectionRef = collection(firestore, 'mail');
+        const emailDocRef = doc(mailCollectionRef);
+        batch.set(emailDocRef, {
+            to: contactLead.email,
+            message: {
+                subject: `Your Project "${data.title}" has been Approved!`,
+                html: `
+                    <h1>Congratulations!</h1>
+                    <p>We are excited to let you know that your inquiry has been converted into a project: <strong>${data.title}</strong>. It has been officially approved and finalized by our team.</p>
+                    <p>Our team will begin work shortly. You will receive further instructions on how to create your client account to track the project's progress.</p>
+                    <p>Thank you for choosing Research Edge and Publication.</p>
+                `,
+            }
+        });
+
         await batch.commit();
         
         toast({
             title: 'Lead Converted!',
-            description: 'The lead has been converted to an approved project.',
+            description: 'The lead has been converted to an approved project and a notification has been sent.',
         });
         
         onLeadConverted();
@@ -120,7 +136,7 @@ export function ConvertLeadDialog({ children, contactLead, onLeadConverted }: { 
     } catch (err: any) {
          if (err.code === 'permission-denied') {
           const permissionError = new FirestorePermissionError({
-            path: `projects / contact_leads`,
+            path: `projects / contact_leads / mail`,
             operation: 'write',
             requestResourceData: "redacted_for_brevity",
           }, err);

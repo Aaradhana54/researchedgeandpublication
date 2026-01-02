@@ -50,7 +50,7 @@ export default function SalesProjectDetailPage() {
     const { user: loggedInUser } = useUser();
     
     const [project, setProject] = useState<Project | null>(null);
-    const [user, setUser] = useState<UserProfile | null>(null);
+    const [clientUser, setClientUser] = useState<UserProfile | null>(null);
     const [finalizerUser, setFinalizerUser] = useState<UserProfile | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -72,11 +72,11 @@ export default function SalesProjectDetailPage() {
             const projectData = { ...projectSnap.data(), id: projectSnap.id } as Project;
             setProject(projectData);
 
-            if (projectData.userId) {
+            if (projectData.userId && !projectData.userId.startsWith('unregistered_')) {
                 const userDocRef = doc(firestore, 'users', projectData.userId);
                 const userSnap = await getDoc(userDocRef);
                 if (userSnap.exists()) {
-                    setUser(userSnap.data() as UserProfile);
+                    setClientUser(userSnap.data() as UserProfile);
                 }
             }
 
@@ -180,7 +180,7 @@ export default function SalesProjectDetailPage() {
                                     Reject
                                 </Button>
                              </RejectProjectDialog>
-                             <ApproveProjectDialog project={project} onProjectApproved={fetchProjectData}>
+                             <ApproveProjectDialog project={project} clientEmail={clientUser?.email} onProjectApproved={fetchProjectData}>
                                 <Button>
                                     <CheckCircle className="mr-2 h-4 w-4" />
                                     Approve Deal
@@ -270,12 +270,12 @@ export default function SalesProjectDetailPage() {
                             <CardTitle>Client Details</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            {!user && !loading ? <p>User not found.</p> :
+                            {!clientUser && !loading ? <p>User not found.</p> :
                                 <>
-                                    <DetailItem label="Name" value={user?.name} />
-                                    <DetailItem label="Email" value={user?.email} />
-                                    <DetailItem label="Profile Mobile No." value={user?.mobile} />
-                                    <DetailItem label="Joined On" value={user?.createdAt ? format(user.createdAt.toDate(), 'PPP') : 'N/A'} />
+                                    <DetailItem label="Name" value={clientUser?.name} />
+                                    <DetailItem label="Email" value={clientUser?.email} />
+                                    <DetailItem label="Profile Mobile No." value={clientUser?.mobile} />
+                                    <DetailItem label="Joined On" value={clientUser?.createdAt ? format(clientUser.createdAt.toDate(), 'PPP') : 'N/A'} />
                                 </>
                             }
                         </CardContent>
