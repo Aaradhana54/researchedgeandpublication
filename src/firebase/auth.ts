@@ -156,7 +156,7 @@ export async function createUserAsAdmin(email: string, password: string, name: s
             data: {
                 name: name,
                 role: roleName,
-                // The password reset link will be automatically generated and added by the extension
+                uid: user.uid, // Provide the UID for the password reset link
             }
         }
     });
