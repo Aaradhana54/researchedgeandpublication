@@ -1,9 +1,9 @@
 
 'use client';
 
-import { useMemo } from 'react';
-import { collection, query, where } from 'firebase/firestore';
-import { useCollection, useFirestore, useUser } from '@/firebase';
+import { useMemo, useState, useEffect } from 'react';
+import { collection, query, where, getDocs, type Query, type DocumentData } from 'firebase/firestore';
+import { useFirestore, useUser } from '@/firebase';
 import type { Project, UserProfile, ContactLead } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoaderCircle, FolderKanban, Users, MessageSquare } from 'lucide-react';
@@ -192,129 +192,136 @@ function WebsiteLeadsTable({ leads }: { leads: ContactLead[]}) {
 }
 
 export default function AssignedLeadsPage() {
-  const firestore = useFirestore();
-  const { user } = useUser();
+    const firestore = useFirestore();
+    const { user, loading: userLoading } = useUser();
 
-  const projectsQuery = useMemo(() => {
-    if (!firestore || !user) return null;
-    return query(
-        collection(firestore, 'projects'), 
-        where('assignedSalesId', '==', user.uid),
-        where('status', '==', 'pending') // Only show pending projects
-    );
-  }, [firestore, user]);
+    const [projects, setProjects] = useState<Project[]>([]);
+    const [contactLeads, setContactLeads] = useState<ContactLead[]>([]);
+    const [usersMap, setUsersMap] = useState<Map<string, UserProfile>>(new Map());
+    const [loading, setLoading] = useState(true);
 
-  const contactLeadsQuery = useMemo(() => {
-    if (!firestore || !user) return null;
-    return query(
-        collection(firestore, 'contact_leads'), 
-        where('assignedSalesId', '==', user.uid),
-        where('status', '==', 'new') // Only show new contact leads
-    );
-  }, [firestore, user]);
+    useEffect(() => {
+        if (!firestore || !user) {
+            if(!userLoading) setLoading(false);
+            return;
+        };
 
-  const { data: projects, loading: loadingProjects } = useCollection<Project>(projectsQuery);
-  const { data: contactLeads, loading: loadingContactLeads } = useCollection<ContactLead>(contactLeadsQuery);
+        const fetchAllData = async () => {
+            setLoading(true);
+            try {
+                // Fetch assigned projects
+                const projectsQuery = query(
+                    collection(firestore, 'projects'),
+                    where('assignedSalesId', '==', user.uid),
+                    where('status', '==', 'pending')
+                );
+                const projectsSnap = await getDocs(projectsQuery);
+                const fetchedProjects = projectsSnap.docs.map(doc => ({...doc.data() as Project, id: doc.id}));
+                setProjects(fetchedProjects);
 
-  const userIds = useMemo(() => {
-    const ids = new Set<string>();
-    if (projects) {
-        projects.forEach(p => ids.add(p.userId));
-    }
-    if (contactLeads) {
-        contactLeads.forEach(l => {
-            if (l.referredByPartnerId) ids.add(l.referredByPartnerId);
-        });
-    }
-    return Array.from(ids).filter(Boolean); // Filter out any undefined/null ids
-  }, [projects, contactLeads]);
+                // Fetch assigned contact leads
+                const contactLeadsQuery = query(
+                    collection(firestore, 'contact_leads'),
+                    where('assignedSalesId', '==', user.uid),
+                    where('status', '==', 'new')
+                );
+                const contactLeadsSnap = await getDocs(contactLeadsQuery);
+                const fetchedContactLeads = contactLeadsSnap.docs.map(doc => ({...doc.data() as ContactLead, id: doc.id}));
+                setContactLeads(fetchedContactLeads);
 
+                // Gather all unique user IDs needed for client/partner names
+                const userIds = new Set<string>();
+                fetchedProjects.forEach(p => userIds.add(p.userId));
+                fetchedContactLeads.forEach(l => {
+                    if (l.referredByPartnerId) userIds.add(l.referredByPartnerId);
+                });
 
-  const usersQuery = useMemo(() => {
-    if (!firestore || userIds.length === 0) return null;
-    return query(collection(firestore, 'users'), where('uid', 'in', userIds));
-  }, [firestore, userIds]);
+                // Fetch user profiles if there are any IDs to fetch
+                const newUsersMap = new Map<string, UserProfile>();
+                if (userIds.size > 0) {
+                     const usersQuery = query(collection(firestore, 'users'), where('uid', 'in', Array.from(userIds)));
+                     const usersSnap = await getDocs(usersQuery);
+                     usersSnap.forEach(doc => {
+                         newUsersMap.set(doc.id, doc.data() as UserProfile);
+                     });
+                }
+                setUsersMap(newUsersMap);
 
-  const { data: users, loading: loadingUsers } = useCollection<UserProfile>(usersQuery);
+            } catch (error) {
+                console.error("Error fetching assigned leads data:", error);
+                // Optionally set an error state here to show in the UI
+            } finally {
+                setLoading(false);
+            }
+        };
 
-  const loading = loadingProjects || loadingUsers || loadingContactLeads;
+        fetchAllData();
+    }, [firestore, user, userLoading]);
 
-  const usersMap = useMemo(() => {
-    if (!users) return new Map<string, UserProfile>();
-    return new Map(users.map((user) => [user.uid, user]));
-  }, [users]);
+    const { clientLeads, partnerLeads, websiteLeads, allLeadsCount } = useMemo(() => {
+        const clientLeads = projects.filter(p => !p.userId.startsWith('unregistered_'));
+        const partnerLeads = contactLeads.filter(l => !!l.referredByPartnerId);
+        const websiteLeads = contactLeads.filter(l => !l.referredByPartnerId);
+        const allLeadsCount = clientLeads.length + partnerLeads.length + websiteLeads.length;
+        return { clientLeads, partnerLeads, websiteLeads, allLeadsCount };
+    }, [projects, contactLeads]);
 
-  const clientLeads = useMemo(() => {
-      if(!projects) return [];
-      return projects.filter(p => !p.userId.startsWith('unregistered_'));
-  }, [projects]);
-  
-  const partnerLeads = useMemo(() => {
-      if(!contactLeads) return [];
-      return contactLeads.filter(l => !!l.referredByPartnerId);
-  }, [contactLeads]);
-
-  const websiteLeads = useMemo(() => {
-      if(!contactLeads) return [];
-      return contactLeads.filter(l => !l.referredByPartnerId);
-  }, [contactLeads]);
-  
-  const allLeadsCount = clientLeads.length + partnerLeads.length + websiteLeads.length;
-
-  return (
-    <div className="p-4 sm:p-6 lg:p-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight">Assigned Leads</h1>
-        <p className="text-muted-foreground">A list of all leads currently assigned to you.</p>
-      </div>
-      <Card>
-        <CardHeader>
-          <CardTitle>Your Active Leads</CardTitle>
-          <CardDescription>
-            This is a list of all pending leads assigned to you. Approved leads will be removed from this list.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <div className="flex justify-center items-center h-48">
-              <LoaderCircle className="w-8 h-8 animate-spin text-primary" />
+    return (
+        <div className="p-4 sm:p-6 lg:p-8">
+            <div className="mb-8">
+                <h1 className="text-3xl font-bold tracking-tight">Assigned Leads</h1>
+                <p className="text-muted-foreground">A list of all leads currently assigned to you.</p>
             </div>
-          ) : (
-            <Tabs defaultValue="all">
-                <TabsList>
-                    <TabsTrigger value="all">All ({allLeadsCount})</TabsTrigger>
-                    <TabsTrigger value="clients">Client Leads ({clientLeads.length})</TabsTrigger>
-                    <TabsTrigger value="partners">Partner Leads ({partnerLeads.length})</TabsTrigger>
-                    <TabsTrigger value="website">Website Leads ({websiteLeads.length})</TabsTrigger>
-                </TabsList>
-                <TabsContent value="all">
-                     {allLeadsCount > 0 ? (
-                        <div className="space-y-8">
-                            {clientLeads.length > 0 && <ClientLeadsTable projects={clientLeads} usersMap={usersMap} />}
-                            {partnerLeads.length > 0 && <PartnerLeadsTable leads={partnerLeads} usersMap={usersMap} />}
-                            {websiteLeads.length > 0 && <WebsiteLeadsTable leads={websiteLeads} />}
+            <Card>
+                <CardHeader>
+                    <CardTitle>Your Active Leads</CardTitle>
+                    <CardDescription>
+                        This is a list of all pending leads assigned to you. Approved leads will be removed from this list.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    {loading ? (
+                        <div className="flex justify-center items-center h-48">
+                            <LoaderCircle className="w-8 h-8 animate-spin text-primary" />
                         </div>
                     ) : (
-                         <div className="text-center p-12 text-muted-foreground">
-                            <FolderKanban className="mx-auto w-12 h-12 mb-4" />
-                            <h3 className="text-lg font-semibold">No Assigned Leads</h3>
-                            <p>You have no active leads assigned to you.</p>
-                        </div>
+                        <Tabs defaultValue="all">
+                            <TabsList>
+                                <TabsTrigger value="all">All ({allLeadsCount})</TabsTrigger>
+                                <TabsTrigger value="clients">Client Leads ({clientLeads.length})</TabsTrigger>
+                                <TabsTrigger value="partners">Partner Leads ({partnerLeads.length})</TabsTrigger>
+                                <TabsTrigger value="website">Website Leads ({websiteLeads.length})</TabsTrigger>
+                            </TabsList>
+                            <TabsContent value="all">
+                                {allLeadsCount > 0 ? (
+                                    <div className="space-y-8">
+                                        {clientLeads.length > 0 && <ClientLeadsTable projects={clientLeads} usersMap={usersMap} />}
+                                        {partnerLeads.length > 0 && <PartnerLeadsTable leads={partnerLeads} usersMap={usersMap} />}
+                                        {websiteLeads.length > 0 && <WebsiteLeadsTable leads={websiteLeads} />}
+                                    </div>
+                                ) : (
+                                    <div className="text-center p-12 text-muted-foreground">
+                                        <FolderKanban className="mx-auto w-12 h-12 mb-4" />
+                                        <h3 className="text-lg font-semibold">No Assigned Leads</h3>
+                                        <p>You have no active leads assigned to you.</p>
+                                    </div>
+                                )}
+                            </TabsContent>
+                            <TabsContent value="clients">
+                                <ClientLeadsTable projects={clientLeads} usersMap={usersMap} />
+                            </TabsContent>
+                            <TabsContent value="partners">
+                                <PartnerLeadsTable leads={partnerLeads} usersMap={usersMap} />
+                            </TabsContent>
+                            <TabsContent value="website">
+                                <WebsiteLeadsTable leads={websiteLeads} />
+                            </TabsContent>
+                        </Tabs>
                     )}
-                </TabsContent>
-                <TabsContent value="clients">
-                    <ClientLeadsTable projects={clientLeads} usersMap={usersMap} />
-                </TabsContent>
-                <TabsContent value="partners">
-                    <PartnerLeadsTable leads={partnerLeads} usersMap={usersMap} />
-                </TabsContent>
-                <TabsContent value="website">
-                    <WebsiteLeadsTable leads={websiteLeads} />
-                </TabsContent>
-            </Tabs>
-          )}
-        </CardContent>
-      </Card>
-    </div>
-  );
+                </CardContent>
+            </Card>
+        </div>
+    );
 }
+
+    
