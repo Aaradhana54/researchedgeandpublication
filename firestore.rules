@@ -84,7 +84,7 @@ service cloud.firestore {
       allow read: if isOwner(userId) || isAdmin() || isSalesTeam() || isWritingTeam() || (isReferralPartner() && resource.data.referredBy == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.referralCode);
       
       // Admins, referral partners, and sales team can list users (will be filtered in app).
-      allow list: if isAdmin() || isReferralPartner() || isSalesTeam() || isWritingTeam();
+      allow list: if isAdmin() || isReferralPartner() || isSalesTeam() || isSalesManager() || isWritingTeam();
 
       // Users can update their own profile, but cannot change their role. 
       // Admins can update any profile, but also cannot change roles for security.
@@ -199,7 +199,7 @@ service cloud.firestore {
     // Collection for sending emails via the "Trigger Email" extension
     match /mail/{docId} {
         // Allow Admins, Sales Team, and Sales Managers to create email documents.
-        allow create: if isAdmin() || isSalesTeam();
+        allow create: if isAdmin() || isSalesTeam() || isSalesManager();
         allow read, update, delete: if false; // No one can read/modify/delete emails from the client.
     }
     
