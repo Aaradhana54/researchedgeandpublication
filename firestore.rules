@@ -14,10 +14,14 @@ service cloud.firestore {
       return exists(/databases/$(database)/documents/users/$(request.auth.uid));
     }
     
+    function getUserRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+
     function hasRole(role) {
       return request.auth != null
         && userDocExists()
-        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == role;
+        && getUserRole() == role;
     }
 
     function isReferralPartner() {
@@ -25,7 +29,8 @@ service cloud.firestore {
     }
 
     function isSalesTeam() {
-      return hasRole('sales-team') || hasRole('sales-manager');
+      let role = getUserRole();
+      return role == 'sales-team' || role == 'sales-manager';
     }
 
     function isSalesManager() {
@@ -62,7 +67,7 @@ service cloud.firestore {
         // List of fields a client is NOT allowed to set on creation.
         let forbiddenKeys = [
             'dealAmount', 'advanceReceived', 'discussionNotes', 'paymentScreenshotUrl', 
-            'finalDeadline', 'finalizedAt', 'finalizedBy', 'assignedWriterId',
+            'finalDeadline', 'finalizedAt', 'finalizedBy', 'assignedWriterId', 'assignedSalesId',
             'rejectionReason', 'referredByPartnerId', 'approvalEmailSent'
         ];
         
@@ -84,7 +89,10 @@ service cloud.firestore {
       allow read: if isOwner(userId) || isAdmin() || isSalesTeam() || isWritingTeam() || (isReferralPartner() && resource.data.referredBy == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.referralCode);
       
       // Admins, referral partners, and sales team can list users (will be filtered in app).
-      allow list: if isAdmin() || isSalesManager() || isSalesTeam() || isWritingTeam() || isReferralPartner();
+      allow list: if request.auth != null && (
+                    get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in 
+                    ['admin', 'sales-manager', 'sales-team', 'writing-team', 'referral-partner']
+                  );
 
       // Users can update their own profile, but cannot change their role. 
       // Admins can update any profile, but also cannot change roles for security.
