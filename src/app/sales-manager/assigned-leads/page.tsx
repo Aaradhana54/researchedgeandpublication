@@ -42,8 +42,16 @@ export default function AssignedLeadsPage() {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const projectsQuery = query(collection(firestore, 'projects'), where('assignedSalesId', '!=', null), orderBy('assignedSalesId'), orderBy('createdAt', 'desc'));
-        const contactLeadsQuery = query(collection(firestore, 'contact_leads'), where('assignedSalesId', '!=', null), orderBy('assignedSalesId'), orderBy('createdAt', 'desc'));
+        const projectsQuery = query(
+          collection(firestore, 'projects'), 
+          where('assignedSalesId', '!=', null),
+          orderBy('assignedSalesId')
+        );
+        const contactLeadsQuery = query(
+          collection(firestore, 'contact_leads'), 
+          where('assignedSalesId', '!=', null),
+          orderBy('assignedSalesId')
+        );
         
         const [projectsSnap, contactLeadsSnap] = await Promise.all([
           getDocs(projectsQuery),
