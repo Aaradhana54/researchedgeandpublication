@@ -128,7 +128,7 @@ export function SendApprovalEmailButton({ project, client }: SendApprovalEmailBu
     <AlertDialog open={open} onOpenChange={setOpen}>
         <AlertDialogTrigger asChild>
             <Button variant="ghost" size="sm" disabled={loading}>
-                <Mail className="mr-2 h-4 w-4" />
+                {loading ? <LoaderCircle className="animate-spin" /> : <Mail className="mr-2 h-4 w-4" />}
                 Send Mail
             </Button>
         </AlertDialogTrigger>
