@@ -1,8 +1,8 @@
 
 'use client';
 
-import { useMemo } from 'react';
-import { collection, query, where } from 'firebase/firestore';
+import { useMemo, useState, useEffect } from 'react';
+import { collection, query, where, getDocs } from 'firebase/firestore';
 import { useCollection, useFirestore } from '@/firebase';
 import type { UserProfile, Project } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -25,48 +25,83 @@ interface SalesPerformanceData {
 
 export default function SalesPage() {
   const firestore = useFirestore();
+  const [salesData, setSalesData] = useState<SalesPerformanceData[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const salesTeamQuery = useMemo(() => {
-    if (!firestore) return null;
-    return query(collection(firestore, 'users'), where('role', 'in', ['sales-team', 'sales-manager']));
-  }, [firestore]);
+  useEffect(() => {
+    if (!firestore) return;
 
-  const finalizedProjectsQuery = useMemo(() => {
-    if (!firestore) return null;
-    // We fetch all projects that are past the 'pending' state, as they would have a finalizer.
-    return query(collection(firestore, 'projects'), where('status', 'in', ['approved', 'in-progress', 'completed']));
-  }, [firestore]);
+    const fetchSalesData = async () => {
+      setLoading(true);
+      try {
+        // 1. Fetch all finalized projects
+        const projectsQuery = query(
+          collection(firestore, 'projects'),
+          where('status', 'in', ['approved', 'in-progress', 'completed']),
+          where('finalizedBy', '!=', null)
+        );
+        const projectsSnap = await getDocs(projectsQuery);
+        const finalizedProjects = projectsSnap.docs.map(doc => doc.data() as Project);
 
-  const { data: salesTeam, loading: loadingSales } = useCollection<UserProfile>(salesTeamQuery);
-  const { data: projects, loading: loadingProjects } = useCollection<Project>(finalizedProjectsQuery);
+        if (finalizedProjects.length === 0) {
+          setSalesData([]);
+          setLoading(false);
+          return;
+        }
 
-  const loading = loadingSales || loadingProjects;
+        // 2. Aggregate performance by salesperson ID
+        const performanceMap = new Map<string, { deals: number; value: number }>();
+        const salesPersonIds = new Set<string>();
 
-  const performanceData = useMemo(() => {
-    if (!salesTeam || !projects) return [];
+        finalizedProjects.forEach(project => {
+          if (project.finalizedBy) {
+            salesPersonIds.add(project.finalizedBy);
+            const current = performanceMap.get(project.finalizedBy) || { deals: 0, value: 0 };
+            current.deals += 1;
+            current.value += project.dealAmount || 0;
+            performanceMap.set(project.finalizedBy, current);
+          }
+        });
 
-    const performanceMap = new Map<string, { deals: number; value: number }>();
+        // 3. Fetch the specific user profiles for the salespeople
+        const usersMap = new Map<string, UserProfile>();
+        const idsArray = Array.from(salesPersonIds);
+        
+        // Batch requests in chunks of 30, as per Firestore 'in' query limits
+        for (let i = 0; i < idsArray.length; i += 30) {
+          const chunk = idsArray.slice(i, i + 30);
+          const usersQuery = query(collection(firestore, 'users'), where('__name__', 'in', chunk));
+          const usersSnap = await getDocs(usersQuery);
+          usersSnap.forEach(doc => {
+            usersMap.set(doc.id, { ...doc.data() as UserProfile, uid: doc.id });
+          });
+        }
+        
+        // 4. Combine data for display
+        const finalPerformanceData = Array.from(performanceMap.entries()).map(([userId, perf]) => ({
+          salesperson: usersMap.get(userId)!,
+          dealsFinalized: perf.deals,
+          totalDealValue: perf.value,
+        })).filter(item => item.salesperson); // Filter out any cases where user data might be missing
 
-    projects.forEach(project => {
-      if (project.finalizedBy) {
-        const current = performanceMap.get(project.finalizedBy) || { deals: 0, value: 0 };
-        current.deals += 1;
-        current.value += project.dealAmount || 0;
-        performanceMap.set(project.finalizedBy, current);
+        finalPerformanceData.sort((a, b) => b.totalDealValue - a.totalDealValue);
+        
+        setSalesData(finalPerformanceData);
+
+      } catch (error) {
+        console.error("Error fetching sales data:", error);
+      } finally {
+        setLoading(false);
       }
-    });
+    };
 
-    return salesTeam.map(salesperson => ({
-      salesperson,
-      dealsFinalized: performanceMap.get(salesperson.uid)?.deals || 0,
-      totalDealValue: performanceMap.get(salesperson.uid)?.value || 0,
-    })).sort((a,b) => b.totalDealValue - a.totalDealValue); // Sort by highest value
+    fetchSalesData();
+  }, [firestore]);
 
-  }, [salesTeam, projects]);
 
   const grandTotal = useMemo(() => {
-    return performanceData.reduce((acc, current) => acc + current.totalDealValue, 0);
-  }, [performanceData]);
+    return salesData.reduce((acc, current) => acc + current.totalDealValue, 0);
+  }, [salesData]);
 
   return (
     <div className="p-4 sm:p-6 lg:p-8">
@@ -84,7 +119,7 @@ export default function SalesPage() {
             <div className="flex justify-center items-center h-48">
               <LoaderCircle className="w-8 h-8 animate-spin text-primary" />
             </div>
-          ) : performanceData && performanceData.length > 0 ? (
+          ) : salesData && salesData.length > 0 ? (
             <Table>
               <TableHeader>
                 <TableRow>
@@ -94,7 +129,7 @@ export default function SalesPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {performanceData.map(({ salesperson, dealsFinalized, totalDealValue }) => (
+                {salesData.map(({ salesperson, dealsFinalized, totalDealValue }) => (
                   <TableRow key={salesperson.uid}>
                     <TableCell className="font-medium">
                         <div className="font-medium">{salesperson.name}</div>
