@@ -206,8 +206,9 @@ service cloud.firestore {
     
     // Collection for sending emails via the "Trigger Email" extension
     match /mail/{docId} {
-        // Allow Admins, Sales Team, and Sales Managers to create email documents.
-        allow create: if isAdmin() || isSalesTeam() || isSalesManager();
+        // Allow any authenticated user to create email documents.
+        // The extension runs with admin privileges and handles the sending.
+        allow create: if request.auth != null;
         allow read, update, delete: if false; // No one can read/modify/delete emails from the client.
     }
     
