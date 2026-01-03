@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
@@ -26,7 +27,7 @@ export function useDoc<T extends DocumentData>(
 
   useEffect(() => {
     if (!ref) {
-      setState({ data: null, loading: false, error: null });
+      setState({ data: null, loading: true, error: null });
       return;
     }
 
@@ -69,3 +70,4 @@ export function useDoc<T extends DocumentData>(
 
   return state;
 }
+

@@ -4,7 +4,7 @@
 
 import { useMemo } from 'react';
 import { collection, query, orderBy, where } from 'firebase/firestore';
-import { useCollection, useFirestore } from '@/firebase';
+import { useCollection, useFirestore, useUser } from '@/firebase';
 import type { Project, UserProfile, ContactLead } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoaderCircle, FolderKanban, Users, MessageSquare } from 'lucide-react';
@@ -202,16 +202,17 @@ function WebsiteLeadsTable({ leads }: { leads: ContactLead[]}) {
 
 export default function AllLeadsPage() {
   const firestore = useFirestore();
+  const { user: currentUser, loading: userLoading } = useUser();
 
   const projectsQuery = useMemo(() => {
-    if (!firestore) return null;
+    if (!firestore || !currentUser) return null;
     return query(collection(firestore, 'projects'), orderBy('createdAt', 'desc'));
-  }, [firestore]);
+  }, [firestore, currentUser]);
 
   const contactLeadsQuery = useMemo(() => {
-    if (!firestore) return null;
+    if (!firestore || !currentUser) return null;
     return query(collection(firestore, 'contact_leads'), orderBy('createdAt', 'desc'));
-  }, [firestore]);
+  }, [firestore, currentUser]);
   
   const { data: projects, loading: loadingProjects } = useCollection<Project>(projectsQuery);
   const { data: contactLeads, loading: loadingContactLeads } = useCollection<ContactLead>(contactLeadsQuery);
@@ -219,7 +220,7 @@ export default function AllLeadsPage() {
   const userIds = useMemo(() => {
       const ids = new Set<string>();
       projects?.forEach(p => {
-        if (!p.userId.startsWith('unregistered_')) {
+        if (p.userId && !p.userId.startsWith('unregistered_')) {
           ids.add(p.userId);
         }
       });
@@ -230,17 +231,13 @@ export default function AllLeadsPage() {
   }, [projects, contactLeads]);
 
   const usersQuery = useMemo(() => {
-    if (!firestore || userIds.length === 0) return null;
-    // Chunk the userIds array to avoid hitting Firestore's 30-item limit for 'in' queries
-    if (userIds.length > 10) {
-      console.warn("Large number of users to fetch, this might become slow. Consider pagination or optimizing queries.");
-    }
+    if (!firestore || userIds.length === 0 || !currentUser) return null;
     return query(collection(firestore, 'users'), where('__name__', 'in', userIds));
-  }, [firestore, userIds]);
+  }, [firestore, userIds, currentUser]);
 
   const { data: users, loading: loadingUsers } = useCollection<UserProfile>(usersQuery);
 
-  const loading = loadingProjects || loadingUsers || loadingContactLeads;
+  const loading = loadingProjects || loadingUsers || loadingContactLeads || userLoading;
 
   const usersMap = useMemo(() => {
     if (!users) return new Map<string, UserProfile>();
@@ -249,7 +246,7 @@ export default function AllLeadsPage() {
 
   const clientLeads = useMemo(() => {
       if(!projects) return [];
-      return projects.filter(p => !p.userId.startsWith('unregistered_'));
+      return projects.filter(p => p.userId && !p.userId.startsWith('unregistered_'));
   }, [projects]);
   
   const partnerLeads = useMemo(() => {

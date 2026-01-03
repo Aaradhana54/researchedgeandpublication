@@ -1,9 +1,10 @@
 
+
 'use client';
 
 import { useMemo } from 'react';
-import { collection, query } from 'firebase/firestore';
-import { useCollection, useFirestore } from '@/firebase';
+import { collection, query, where } from 'firebase/firestore';
+import { useCollection, useFirestore, useUser } from '@/firebase';
 import type { UserProfile } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoaderCircle, UserPlus, Briefcase, Trash2 } from 'lucide-react';
@@ -93,16 +94,19 @@ function TeamMemberTable({ users, onDelete }: { users: UserProfile[], onDelete: 
 
 export default function TeamManagementPage() {
   const firestore = useFirestore();
+  const { user: currentUser, loading: userLoading } = useUser();
   const { toast } = useToast();
 
-  const usersQuery = useMemo(() => {
-    if (!firestore) return null;
-    return query(collection(firestore, 'users'));
-  }, [firestore]);
-
-  const { data: users, loading } = useCollection<UserProfile>(usersQuery);
-
   const teamRoles = ['writing-team', 'sales-team', 'sales-manager'];
+
+  const usersQuery = useMemo(() => {
+    if (!firestore || !currentUser) return null;
+    // This query now depends on the current user being loaded.
+    return query(collection(firestore, 'users'), where('role', 'in', teamRoles));
+  }, [firestore, currentUser]);
+
+  const { data: users, loading: usersLoading } = useCollection<UserProfile>(usersQuery);
+  const loading = userLoading || usersLoading;
 
   const handleDeleteUser = async (userToDelete: UserProfile) => {
     if (!firestore) {

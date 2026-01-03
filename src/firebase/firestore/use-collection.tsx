@@ -56,7 +56,7 @@ export function useCollection<T extends DocumentData>(
   
   const mutate = () => {
     if (!query) {
-      setState({ data: null, loading: false, error: null, mutate });
+      setState({ data: null, loading: true, error: null, mutate });
       return;
     }
 
@@ -92,6 +92,12 @@ export function useCollection<T extends DocumentData>(
 
 
   useEffect(() => {
+    // If the query is null, it means we are waiting for dependencies (like the user object)
+    // to be ready. In this case, we set loading to true and wait.
+    if (!query) {
+      setState({ data: null, loading: true, error: null, mutate });
+      return;
+    }
     const unsubscribe = mutate();
     return () => {
         if (unsubscribe) {
@@ -103,3 +109,4 @@ export function useCollection<T extends DocumentData>(
 
   return { ...state, mutate };
 }
+

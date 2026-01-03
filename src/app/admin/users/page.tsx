@@ -3,8 +3,8 @@
 'use client';
 
 import { useMemo } from 'react';
-import { collection, query, doc, deleteDoc } from 'firebase/firestore';
-import { useCollection, useFirestore } from '@/firebase';
+import { collection, query, doc, deleteDoc, where } from 'firebase/firestore';
+import { useCollection, useFirestore, useUser } from '@/firebase';
 import type { UserProfile } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoaderCircle, UserPlus, Trash2 } from 'lucide-react';
@@ -167,14 +167,17 @@ function ReferralPartnerTable({ partners, allUsers, onDelete }: { partners: User
 
 export default function UserManagementPage() {
   const firestore = useFirestore();
+  const { user: currentUser, loading: userLoading } = useUser();
   const { toast } = useToast();
 
+  // The query is now dependent on the currentUser being loaded.
   const usersQuery = useMemo(() => {
-    if (!firestore) return null;
+    if (!firestore || !currentUser) return null;
     return query(collection(firestore, 'users'));
-  }, [firestore]);
+  }, [firestore, currentUser]);
 
-  const { data: users, loading, mutate } = useCollection<UserProfile>(usersQuery);
+  const { data: users, loading: usersLoading } = useCollection<UserProfile>(usersQuery);
+  const loading = userLoading || usersLoading;
 
   const handleDeleteUser = async (userToDelete: UserProfile) => {
     if (!firestore) {
@@ -197,8 +200,7 @@ export default function UserManagementPage() {
             title: 'User Deleted',
             description: `The account for ${userToDelete.name} has been permanently deleted.`
         });
-        // The useCollection hook should update automatically, but we can force a re-fetch if needed
-        // mutate(); 
+        // The useCollection hook should update automatically
     } catch(error: any) {
         toast({
             variant: 'destructive',
@@ -287,3 +289,4 @@ export default function UserManagementPage() {
     </div>
   );
 }
+
