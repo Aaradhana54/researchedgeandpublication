@@ -20,6 +20,9 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Label } from '../ui/label';
 import { Input } from '../ui/input';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
+
 
 interface SendApprovalEmailButtonProps {
   project: Project;
@@ -76,13 +79,12 @@ export function SendApprovalEmailButton({ project, client, onEmailSent }: SendAp
         <p>Our writing and research team will begin work shortly. If you haven't created an account yet, you will receive separate instructions to do so. You can monitor the status of your project from your client dashboard.</p>
         <p>Thank you for choosing Research Edge and Publication.</p>
     `;
-
+    
     const mailCollection = collection(firestore, 'mail');
     const mailDoc = doc(mailCollection);
-
+    
     const batch = writeBatch(firestore);
 
-    // Corrected data structure for the Trigger Email extension.
     batch.set(mailDoc, {
       to: [targetEmail],
       message: {
@@ -105,12 +107,19 @@ export function SendApprovalEmailButton({ project, client, onEmailSent }: SendAp
       }
       setNeedsManualEmail(false);
     } catch (error: any) {
-      console.error("Failed to send email:", error);
-      toast({
-        variant: 'destructive',
-        title: 'Send Failed',
-        description: error.message || 'Could not queue the email for sending.',
-      });
+        const permissionError = new FirestorePermissionError({
+            path: `mail/${mailDoc.id}`,
+            operation: 'create',
+            requestResourceData: "redacted_for_brevity",
+          }, error);
+        errorEmitter.emit('permission-error', permissionError);
+        
+        console.error("Failed to send email:", error);
+        toast({
+            variant: 'destructive',
+            title: 'Send Failed',
+            description: error.message || 'Could not queue the email for sending.',
+        });
     } finally {
       setLoading(false);
     }
@@ -144,8 +153,7 @@ export function SendApprovalEmailButton({ project, client, onEmailSent }: SendAp
         Send Mail
       </Button>
 
-      {needsManualEmail && (
-        <AlertDialog open={needsManualEmail} onOpenChange={setNeedsManualEmail}>
+      <AlertDialog open={needsManualEmail} onOpenChange={setNeedsManualEmail}>
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>Client Email Required</AlertDialogTitle>
@@ -171,7 +179,6 @@ export function SendApprovalEmailButton({ project, client, onEmailSent }: SendAp
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
-      )}
     </>
   );
 }
