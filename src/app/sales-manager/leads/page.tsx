@@ -213,23 +213,14 @@ export default function AllLeadsPage() {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const projectsQuery = query(
-            collection(firestore, 'projects'), 
-            where('assignedSalesId', '==', null)
-        );
+        const projectsQuery = query(collection(firestore, 'projects'));
         const projectsSnap = await getDocs(projectsQuery);
         const fetchedProjects = projectsSnap.docs.map(doc => ({ ...doc.data() as Project, id: doc.id }));
-        // Sort client-side
-        fetchedProjects.sort((a,b) => b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime());
         setProjects(fetchedProjects);
 
-        const contactLeadsQuery = query(
-            collection(firestore, 'contact_leads'),
-            where('assignedSalesId', '==', null)
-        );
+        const contactLeadsQuery = query(collection(firestore, 'contact_leads'));
         const contactLeadsSnap = await getDocs(contactLeadsQuery);
         const fetchedContactLeads = contactLeadsSnap.docs.map(doc => ({ ...doc.data() as ContactLead, id: doc.id }));
-        fetchedContactLeads.sort((a,b) => b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime());
         setContactLeads(fetchedContactLeads);
 
         const userIds = new Set<string>();
@@ -265,22 +256,19 @@ export default function AllLeadsPage() {
 
   const loadingData = loading || userLoading;
 
-  const clientLeads = useMemo(() => {
-      if(!projects) return [];
-      return projects.filter(p => p.userId && !p.userId.startsWith('unregistered_') && p.status === 'pending');
-  }, [projects]);
-  
-  const partnerLeads = useMemo(() => {
-      if(!contactLeads) return [];
-      return contactLeads.filter(l => !!l.referredByPartnerId && l.status === 'new');
-  }, [contactLeads]);
+  const { clientLeads, partnerLeads, websiteLeads, allLeadsCount } = useMemo(() => {
+    const unassignedProjects = projects.filter(p => !p.assignedSalesId && p.status === 'pending');
+    const unassignedContacts = contactLeads.filter(l => !l.assignedSalesId && l.status === 'new');
+    
+    const clientLeads = unassignedProjects.filter(p => p.userId && !p.userId.startsWith('unregistered_'));
+    const partnerLeads = unassignedContacts.filter(l => !!l.referredByPartnerId);
+    const websiteLeads = unassignedContacts.filter(l => !l.referredByPartnerId);
+    
+    const allLeadsCount = clientLeads.length + partnerLeads.length + websiteLeads.length;
 
-  const websiteLeads = useMemo(() => {
-      if(!contactLeads) return [];
-      return contactLeads.filter(l => !l.referredByPartnerId && l.status === 'new');
-  }, [contactLeads]);
+    return { clientLeads, partnerLeads, websiteLeads, allLeadsCount };
+  }, [projects, contactLeads]);
   
-  const allLeadsCount = clientLeads.length + partnerLeads.length + websiteLeads.length;
 
   return (
     <div className="p-4 sm:p-6 lg:p-8">
@@ -338,3 +326,5 @@ export default function AllLeadsPage() {
     </div>
   );
 }
+
+    
