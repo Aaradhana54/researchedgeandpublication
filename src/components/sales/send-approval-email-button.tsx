@@ -3,7 +3,7 @@
 
 import { useState } from 'react';
 import { useFirestore } from '@/firebase';
-import { collection, doc, writeBatch } from 'firebase/firestore';
+import { collection, doc, writeBatch, addDoc } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Mail, LoaderCircle, Check } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -80,36 +80,40 @@ export function SendApprovalEmailButton({ project, client, onEmailSent }: SendAp
         <p>Thank you for choosing Research Edge and Publication.</p>
     `;
     
-    const mailCollection = collection(firestore, 'mail');
-    const mailDoc = doc(mailCollection);
-    
-    const batch = writeBatch(firestore);
-
-    batch.set(mailDoc, {
-      to: [targetEmail],
-      message: {
-        subject: `Your Project "${project.title}" has been Approved!`,
-        html: emailContent,
-      },
-    });
-
-    const projectRef = doc(firestore, 'projects', project.id);
-    batch.update(projectRef, { approvalEmailSent: true });
-
     try {
+      const mailCollectionRef = collection(firestore, 'mail');
+      const projectRef = doc(firestore, 'projects', project.id);
+      
+      const batch = writeBatch(firestore);
+
+      // Create mail document with the correct structure
+      const mailDocRef = doc(mailCollectionRef);
+      batch.set(mailDocRef, {
+        to: [targetEmail],
+        message: {
+          subject: `Your Project "${project.title}" has been Approved!`,
+          html: emailContent,
+        },
+      });
+
+      // Update project status in the same batch
+      batch.update(projectRef, { approvalEmailSent: true });
+
       await batch.commit();
+
       toast({
         title: 'Email Queued',
         description: `An approval email is being sent to ${targetEmail}.`,
       });
+      
       if (onEmailSent) {
         onEmailSent();
       }
       setNeedsManualEmail(false);
     } catch (error: any) {
         const permissionError = new FirestorePermissionError({
-            path: `mail/${mailDoc.id}`,
-            operation: 'create',
+            path: `mail or projects/${project.id}`,
+            operation: 'write',
             requestResourceData: "redacted_for_brevity",
           }, error);
         errorEmitter.emit('permission-error', permissionError);
@@ -124,7 +128,7 @@ export function SendApprovalEmailButton({ project, client, onEmailSent }: SendAp
       setLoading(false);
     }
   };
-
+  
   const handleClick = () => {
     if (!clientEmail) {
       setNeedsManualEmail(true);
@@ -132,6 +136,7 @@ export function SendApprovalEmailButton({ project, client, onEmailSent }: SendAp
       handleSendEmail();
     }
   };
+
 
   if (project.approvalEmailSent) {
     return (
@@ -144,7 +149,7 @@ export function SendApprovalEmailButton({ project, client, onEmailSent }: SendAp
 
   return (
     <>
-      <Button variant="ghost" size="sm" onClick={handleClick} disabled={loading}>
+       <Button variant="ghost" size="sm" onClick={handleClick} disabled={loading}>
         {loading ? (
           <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
         ) : (
