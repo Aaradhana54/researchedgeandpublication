@@ -215,20 +215,21 @@ export default function AllLeadsPage() {
       try {
         const projectsQuery = query(
             collection(firestore, 'projects'), 
-            where('assignedSalesId', '==', null),
-            orderBy('createdAt', 'desc')
+            where('assignedSalesId', '==', null)
         );
         const projectsSnap = await getDocs(projectsQuery);
         const fetchedProjects = projectsSnap.docs.map(doc => ({ ...doc.data() as Project, id: doc.id }));
+        // Sort client-side
+        fetchedProjects.sort((a,b) => b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime());
         setProjects(fetchedProjects);
 
         const contactLeadsQuery = query(
             collection(firestore, 'contact_leads'),
-            where('assignedSalesId', '==', null),
-            orderBy('createdAt', 'desc')
+            where('assignedSalesId', '==', null)
         );
         const contactLeadsSnap = await getDocs(contactLeadsQuery);
         const fetchedContactLeads = contactLeadsSnap.docs.map(doc => ({ ...doc.data() as ContactLead, id: doc.id }));
+        fetchedContactLeads.sort((a,b) => b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime());
         setContactLeads(fetchedContactLeads);
 
         const userIds = new Set<string>();
