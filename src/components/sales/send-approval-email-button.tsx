@@ -27,9 +27,10 @@ import { FirestorePermissionError } from '@/firebase/errors';
 interface SendApprovalEmailButtonProps {
   project: Project;
   client: UserProfile | { name: string, email: string } | undefined;
+  onEmailSent?: () => void;
 }
 
-export function SendApprovalEmailButton({ project, client }: SendApprovalEmailButtonProps) {
+export function SendApprovalEmailButton({ project, client, onEmailSent }: SendApprovalEmailButtonProps) {
   const [loading, setLoading] = useState(false);
   const [manualEmail, setManualEmail] = useState('');
   const [open, setOpen] = useState(false);
@@ -101,6 +102,9 @@ export function SendApprovalEmailButton({ project, client }: SendApprovalEmailBu
               title: 'Email Queued',
               description: `An approval email is being sent to ${targetEmail}.`,
           });
+          if (onEmailSent) {
+            onEmailSent();
+          }
           setOpen(false);
           setLoading(false);
       })

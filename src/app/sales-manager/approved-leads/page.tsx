@@ -44,53 +44,52 @@ export default function ApprovedLeadsPage() {
   const [usersMap, setUsersMap] = useState<Map<string, UserProfile>>(new Map());
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const fetchApprovedLeadsData = async () => {
     if (!firestore) return;
+    setLoading(true);
+    try {
+      // 1. Fetch approved projects
+      const projectsQuery = query(
+        collection(firestore, 'projects'),
+        where('status', 'in', ['approved', 'in-progress', 'completed'])
+      );
+      const projectsSnap = await getDocs(projectsQuery);
+      const fetchedProjects = projectsSnap.docs.map(doc => ({ ...doc.data() as Project, id: doc.id }));
+      setProjects(fetchedProjects);
 
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        // 1. Fetch approved projects
-        const projectsQuery = query(
-          collection(firestore, 'projects'),
-          where('status', 'in', ['approved', 'in-progress', 'completed'])
-        );
-        const projectsSnap = await getDocs(projectsQuery);
-        const fetchedProjects = projectsSnap.docs.map(doc => ({ ...doc.data() as Project, id: doc.id }));
-        setProjects(fetchedProjects);
-
-        // 2. Gather unique user IDs from the projects
-        const userIds = new Set<string>();
-        fetchedProjects.forEach(p => {
-          if (p.userId && !p.userId.startsWith('unregistered_')) {
-            userIds.add(p.userId);
-          }
-        });
-        
-        // 3. Fetch only the necessary users
-        const newUsersMap = new Map<string, UserProfile>();
-        if (userIds.size > 0) {
-          const userIdsArray = Array.from(userIds);
-          // Firestore 'in' query supports up to 30 elements
-          for (let i = 0; i < userIdsArray.length; i += 30) {
-            const chunk = userIdsArray.slice(i, i + 30);
-            const usersQuery = query(collection(firestore, 'users'), where('__name__', 'in', chunk));
-            const usersSnap = await getDocs(usersQuery);
-            usersSnap.forEach(doc => {
-              newUsersMap.set(doc.id, { ...doc.data() as UserProfile, uid: doc.id });
-            });
-          }
+      // 2. Gather unique user IDs from the projects
+      const userIds = new Set<string>();
+      fetchedProjects.forEach(p => {
+        if (p.userId && !p.userId.startsWith('unregistered_')) {
+          userIds.add(p.userId);
         }
-        setUsersMap(newUsersMap);
-
-      } catch (error) {
-        console.error("Error fetching approved leads data:", error);
-      } finally {
-        setLoading(false);
+      });
+      
+      // 3. Fetch only the necessary users
+      const newUsersMap = new Map<string, UserProfile>();
+      if (userIds.size > 0) {
+        const userIdsArray = Array.from(userIds);
+        // Firestore 'in' query supports up to 30 elements
+        for (let i = 0; i < userIdsArray.length; i += 30) {
+          const chunk = userIdsArray.slice(i, i + 30);
+          const usersQuery = query(collection(firestore, 'users'), where('__name__', 'in', chunk));
+          const usersSnap = await getDocs(usersQuery);
+          usersSnap.forEach(doc => {
+            newUsersMap.set(doc.id, { ...doc.data() as UserProfile, uid: doc.id });
+          });
+        }
       }
-    };
+      setUsersMap(newUsersMap);
 
-    fetchData();
+    } catch (error) {
+      console.error("Error fetching approved leads data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchApprovedLeadsData();
   }, [firestore]);
 
 
@@ -165,7 +164,7 @@ export default function ApprovedLeadsPage() {
                            </Badge>
                        </TableCell>
                        <TableCell className="text-right">
-                            <SendApprovalEmailButton project={project} client={client} />
+                            <SendApprovalEmailButton project={project} client={client} onEmailSent={fetchApprovedLeadsData} />
                        </TableCell>
                     </TableRow>
                   )

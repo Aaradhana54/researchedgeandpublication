@@ -22,6 +22,7 @@ import { Button } from '@/components/ui/button';
 import { AssignWriterDialog } from '@/components/admin/assign-writer-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { CreateClientAccountDialog } from '@/components/referral-partner/create-client-account-dialog';
+import { SendApprovalEmailButton } from '@/components/sales/send-approval-email-button';
 
 const getProjectStatusVariant = (status?: string): 'default' | 'secondary' | 'destructive' | 'outline' => {
   switch (status) {
@@ -222,6 +223,7 @@ export default function ApprovedLeadsPage() {
                        </TableCell>
                       <TableCell className="text-right">
                          <div className="flex justify-end items-center gap-2">
+                            <SendApprovalEmailButton project={project} client={client} onEmailSent={fetchApprovedLeadsData} />
                             {isUnregistered && (
                                <CreateClientAccountDialog project={project} onAccountCreated={fetchApprovedLeadsData} />
                             )}

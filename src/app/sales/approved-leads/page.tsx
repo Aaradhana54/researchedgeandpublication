@@ -45,54 +45,62 @@ export default function ApprovedLeadsPage() {
   const [usersMap, setUsersMap] = useState<Map<string, UserProfile>>(new Map());
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const fetchApprovedLeads = async () => {
     if (userLoading || !firestore || !user) {
         if (!userLoading) setLoading(false);
         return;
     }
 
-    const fetchApprovedLeads = async () => {
-        setLoading(true);
-        try {
-            const projectsQuery = query(
-                collection(firestore, 'projects'),
-                where('finalizedBy', '==', user.uid),
-                where('status', 'in', ['approved', 'in-progress', 'completed'])
-            );
-            const projectsSnap = await getDocs(projectsQuery);
-            const fetchedProjects = projectsSnap.docs.map(doc => ({...doc.data() as Project, id: doc.id}));
+    setLoading(true);
+    try {
+        const projectsQuery = query(
+            collection(firestore, 'projects'),
+            where('finalizedBy', '==', user.uid),
+            where('status', 'in', ['approved', 'in-progress', 'completed'])
+        );
+        const projectsSnap = await getDocs(projectsQuery);
+        const fetchedProjects = projectsSnap.docs.map(doc => ({...doc.data() as Project, id: doc.id}));
 
-            const userIds = new Set<string>();
-            fetchedProjects.forEach(p => {
-                if(p.userId) userIds.add(p.userId);
-            });
-            
-            const newUsersMap = new Map<string, UserProfile>();
-            if (userIds.size > 0) {
-                 // Firestore 'in' query supports up to 30 elements
-                 const userIdsArray = Array.from(userIds);
-                 for (let i = 0; i < userIdsArray.length; i += 30) {
-                    const chunk = userIdsArray.slice(i, i + 30);
-                    const usersQuery = query(collection(firestore, 'users'), where('uid', 'in', chunk));
-                    const usersSnap = await getDocs(usersQuery);
-                    usersSnap.forEach(doc => {
-                        newUsersMap.set(doc.id, doc.data() as UserProfile);
-                    });
-                 }
-            }
-            
-            setProjects(fetchedProjects);
-            setUsersMap(newUsersMap);
-
-        } catch (error) {
-            console.error("Error fetching approved leads:", error);
-        } finally {
-            setLoading(false);
+        const userIds = new Set<string>();
+        fetchedProjects.forEach(p => {
+            if(p.userId && !p.userId.startsWith('unregistered_')) userIds.add(p.userId);
+        });
+        
+        const newUsersMap = new Map<string, UserProfile>();
+        if (userIds.size > 0) {
+             // Firestore 'in' query supports up to 30 elements
+             const userIdsArray = Array.from(userIds);
+             for (let i = 0; i < userIdsArray.length; i += 30) {
+                const chunk = userIdsArray.slice(i, i + 30);
+                const usersQuery = query(collection(firestore, 'users'), where('__name__', 'in', chunk));
+                const usersSnap = await getDocs(usersQuery);
+                usersSnap.forEach(doc => {
+                    newUsersMap.set(doc.id, {...doc.data() as UserProfile, uid: doc.id});
+                });
+             }
         }
-    }
+        
+        setProjects(fetchedProjects);
+        setUsersMap(newUsersMap);
 
+    } catch (error) {
+        console.error("Error fetching approved leads:", error);
+    } finally {
+        setLoading(false);
+    }
+  }
+
+  useEffect(() => {
     fetchApprovedLeads();
   }, [firestore, user, userLoading]);
+
+  const getClientInfo = (project: Project) => {
+    if (project.userId.startsWith('unregistered_')) {
+      const email = project.userId.split('_')[1];
+      return { name: `Unregistered (${email})`, email: email };
+    }
+    return usersMap.get(project.userId) || { name: 'Unknown User', email: ''};
+  }
 
   const sortedProjects = useMemo(() => {
     if (!projects) return [];
@@ -135,7 +143,7 @@ export default function ApprovedLeadsPage() {
               <TableBody>
                 {sortedProjects.map((project) => {
                   if (!project.id) return null;
-                  const client = usersMap.get(project.userId);
+                  const client = getClientInfo(project);
                   return (
                     <TableRow key={project.id}>
                       <TableCell className="font-medium">
@@ -156,7 +164,7 @@ export default function ApprovedLeadsPage() {
                            </Badge>
                        </TableCell>
                        <TableCell className="text-right">
-                            <SendApprovalEmailButton project={project} client={client} />
+                            <SendApprovalEmailButton project={project} client={client} onEmailSent={fetchApprovedLeads} />
                        </TableCell>
                     </TableRow>
                   )
