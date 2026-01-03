@@ -62,7 +62,7 @@ service cloud.firestore {
         // List of fields a client is NOT allowed to set on creation.
         let forbiddenKeys = [
             'dealAmount', 'advanceReceived', 'discussionNotes', 'paymentScreenshotUrl', 
-            'finalDeadline', 'finalizedAt', 'finalizedBy', 'assignedWriterId', 'assignedSalesId',
+            'finalDeadline', 'finalizedAt', 'finalizedBy', 'assignedWriterId',
             'rejectionReason', 'referredByPartnerId', 'approvalEmailSent'
         ];
         
@@ -84,7 +84,7 @@ service cloud.firestore {
       allow read: if isOwner(userId) || isAdmin() || isSalesTeam() || isWritingTeam() || (isReferralPartner() && resource.data.referredBy == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.referralCode);
       
       // Admins, referral partners, and sales team can list users (will be filtered in app).
-      allow list: if isAdmin() || isReferralPartner() || isSalesTeam() || isSalesManager() || isWritingTeam();
+      allow list: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'sales-manager', 'sales-team', 'writing-team', 'referral-partner'];
 
       // Users can update their own profile, but cannot change their role. 
       // Admins can update any profile, but also cannot change roles for security.
