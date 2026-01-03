@@ -3,7 +3,7 @@
 
 import { useState } from 'react';
 import { useFirestore } from '@/firebase';
-import { collection, doc, writeBatch, serverTimestamp } from 'firebase/firestore';
+import { collection, doc, writeBatch } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Mail, LoaderCircle, Check } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -41,7 +41,6 @@ export function SendApprovalEmailButton({ project, client }: SendApprovalEmailBu
     if (client?.email) {
       return client.email;
     }
-    // Handle unregistered users where userId is like 'unregistered_email@example.com'
     if (project.userId.startsWith('unregistered_')) {
       return project.userId.split('_')[1];
     }
@@ -82,7 +81,6 @@ export function SendApprovalEmailButton({ project, client }: SendApprovalEmailBu
     
     const batch = writeBatch(firestore);
 
-    // 1. Create the email document
     const mailRef = doc(collection(firestore, 'mail'));
     const emailData = {
         to: [targetEmail],
@@ -93,7 +91,6 @@ export function SendApprovalEmailButton({ project, client }: SendApprovalEmailBu
     };
     batch.set(mailRef, emailData);
 
-    // 2. Update the project to mark email as sent
     const projectRef = doc(firestore, 'projects', project.id);
     const projectUpdateData = { approvalEmailSent: true };
     batch.update(projectRef, projectUpdateData);
@@ -108,15 +105,13 @@ export function SendApprovalEmailButton({ project, client }: SendApprovalEmailBu
           setLoading(false);
       })
       .catch((error: any) => {
-          // THROW a proper error to be caught by the error boundary
           const permissionError = new FirestorePermissionError({
-              path: `/mail and /projects/${project.id}`,
+              path: `/mail/${mailRef.id} and /projects/${project.id}`,
               operation: 'write',
               requestResourceData: { email: emailData, projectUpdate: projectUpdateData },
           }, error);
           errorEmitter.emit('permission-error', permissionError);
 
-          // Also show a toast for user feedback
           toast({
               variant: 'destructive',
               title: 'Send Failed',
