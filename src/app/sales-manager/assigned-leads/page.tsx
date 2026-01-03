@@ -1,10 +1,9 @@
 
-
 'use client';
 
-import { useMemo } from 'react';
-import { collection, query, where, orderBy } from 'firebase/firestore';
-import { useCollection, useFirestore } from '@/firebase';
+import { useMemo, useState, useEffect } from 'react';
+import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
+import { useCollection, useFirestore, useUser } from '@/firebase';
 import type { Project, UserProfile, ContactLead } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoaderCircle, UserCheck } from 'lucide-react';
@@ -27,27 +26,67 @@ type CombinedLead = (Project | ContactLead) & {
 
 export default function AssignedLeadsPage() {
   const firestore = useFirestore();
+  const { user, loading: userLoading } = useUser();
 
-  const projectsQuery = useMemo(() => {
-    if (!firestore) return null;
-    return query(collection(firestore, 'projects'), where('assignedSalesId', '!=', null));
-  }, [firestore]);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [contactLeads, setContactLeads] = useState<ContactLead[]>([]);
+  const [users, setUsers] = useState<UserProfile[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const contactLeadsQuery = useMemo(() => {
-    if (!firestore) return null;
-    return query(collection(firestore, 'contact_leads'), where('assignedSalesId', '!=', null));
-  }, [firestore]);
+  useEffect(() => {
+    if (userLoading || !firestore) {
+      if (!userLoading) setLoading(false);
+      return;
+    }
 
-  const usersQuery = useMemo(() => {
-    if (!firestore) return null;
-    return query(collection(firestore, 'users'), where('role', 'in', ['client', 'sales-team', 'sales-manager']));
-  }, [firestore]);
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const projectsQuery = query(collection(firestore, 'projects'), where('assignedSalesId', '!=', null), orderBy('assignedSalesId'), orderBy('createdAt', 'desc'));
+        const contactLeadsQuery = query(collection(firestore, 'contact_leads'), where('assignedSalesId', '!=', null), orderBy('assignedSalesId'), orderBy('createdAt', 'desc'));
+        
+        const [projectsSnap, contactLeadsSnap] = await Promise.all([
+          getDocs(projectsQuery),
+          getDocs(contactLeadsQuery)
+        ]);
 
-  const { data: projects, loading: loadingProjects } = useCollection<Project>(projectsQuery);
-  const { data: contactLeads, loading: loadingContactLeads } = useCollection<ContactLead>(contactLeadsQuery);
-  const { data: users, loading: loadingUsers } = useCollection<UserProfile>(usersQuery);
+        const fetchedProjects = projectsSnap.docs.map(doc => ({...doc.data() as Project, id: doc.id}));
+        const fetchedContactLeads = contactLeadsSnap.docs.map(doc => ({...doc.data() as ContactLead, id: doc.id}));
 
-  const loading = loadingProjects || loadingContactLeads || loadingUsers;
+        setProjects(fetchedProjects);
+        setContactLeads(fetchedContactLeads);
+
+        const userIds = new Set<string>();
+        fetchedProjects.forEach(p => {
+          if (p.userId) userIds.add(p.userId);
+          if (p.assignedSalesId) userIds.add(p.assignedSalesId);
+        });
+        fetchedContactLeads.forEach(l => {
+          if (l.assignedSalesId) userIds.add(l.assignedSalesId);
+        });
+        
+        const newUsers: UserProfile[] = [];
+        if (userIds.size > 0) {
+          const ids = Array.from(userIds);
+          for (let i = 0; i < ids.length; i += 30) {
+            const chunk = ids.slice(i, i+30);
+            const usersQuery = query(collection(firestore, 'users'), where('__name__', 'in', chunk));
+            const usersSnap = await getDocs(usersQuery);
+            usersSnap.forEach(doc => newUsers.push({ ...doc.data() as UserProfile, uid: doc.id }));
+          }
+        }
+        setUsers(newUsers);
+
+      } catch (error) {
+        console.error("Error fetching assigned leads:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+
+  }, [firestore, user, userLoading]);
 
   const usersMap = useMemo(() => {
     if (!users) return new Map<string, UserProfile>();
@@ -61,7 +100,7 @@ export default function AssignedLeadsPage() {
       allLeads.push({ 
         ...p, 
         leadType: 'Project',
-        clientName: usersMap.get(p.userId)?.name || 'Unknown Client',
+        clientName: usersMap.get(p.userId)?.name || (p.userId.startsWith('unregistered_') ? p.userId.split('_')[1] : 'Unknown Client'),
       });
     });
 
@@ -144,5 +183,3 @@ export default function AssignedLeadsPage() {
     </div>
   );
 }
-
-    
