@@ -1,9 +1,9 @@
 
 'use client';
 
-import { useMemo } from 'react';
-import { collection, query, orderBy } from 'firebase/firestore';
-import { useCollection, useFirestore } from '@/firebase';
+import { useMemo, useState, useEffect } from 'react';
+import { collection, query, orderBy, getDocs, where } from 'firebase/firestore';
+import { useFirestore } from '@/firebase';
 import type { Project, UserProfile, ContactLead } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoaderCircle, FolderKanban, Users, MessageSquare } from 'lucide-react';
@@ -193,51 +193,74 @@ function WebsiteLeadsTable({ leads }: { leads: ContactLead[]}) {
 
 export default function AllLeadsPage() {
   const firestore = useFirestore();
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [contactLeads, setContactLeads] = useState<ContactLead[]>([]);
+  const [usersMap, setUsersMap] = useState<Map<string, UserProfile>>(new Map());
+  const [loading, setLoading] = useState(true);
 
-  const projectsQuery = useMemo(() => {
-    if (!firestore) return null;
-    return query(collection(firestore, 'projects'), orderBy('createdAt', 'desc'));
+  useEffect(() => {
+    if (!firestore) return;
+
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const projectsQuery = query(collection(firestore, 'projects'), orderBy('createdAt', 'desc'));
+        const projectsSnap = await getDocs(projectsQuery);
+        const fetchedProjects = projectsSnap.docs.map(doc => ({ ...doc.data() as Project, id: doc.id }));
+        setProjects(fetchedProjects);
+
+        const contactLeadsQuery = query(collection(firestore, 'contact_leads'), orderBy('createdAt', 'desc'));
+        const contactLeadsSnap = await getDocs(contactLeadsQuery);
+        const fetchedContactLeads = contactLeadsSnap.docs.map(doc => ({ ...doc.data() as ContactLead, id: doc.id }));
+        setContactLeads(fetchedContactLeads);
+
+        const userIds = new Set<string>();
+        fetchedProjects.forEach(p => {
+          if (p.userId && !p.userId.startsWith('unregistered_')) userIds.add(p.userId);
+        });
+        fetchedContactLeads.forEach(l => {
+          if (l.referredByPartnerId) userIds.add(l.referredByPartnerId);
+        });
+
+        const newUsersMap = new Map<string, UserProfile>();
+        if (userIds.size > 0) {
+          const userIdsArray = Array.from(userIds);
+          for (let i = 0; i < userIdsArray.length; i += 30) {
+            const chunk = userIdsArray.slice(i, i + 30);
+            const usersQuery = query(collection(firestore, 'users'), where('__name__', 'in', chunk));
+            const usersSnap = await getDocs(usersQuery);
+            usersSnap.forEach(doc => {
+              newUsersMap.set(doc.id, { ...doc.data() as UserProfile, uid: doc.id });
+            });
+          }
+        }
+        setUsersMap(newUsersMap);
+      } catch (error) {
+        console.error("Error fetching leads data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
   }, [firestore]);
 
-  const contactLeadsQuery = useMemo(() => {
-    if (!firestore) return null;
-    return query(collection(firestore, 'contact_leads'), orderBy('createdAt', 'desc'));
-  }, [firestore]);
 
-  const usersQuery = useMemo(() => {
-    if (!firestore) return null;
-    return query(collection(firestore, 'users'));
-  }, [firestore]);
-
-  const { data: projects, loading: loadingProjects } = useCollection<Project>(projectsQuery);
-  const { data: contactLeads, loading: loadingContactLeads } = useCollection<ContactLead>(contactLeadsQuery);
-  const { data: users, loading: loadingUsers } = useCollection<UserProfile>(usersQuery);
-
-  const loading = loadingProjects || loadingUsers || loadingContactLeads;
-
-  const usersMap = useMemo(() => {
-    if (!users) return new Map<string, UserProfile>();
-    return new Map(users.map((user) => [user.uid, user]));
-  }, [users]);
-
-  // Filter for only PENDING client leads
   const clientLeads = useMemo(() => {
-      if(!projects) return [];
-      return projects.filter(p => p.status === 'pending' && !p.userId.startsWith('unregistered_'));
+    if (!projects) return [];
+    return projects.filter(p => p.status === 'pending' && !p.userId.startsWith('unregistered_'));
   }, [projects]);
-  
-  // Filter for only NEW partner leads
+
   const partnerLeads = useMemo(() => {
-      if(!contactLeads) return [];
-      return contactLeads.filter(l => l.status === 'new' && !!l.referredByPartnerId);
+    if (!contactLeads) return [];
+    return contactLeads.filter(l => l.status === 'new' && !!l.referredByPartnerId);
   }, [contactLeads]);
 
-  // Filter for only NEW website leads
   const websiteLeads = useMemo(() => {
-      if(!contactLeads) return [];
-      return contactLeads.filter(l => l.status === 'new' && !l.referredByPartnerId);
+    if (!contactLeads) return [];
+    return contactLeads.filter(l => l.status === 'new' && !l.referredByPartnerId);
   }, [contactLeads]);
-  
+
   const allLeadsCount = clientLeads.length + partnerLeads.length + websiteLeads.length;
 
   return (
@@ -268,11 +291,11 @@ export default function AllLeadsPage() {
                 </TabsList>
                 <TabsContent value="all">
                      {allLeadsCount > 0 ? (
-                        <>
+                        <div className="space-y-8">
                             {clientLeads.length > 0 && <ClientLeadsTable projects={clientLeads} usersMap={usersMap} />}
                             {partnerLeads.length > 0 && <PartnerLeadsTable leads={partnerLeads} usersMap={usersMap} />}
                             {websiteLeads.length > 0 && <WebsiteLeadsTable leads={websiteLeads} />}
-                        </>
+                        </div>
                     ) : (
                         <div className="text-center p-12 text-muted-foreground">
                             <FolderKanban className="mx-auto w-12 h-12 mb-4" />

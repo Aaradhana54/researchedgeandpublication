@@ -2,9 +2,9 @@
 
 'use client';
 
-import { useMemo } from 'react';
-import { collection, query, doc, deleteDoc, where } from 'firebase/firestore';
-import { useCollection, useFirestore, useUser } from '@/firebase';
+import { useMemo, useEffect, useState } from 'react';
+import { collection, query, doc, deleteDoc, where, getDocs } from 'firebase/firestore';
+import { useFirestore, useUser } from '@/firebase';
 import type { UserProfile } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoaderCircle, UserPlus, Trash2 } from 'lucide-react';
@@ -169,15 +169,30 @@ export default function UserManagementPage() {
   const firestore = useFirestore();
   const { user: currentUser, loading: userLoading } = useUser();
   const { toast } = useToast();
+  const [allUsers, setAllUsers] = useState<UserProfile[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // The query is now dependent on the currentUser being loaded.
-  const usersQuery = useMemo(() => {
-    if (!firestore || !currentUser) return null;
-    return query(collection(firestore, 'users'));
+  const fetchAllUsers = async () => {
+    if (!firestore || !currentUser) return;
+    setLoading(true);
+    try {
+      const q = query(collection(firestore, 'users'));
+      const querySnapshot = await getDocs(q);
+      const usersData = querySnapshot.docs.map(doc => ({ ...doc.data() as UserProfile, uid: doc.id }));
+      setAllUsers(usersData);
+    } catch (error) {
+      console.error("Failed to fetch users:", error);
+      toast({ variant: 'destructive', title: 'Error', description: 'Could not load user data.' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (firestore && currentUser) {
+      fetchAllUsers();
+    }
   }, [firestore, currentUser]);
-
-  const { data: users, loading: usersLoading } = useCollection<UserProfile>(usersQuery);
-  const loading = userLoading || usersLoading;
 
   const handleDeleteUser = async (userToDelete: UserProfile) => {
     if (!firestore) {
@@ -200,7 +215,7 @@ export default function UserManagementPage() {
             title: 'User Deleted',
             description: `The account for ${userToDelete.name} has been permanently deleted.`
         });
-        // The useCollection hook should update automatically
+        fetchAllUsers();
     } catch(error: any) {
         toast({
             variant: 'destructive',
@@ -210,23 +225,14 @@ export default function UserManagementPage() {
     }
   }
 
-
   const filteredUsers = useMemo(() => {
-    if (!users) {
-      return {
-        clients: [],
-        authors: [],
-        partners: [],
-        admins: [],
-      };
-    }
     return {
-      clients: users.filter(u => u.role === 'client'),
-      authors: users.filter(u => u.role === 'author'),
-      partners: users.filter(u => u.role === 'referral-partner'),
-      admins: users.filter(u => u.role === 'admin'),
+      clients: allUsers.filter(u => u.role === 'client'),
+      authors: allUsers.filter(u => u.role === 'author'),
+      partners: allUsers.filter(u => u.role === 'referral-partner'),
+      admins: allUsers.filter(u => u.role === 'admin'),
     };
-  }, [users]);
+  }, [allUsers]);
   
   const tabs = [
     { value: 'clients', label: 'Research Clients', data: filteredUsers.clients },
@@ -263,7 +269,7 @@ export default function UserManagementPage() {
                    ))}
                 </TabsList>
                 
-                {loading ? (
+                {loading || userLoading ? (
                      <div className="flex justify-center items-center h-48">
                         <LoaderCircle className="w-8 h-8 animate-spin text-primary" />
                     </div>
@@ -276,7 +282,7 @@ export default function UserManagementPage() {
                             <UserTable users={filteredUsers.authors} onDelete={handleDeleteUser} />
                         </TabsContent>
                          <TabsContent value="partners">
-                            <ReferralPartnerTable partners={filteredUsers.partners} allUsers={users || []} onDelete={handleDeleteUser} />
+                            <ReferralPartnerTable partners={filteredUsers.partners} allUsers={allUsers} onDelete={handleDeleteUser} />
                         </TabsContent>
                          <TabsContent value="admins">
                             <UserTable users={filteredUsers.admins} onDelete={handleDeleteUser}/>
@@ -289,4 +295,3 @@ export default function UserManagementPage() {
     </div>
   );
 }
-

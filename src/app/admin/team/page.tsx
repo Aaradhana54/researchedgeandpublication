@@ -2,9 +2,9 @@
 
 'use client';
 
-import { useMemo } from 'react';
-import { collection, query, where } from 'firebase/firestore';
-import { useCollection, useFirestore, useUser } from '@/firebase';
+import { useMemo, useState, useEffect } from 'react';
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import { useFirestore, useUser } from '@/firebase';
 import type { UserProfile } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoaderCircle, UserPlus, Briefcase, Trash2 } from 'lucide-react';
@@ -96,17 +96,33 @@ export default function TeamManagementPage() {
   const firestore = useFirestore();
   const { user: currentUser, loading: userLoading } = useUser();
   const { toast } = useToast();
+  const [users, setUsers] = useState<UserProfile[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const teamRoles = ['writing-team', 'sales-team', 'sales-manager'];
 
-  const usersQuery = useMemo(() => {
-    if (!firestore || !currentUser) return null;
-    // This query now depends on the current user being loaded.
-    return query(collection(firestore, 'users'), where('role', 'in', teamRoles));
-  }, [firestore, currentUser]);
+  const fetchTeamUsers = async () => {
+      if (!firestore || !currentUser) return;
+      setLoading(true);
+      try {
+          const q = query(collection(firestore, 'users'), where('role', 'in', teamRoles));
+          const querySnapshot = await getDocs(q);
+          const teamUsers = querySnapshot.docs.map(doc => ({...doc.data() as UserProfile, uid: doc.id}));
+          setUsers(teamUsers);
+      } catch (error) {
+          console.error("Error fetching team users:", error);
+          toast({ variant: 'destructive', title: 'Error', description: 'Could not load team members.' });
+      } finally {
+          setLoading(false);
+      }
+  };
 
-  const { data: users, loading: usersLoading } = useCollection<UserProfile>(usersQuery);
-  const loading = userLoading || usersLoading;
+  useEffect(() => {
+    if (firestore && currentUser) {
+      fetchTeamUsers();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [firestore, currentUser]);
 
   const handleDeleteUser = async (userToDelete: UserProfile) => {
     if (!firestore) {
@@ -129,6 +145,7 @@ export default function TeamManagementPage() {
             title: 'User Deleted',
             description: `The account for ${userToDelete.name} has been permanently deleted.`
         });
+        fetchTeamUsers();
     } catch(error: any) {
         toast({
             variant: 'destructive',
@@ -139,34 +156,23 @@ export default function TeamManagementPage() {
   }
 
   const filteredUsers = useMemo(() => {
-    if (!users) {
-        const initial: Record<string, UserProfile[]> = {};
-        teamRoles.forEach(role => initial[role] = []);
-        return initial;
-    }
-    const grouped = users.reduce((acc, user) => {
-      if (teamRoles.includes(user.role)) {
-        if (!acc[user.role]) {
-          acc[user.role] = [];
-        }
-        acc[user.role].push(user);
-      }
-      return acc;
-    }, {} as Record<string, UserProfile[]>);
-
-     teamRoles.forEach(role => {
-        if (!grouped[role]) {
-          grouped[role] = [];
+    const grouped: Record<string, UserProfile[]> = {
+        'writing-team': [],
+        'sales-team': [],
+        'sales-manager': [],
+    };
+    users.forEach(user => {
+        if (teamRoles.includes(user.role)) {
+            grouped[user.role].push(user);
         }
     });
-
     return grouped;
   }, [users]);
 
   const tabs = [
-    { value: 'writing-team', label: 'Writing Team', data: filteredUsers['writing-team'] },
-    { value: 'sales-team', label: 'Sales Team', data: filteredUsers['sales-team'] },
-    { value: 'sales-manager', label: 'Sales Manager', data: filteredUsers['sales-manager'] },
+    { value: 'writing-team', label: 'Writing Team', data: filteredUsers['writing-team'] || [] },
+    { value: 'sales-team', label: 'Sales Team', data: filteredUsers['sales-team'] || [] },
+    { value: 'sales-manager', label: 'Sales Manager', data: filteredUsers['sales-manager'] || [] },
   ];
 
   return (
@@ -197,7 +203,7 @@ export default function TeamManagementPage() {
                    ))}
                 </TabsList>
                 
-                {loading ? (
+                {loading || userLoading ? (
                      <div className="flex justify-center items-center h-48">
                         <LoaderCircle className="w-8 h-8 animate-spin text-primary" />
                     </div>
