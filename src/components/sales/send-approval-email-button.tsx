@@ -21,10 +21,12 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Label } from '../ui/label';
 import { Input } from '../ui/input';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 interface SendApprovalEmailButtonProps {
   project: Project;
-  client: UserProfile | undefined;
+  client: UserProfile | { name: string, email: string } | undefined;
 }
 
 export function SendApprovalEmailButton({ project, client }: SendApprovalEmailButtonProps) {
@@ -62,57 +64,66 @@ export function SendApprovalEmailButton({ project, client }: SendApprovalEmailBu
 
     setLoading(true);
 
-    try {
-        const emailContent = `
-            <h1>Congratulations! Your Project is Approved!</h1>
-            <p>Dear Client,</p>
-            <p>We are excited to let you know that your project, <strong>${project.title}</strong>, has been officially approved and finalized by our team.</p>
-            <h3>Project Details:</h3>
-            <ul>
-                <li><strong>Project Title:</strong> ${project.title}</li>
-                <li><strong>Service:</strong> ${project.serviceType.replace(/-/g, ' ')}</li>
-                <li><strong>Final Deal Amount:</strong> ${project.dealAmount?.toLocaleString('en-IN', { style: 'currency', currency: 'INR' }) || 'N/A'}</li>
-                <li><strong>Advance Received:</strong> ${project.advanceReceived?.toLocaleString('en-IN', { style: 'currency', currency: 'INR' }) || 'N/A'}</li>
-                <li><strong>Final Deadline:</strong> ${project.finalDeadline ? new Date(project.finalDeadline.seconds * 1000).toLocaleDateString() : 'N/A'}</li>
-            </ul>
-            <p>Our writing and research team will begin work shortly. If you haven't created an account yet, you will receive separate instructions to do so. You can monitor the status of your project from your client dashboard.</p>
-            <p>Thank you for choosing Research Edge and Publication.</p>
-        `;
-        
-        const batch = writeBatch(firestore);
+    const emailContent = `
+        <h1>Congratulations! Your Project is Approved!</h1>
+        <p>Dear Client,</p>
+        <p>We are excited to let you know that your project, <strong>${project.title}</strong>, has been officially approved and finalized by our team.</p>
+        <h3>Project Details:</h3>
+        <ul>
+            <li><strong>Project Title:</strong> ${project.title}</li>
+            <li><strong>Service:</strong> ${project.serviceType.replace(/-/g, ' ')}</li>
+            <li><strong>Final Deal Amount:</strong> ${project.dealAmount?.toLocaleString('en-IN', { style: 'currency', currency: 'INR' }) || 'N/A'}</li>
+            <li><strong>Advance Received:</strong> ${project.advanceReceived?.toLocaleString('en-IN', { style: 'currency', currency: 'INR' }) || 'N/A'}</li>
+            <li><strong>Final Deadline:</strong> ${project.finalDeadline ? new Date(project.finalDeadline.seconds * 1000).toLocaleDateString() : 'N/A'}</li>
+        </ul>
+        <p>Our writing and research team will begin work shortly. If you haven't created an account yet, you will receive separate instructions to do so. You can monitor the status of your project from your client dashboard.</p>
+        <p>Thank you for choosing Research Edge and Publication.</p>
+    `;
+    
+    const batch = writeBatch(firestore);
 
-        // 1. Create the email document
-        const mailRef = doc(collection(firestore, 'mail'));
-        batch.set(mailRef, {
-            to: [targetEmail], // Corrected format: must be a simple array of strings
-            message: {
-                subject: `Your Project "${project.title}" has been Approved!`,
-                html: emailContent,
-            },
-        });
+    // 1. Create the email document
+    const mailRef = doc(collection(firestore, 'mail'));
+    const emailData = {
+        to: [targetEmail],
+        message: {
+            subject: `Your Project "${project.title}" has been Approved!`,
+            html: emailContent,
+        },
+    };
+    batch.set(mailRef, emailData);
 
-        // 2. Update the project to mark email as sent
-        const projectRef = doc(firestore, 'projects', project.id);
-        batch.update(projectRef, { approvalEmailSent: true });
-        
-        await batch.commit();
+    // 2. Update the project to mark email as sent
+    const projectRef = doc(firestore, 'projects', project.id);
+    const projectUpdateData = { approvalEmailSent: true };
+    batch.update(projectRef, projectUpdateData);
+    
+    batch.commit()
+      .then(() => {
+          toast({
+              title: 'Email Queued',
+              description: `An approval email is being sent to ${targetEmail}.`,
+          });
+          setOpen(false);
+          setLoading(false);
+      })
+      .catch((error: any) => {
+          // THROW a proper error to be caught by the error boundary
+          const permissionError = new FirestorePermissionError({
+              path: `/mail and /projects/${project.id}`,
+              operation: 'write',
+              requestResourceData: { email: emailData, projectUpdate: projectUpdateData },
+          }, error);
+          errorEmitter.emit('permission-error', permissionError);
 
-        toast({
-            title: 'Email Queued',
-            description: `An approval email is being sent to ${targetEmail}.`,
-        });
-        setOpen(false);
-
-    } catch (error: any) {
-        console.error('Failed to send approval email:', error);
-        toast({
-            variant: 'destructive',
-            title: 'Send Failed',
-            description: error.message || 'Could not queue the email for sending.',
-        });
-    } finally {
-        setLoading(false);
-    }
+          // Also show a toast for user feedback
+          toast({
+              variant: 'destructive',
+              title: 'Send Failed',
+              description: error.message || 'Could not queue the email for sending.',
+          });
+          setLoading(false);
+      });
   };
 
   if (project.approvalEmailSent) {
