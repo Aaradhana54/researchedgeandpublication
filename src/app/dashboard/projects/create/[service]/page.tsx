@@ -93,7 +93,6 @@ export default function CreateProjectPage() {
               status: 'pending',
               createdAt: serverTimestamp(),
               updatedAt: serverTimestamp(),
-              assignedSalesId: null,
               synopsisFileUrl: synopsisUrl,
               mobile: (rawFormData.mobile as string) || null,
               topic: (rawFormData.topic as string) || null,
