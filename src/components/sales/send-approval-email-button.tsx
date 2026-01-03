@@ -82,6 +82,7 @@ export function SendApprovalEmailButton({ project, client, onEmailSent }: SendAp
 
     const batch = writeBatch(firestore);
 
+    // Corrected data structure for the Trigger Email extension.
     batch.set(mailDoc, {
       to: [targetEmail],
       message: {
@@ -132,45 +133,45 @@ export function SendApprovalEmailButton({ project, client, onEmailSent }: SendAp
     );
   }
 
-  if (needsManualEmail) {
-    return (
-      <AlertDialog open={needsManualEmail} onOpenChange={setNeedsManualEmail}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Client Email Required</AlertDialogTitle>
-            <AlertDialogDescription>
-              No registered email found for this client. Please enter their email address below to send the approval notification.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <div className="pt-2 space-y-2">
-            <Label htmlFor="manual-email">Client Email Address</Label>
-            <Input
-              id="manual-email"
-              type="email"
-              placeholder="client@example.com"
-              value={manualEmail}
-              onChange={(e) => setManualEmail(e.target.value)}
-            />
-          </div>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleSendEmail} disabled={loading || !manualEmail}>
-              {loading ? <LoaderCircle className="animate-spin" /> : 'Confirm & Send'}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    );
-  }
-
   return (
-    <Button variant="ghost" size="sm" onClick={handleClick} disabled={loading}>
-      {loading ? (
-        <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
-      ) : (
-        <Mail className="mr-2 h-4 w-4" />
+    <>
+      <Button variant="ghost" size="sm" onClick={handleClick} disabled={loading}>
+        {loading ? (
+          <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
+        ) : (
+          <Mail className="mr-2 h-4 w-4" />
+        )}
+        Send Mail
+      </Button>
+
+      {needsManualEmail && (
+        <AlertDialog open={needsManualEmail} onOpenChange={setNeedsManualEmail}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Client Email Required</AlertDialogTitle>
+              <AlertDialogDescription>
+                No registered email found for this client. Please enter their email address below to send the approval notification.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <div className="pt-2 space-y-2">
+              <Label htmlFor="manual-email">Client Email Address</Label>
+              <Input
+                id="manual-email"
+                type="email"
+                placeholder="client@example.com"
+                value={manualEmail}
+                onChange={(e) => setManualEmail(e.target.value)}
+              />
+            </div>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleSendEmail} disabled={loading || !manualEmail}>
+                {loading ? <LoaderCircle className="animate-spin" /> : 'Confirm & Send'}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       )}
-      Send Mail
-    </Button>
+    </>
   );
 }
