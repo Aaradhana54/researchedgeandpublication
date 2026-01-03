@@ -84,7 +84,7 @@ service cloud.firestore {
       allow read: if isOwner(userId) || isAdmin() || isSalesTeam() || isWritingTeam() || (isReferralPartner() && resource.data.referredBy == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.referralCode);
       
       // Admins, referral partners, and sales team can list users (will be filtered in app).
-      allow list: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'sales-manager', 'sales-team', 'writing-team', 'referral-partner'];
+      allow list: if isAdmin() || isSalesManager() || isSalesTeam() || isWritingTeam() || isReferralPartner();
 
       // Users can update their own profile, but cannot change their role. 
       // Admins can update any profile, but also cannot change roles for security.
