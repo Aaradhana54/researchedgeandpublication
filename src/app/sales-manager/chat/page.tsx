@@ -7,7 +7,7 @@ import { collection, query, where, orderBy, doc, addDoc, serverTimestamp, setDoc
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { LoaderCircle, Send, User, MessagesSquare } from 'lucide-react';
+import { LoaderCircle, Send, User, MessagesSquare, AlertCircle } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { formatDistanceToNow } from 'date-fns';
 import type { Chat, ChatMessage, UserProfile } from '@/lib/types';
@@ -137,7 +137,7 @@ function ChatRoom({ chatId, currentUser }: { chatId: string, currentUser: UserPr
 }
 
 export default function SalesManagerChatPage() {
-    const { user } = useUser();
+    const { user, loading: userLoading } = useUser();
     const firestore = useFirestore();
     const [activeChatId, setActiveChatId] = useState<string | null>(null);
 
@@ -146,7 +146,7 @@ export default function SalesManagerChatPage() {
         return query(collection(firestore, 'chats'), where('participants', 'array-contains', user.uid));
     }, [user, firestore]);
 
-    const { data: chats, loading: chatsLoading } = useCollection<Chat>(chatsQuery);
+    const { data: chats, loading: chatsLoading, error: chatsError } = useCollection<Chat>(chatsQuery);
     
     const sortedChats = useMemo(() => {
         if (!chats) return [];
@@ -163,6 +163,8 @@ export default function SalesManagerChatPage() {
         }
     }, [activeChatId, sortedChats]);
 
+    const loading = chatsLoading || userLoading;
+
     return (
         <div className="p-4 sm:p-6 lg:p-8 h-[calc(100vh-4rem)]">
             <div className="grid grid-cols-1 md:grid-cols-[300px_1fr] lg:grid-cols-[350px_1fr] h-full gap-4">
@@ -174,11 +176,17 @@ export default function SalesManagerChatPage() {
                     </CardHeader>
                     <Separator />
                      <CardContent className="p-0 flex-1">
-                        {chatsLoading ? (
+                        {loading ? (
                              <div className="flex items-center justify-center h-full">
                                 <LoaderCircle className="animate-spin" />
                             </div>
-                        ): sortedChats && sortedChats.length > 0 ? (
+                        ) : chatsError ? (
+                            <div className="flex flex-col items-center justify-center h-full text-center text-destructive p-4">
+                                <AlertCircle className="w-10 h-10 mb-2"/>
+                                <p className="font-medium">Error Loading Chats</p>
+                                <p className="text-sm">Could not load conversations due to a permission error. This can happen if the page loads before your user profile is fully authenticated. Please try refreshing.</p>
+                            </div>
+                        ) : sortedChats && sortedChats.length > 0 ? (
                             <ChatList chats={sortedChats} activeChatId={activeChatId} onSelectChat={setActiveChatId} />
                         ) : (
                              <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground p-4">
@@ -205,3 +213,5 @@ export default function SalesManagerChatPage() {
         </div>
     )
 }
+
+    
