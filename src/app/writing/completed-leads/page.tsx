@@ -4,7 +4,7 @@
 
 import { useMemo, useState, useEffect } from 'react';
 import { collection, query, where, getDocs } from 'firebase/firestore';
-import { useCollection, useFirestore, useUser } from '@/firebase';
+import { useFirestore, useUser } from '@/firebase';
 import type { Task, Project } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoaderCircle, ClipboardList, AlertCircle, CheckCircle2 } from 'lucide-react';
@@ -25,56 +25,54 @@ export default function CompletedTasksPage() {
   const firestore = useFirestore();
   
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [loadingTasks, setLoadingTasks] = useState(true);
-  const [tasksError, setTasksError] = useState<Error | null>(null);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
 
-  const projectIds = useMemo(() => {
-    if (!tasks || tasks.length === 0) return [];
-    return Array.from(new Set(tasks.map(t => t.projectId)));
-  }, [tasks]);
-
-  const projectsQuery = useMemo(() => {
-    if (!firestore || projectIds.length === 0) return null;
-    return query(collection(firestore, 'projects'), where('__name__', 'in', projectIds));
-  }, [firestore, projectIds]);
-
-
-  const { data: projects, loading: loadingProjects } = useCollection<Project>(projectsQuery);
-
-  const loading = loadingTasks || loadingProjects || userLoading;
-  
   useEffect(() => {
     if (!firestore || !user) {
         if (!userLoading) {
-            setLoadingTasks(false);
+            setLoading(false);
         }
         return;
     };
 
-    const fetchTasks = async () => {
-        setLoadingTasks(true);
-        setTasksError(null);
+    const fetchData = async () => {
+        setLoading(true);
+        setError(null);
         try {
+            // 1. Fetch completed tasks for the user
             const tasksQuery = query(
                 collection(firestore, 'tasks'), 
                 where('assignedTo', '==', user.uid),
                 where('status', '==', 'completed')
             );
-            const querySnapshot = await getDocs(tasksQuery);
-            const fetchedTasks = querySnapshot.docs.map(doc => ({ ...doc.data() as Task, id: doc.id }));
+            const tasksSnapshot = await getDocs(tasksQuery);
+            const fetchedTasks = tasksSnapshot.docs.map(doc => ({ ...doc.data() as Task, id: doc.id }));
             
-            fetchedTasks.sort((a, b) => b.updatedAt.toDate().getTime() - a.updatedAt.toDate().getTime());
-            
+            fetchedTasks.sort((a, b) => (b.updatedAt?.toDate()?.getTime() || 0) - (a.updatedAt?.toDate()?.getTime() || 0));
             setTasks(fetchedTasks);
-        } catch (error: any) {
-            console.error("Failed to fetch tasks:", error);
-            setTasksError(error);
+
+            // 2. If there are tasks, fetch the associated projects in one go
+            if (fetchedTasks.length > 0) {
+                const projectIds = Array.from(new Set(fetchedTasks.map(t => t.projectId)));
+                const projectsQuery = query(collection(firestore, 'projects'), where('__name__', 'in', projectIds));
+                const projectsSnapshot = await getDocs(projectsQuery);
+                const fetchedProjects = projectsSnapshot.docs.map(doc => ({ ...doc.data() as Project, id: doc.id }));
+                setProjects(fetchedProjects);
+            } else {
+                setProjects([]);
+            }
+
+        } catch (err: any) {
+            console.error("Failed to fetch completed tasks or projects:", err);
+            setError(err);
         } finally {
-            setLoadingTasks(false);
+            setLoading(false);
         }
     };
     
-    fetchTasks();
+    fetchData();
 
   }, [firestore, user, userLoading]);
 
@@ -119,11 +117,11 @@ export default function CompletedTasksPage() {
             <div className="flex justify-center items-center h-48">
               <LoaderCircle className="w-8 h-8 animate-spin text-primary" />
             </div>
-          ) : tasksError ? (
+          ) : error ? (
              <div className="text-center p-12 text-destructive">
                 <AlertCircle className="mx-auto w-12 h-12 mb-4" />
                 <h3 className="text-lg font-semibold">Failed to Load Tasks</h3>
-                <p>{tasksError.message}</p>
+                <p>{error.message}</p>
             </div>
           ) : tasks && tasks.length > 0 ? (
             <Table>
