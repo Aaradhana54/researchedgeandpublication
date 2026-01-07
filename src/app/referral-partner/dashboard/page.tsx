@@ -156,7 +156,7 @@ export default function ReferralDashboardPage() {
         <p className="text-lg text-muted-foreground">This is your Referral Partner Dashboard Overview.</p>
       </div>
 
-       <div className="grid gap-6 md:grid-cols-2">
+       <div className="max-w-md mx-auto">
             <Card className="shadow-lift">
                 <CardHeader>
                     <CardTitle className="flex items-center gap-3">
@@ -171,22 +171,6 @@ export default function ReferralDashboardPage() {
                     <ReferClientDialog>
                         <Button size="lg" className="w-full">Refer a Client</Button>
                     </ReferClientDialog>
-                </CardContent>
-            </Card>
-
-             <Card>
-                <CardHeader>
-                    <CardTitle>Your Referral Link</CardTitle>
-                    <CardDescription>
-                        Alternatively, share your unique link for clients to sign up directly.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent className="flex flex-col sm:flex-row items-center gap-4">
-                    <pre className="flex-1 p-3 bg-muted rounded-md overflow-x-auto text-sm text-muted-foreground">{referralLink}</pre>
-                    <Button onClick={handleCopyLink} className="w-full sm:w-auto" disabled={!referralLink}>
-                        <Copy className="mr-2 h-4 w-4" />
-                        Copy Link
-                    </Button>
                 </CardContent>
             </Card>
         </div>
