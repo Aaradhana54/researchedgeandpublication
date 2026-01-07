@@ -121,7 +121,7 @@ export default function CreateProjectPage() {
             path: projectsCollection.path,
             operation: 'create',
             requestResourceData: dataToSave,
-          } satisfies SecurityRuleContext, serverError);
+          }, serverError);
 
           errorEmitter.emit('permission-error', permissionError);
           setError("Failed to create project due to a permissions issue.");

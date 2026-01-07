@@ -60,8 +60,8 @@ service cloud.firestore {
     function isClientReadingAssignedSalesperson(salespersonId) {
       // Allow a client to read the profile of a sales team member
       // if that sales member is assigned to any of their projects.
-      return getAfter(/databases/$(database)/documents/users/$(salespersonId)).data.role in ['sales-team', 'sales-manager']
-          && exists(/databases/$(database)/documents/projects) // This is a placeholder, actual check is done with list()
+      let salespersonData = get(/databases/$(database)/documents/users/$(salespersonId)).data;
+      return salespersonData.role in ['sales-team', 'sales-manager']
           && list(/databases/$(database)/documents/projects, 
                   "userId=" + request.auth.uid + "&assignedSalesId=" + salespersonId).size() > 0;
     }
