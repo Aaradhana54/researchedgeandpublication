@@ -85,15 +85,20 @@ service cloud.firestore {
     match /users/{userId} {
       allow create: if isAllowedToCreateOwnProfile(userId) || isAdmin();
 
-      // A user can read their own profile.
-      // Admin, Sales, and Writing teams can read any profile.
-      // A client can read the profile of a sales team member.
+      // Users can read their own profile. Admins can read any profile.
+      // Sales team can read any user profile.
+      // A client can read the profile of a sales person assigned to one of their projects.
       allow read: if isOwner(userId) 
                     || isAdmin() 
                     || isSalesTeam() 
                     || isWritingTeam()
                     || (isReferralPartner() && resource.data.referredBy == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.referralCode)
-                    || get(/databases/$(database)/documents/users/$(userId)).data.role in ['sales-team', 'sales-manager'];
+                    || (
+                         resource.data.role in ['sales-team', 'sales-manager'] &&
+                         exists(/databases/$(database)/documents/projects/{projectId}) &&
+                         get(/databases/$(database)/documents/projects/{projectId}).data.userId == request.auth.uid &&
+                         get(/databases/$(database)/documents/projects/{projectId}).data.assignedSalesId == userId
+                       );
       
       allow list: if request.auth != null && (
                     get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in 
@@ -107,9 +112,9 @@ service cloud.firestore {
     match /projects/{projectId} {
       allow create: if isClientCreatingOwnProject() || isSalesTeam();
       allow read: if isOwner(resource.data.userId) || isAdmin() || isSalesTeam() || isWriterAssigned(resource.data.assignedWriterId);
-      allow list: if request.auth != null && request.query.userId == request.auth.uid;
       allow update: if isOwner(resource.data.userId) || isAdmin() || isSalesTeam() || (isWriterAssigned(resource.data.assignedWriterId) && request.resource.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt']) && request.resource.data.status == 'completed');
       allow delete: if isOwner(resource.data.userId) || isAdmin();
+      allow list: if request.auth != null;
     }
     
     match /contact_leads/{contactLeadId} {

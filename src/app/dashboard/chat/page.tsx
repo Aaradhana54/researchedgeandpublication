@@ -30,7 +30,7 @@ export default function ClientChatPage() {
         setLoading(true);
         setError(null);
         try {
-            // 1. Find the user's projects
+            // 1. Find the user's projects and sort on client to find latest
             const projectsQuery = query(
                 collection(firestore, 'projects'),
                 where('userId', '==', user.uid)
@@ -43,7 +43,6 @@ export default function ClientChatPage() {
                 return;
             }
 
-            // Sort on the client to find the most recent project
             const projects = projectsSnap.docs.map(doc => doc.data() as Project);
             projects.sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis());
             const latestProject = projects[0];
