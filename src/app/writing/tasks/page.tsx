@@ -2,7 +2,7 @@
 'use client';
 
 import { useMemo, useState, useEffect } from 'react';
-import { collection, query, where, getDocs, doc, writeBatch, serverTimestamp, updateDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { useCollection, useFirestore, useUser } from '@/firebase';
 import type { Task, Project } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -111,34 +111,25 @@ export default function MyTasksPage() {
   }, [projects]);
   
  const handleCompleteTask = async (task: Task) => {
-      if (!firestore || !task.id || !task.projectId) return;
+      if (!firestore || !task.id) return;
 
       const taskRef = doc(firestore, 'tasks', task.id);
-      const projectRef = doc(firestore, 'projects', task.projectId);
-
+      
       try {
-          // Perform sequential updates instead of a batch
           await updateDoc(taskRef, {
-              status: 'completed',
-              updatedAt: serverTimestamp(),
-          });
-
-          await updateDoc(projectRef, {
               status: 'completed',
               updatedAt: serverTimestamp(),
           });
           
           toast({
-              title: 'Project Completed!',
-              description: 'The project status has been updated.',
+              title: 'Task Completed!',
+              description: 'The task has been moved to your completed list.',
           });
           fetchTasks(); // Re-fetch tasks to update the UI
           
       } catch (error: any) {
-          // It's harder to provide perfect contextual error for sequential writes,
-          // but we can still try to give a meaningful message.
           const permissionError = new FirestorePermissionError({
-              path: `tasks/${task.id} or projects/${task.projectId}`,
+              path: `tasks/${task.id}`,
               operation: 'update',
               requestResourceData: { status: 'completed' },
           }, error);
@@ -246,4 +237,3 @@ export default function MyTasksPage() {
     </div>
   );
 }
-
