@@ -95,7 +95,9 @@ export default function ApprovedLeadsPage() {
   }
 
   useEffect(() => {
-    fetchApprovedLeadsData();
+    if (firestore) {
+      fetchApprovedLeadsData();
+    }
   }, [firestore]);
 
 
