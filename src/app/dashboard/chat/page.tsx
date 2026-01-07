@@ -43,6 +43,7 @@ export default function ClientChatPage() {
                 return;
             }
 
+            // Sort on the client to find the most recent project
             const projects = projectsSnap.docs.map(doc => doc.data() as Project);
             projects.sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis());
             const latestProject = projects[0];
@@ -67,11 +68,10 @@ export default function ClientChatPage() {
             const manager = { ...managerSnap.data() as UserProfile, uid: managerSnap.id };
             setSalesManager(manager);
 
-            // 3. Find or create the chat
+            // 3. Create or update the chat document (THE CRITICAL FIX)
             const generatedChatId = [user.uid, manager.uid].sort().join('_');
-            setChatId(generatedChatId);
-
             const chatDocRef = doc(firestore, 'chats', generatedChatId);
+            
             await setDoc(chatDocRef, {
                 participants: [user.uid, manager.uid],
                 participantNames: {
@@ -79,19 +79,17 @@ export default function ClientChatPage() {
                     [manager.uid]: manager.name
                 }
             }, { merge: true });
-            
-            setLoading(false);
 
+            setChatId(generatedChatId);
+            
         } catch (err: any) {
+            console.error("CHAT LOAD ERROR:", err);
              if (err.code === 'permission-denied') {
-                const permissionError = new FirestorePermissionError({
-                path: `users collection or projects`,
-                operation: 'list',
-                }, err);
-                errorEmitter.emit('permission-error', permissionError);
+                setError(`A permission error occurred: ${err.message}. Please check security rules for 'projects' or 'users' collections.`);
+            } else {
+                setError(`An unexpected error occurred: ${err.message}.`);
             }
-            console.error("Error finding or creating chat:", err);
-            setError(`An unexpected error occurred: ${err.message}. This could be a permission issue. Please check the console.`);
+        } finally {
             setLoading(false);
         }
     };
