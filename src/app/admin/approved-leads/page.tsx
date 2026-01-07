@@ -195,7 +195,9 @@ export default function ApprovedLeadsPage() {
                   
                   const isUnregistered = project.userId.startsWith('unregistered_');
                   const unregisteredEmail = isUnregistered ? project.userId.split('_')[1] : null;
-                  const clientAccountExists = unregisteredEmail ? emailsSet.has(unregisteredEmail) : false;
+                  const clientAccountExists = unregisteredEmail ? emailsSet.has(unregisteredEmail) : !isUnregistered;
+                  
+                  const canBeAssigned = project.status === 'approved' && !assignedTask && clientAccountExists;
 
                   return (
                     <TableRow key={project.id}>
@@ -235,7 +237,7 @@ export default function ApprovedLeadsPage() {
                             {isUnregistered && !clientAccountExists && (
                                <CreateClientAccountDialog project={project} onAccountCreated={fetchApprovedLeadsData} />
                             )}
-                            {!assignedTask && project.status === 'approved' && !isUnregistered ? (
+                            {canBeAssigned ? (
                                 <AssignWriterDialog 
                                     project={project} 
                                     writers={writingTeam}
