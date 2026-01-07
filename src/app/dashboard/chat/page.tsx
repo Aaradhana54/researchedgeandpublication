@@ -19,7 +19,7 @@ export default function ClientChatPage() {
   const { user, loading: userLoading } = useUser();
   const firestore = useFirestore();
   const [chatId, setChatId] = useState<string | null>(null);
-  const [salesManager, setSalesManager] =useState<UserProfile | null>(null);
+  const [salesManager, setSalesManager] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -29,74 +29,74 @@ export default function ClientChatPage() {
     const findOrCreateChat = async () => {
         setLoading(true);
         setError(null);
-        
-        // 1. Find the user's projects
-        const projectsQuery = query(
-            collection(firestore, 'projects'),
-            where('userId', '==', user.uid)
-        );
-        const projectsSnap = await getDocs(projectsQuery);
+        try {
+            // 1. Find the user's projects
+            const projectsQuery = query(
+                collection(firestore, 'projects'),
+                where('userId', '==', user.uid)
+            );
+            const projectsSnap = await getDocs(projectsQuery);
 
-        if (projectsSnap.empty) {
-            setError("You don't have any projects yet. Please create a project to start a chat.");
-            setLoading(false);
-            return;
-        }
-
-        // Sort projects on the client-side to find the most recent one
-        const projects = projectsSnap.docs.map(doc => doc.data() as Project);
-        projects.sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis());
-        const latestProject = projects[0];
-        
-        const assignedSalesId = latestProject.assignedSalesId;
-
-        if (!assignedSalesId) {
-            setError("Your project has not been assigned to a sales manager yet. Please check back later.");
-            setLoading(false);
-            return;
-        }
-
-        // 2. Fetch the sales manager's profile
-        const managerDocRef = doc(firestore, 'users', assignedSalesId);
-        const managerSnap = await getDoc(managerDocRef);
-
-        if (!managerSnap.exists()) {
-             setError("Could not find the assigned sales manager. Please contact support.");
-             setLoading(false);
-             return;
-        }
-        const manager = { ...managerSnap.data() as UserProfile, uid: managerSnap.id };
-        setSalesManager(manager);
-
-        // 3. Find or create the chat
-        const generatedChatId = [user.uid, manager.uid].sort().join('_');
-        setChatId(generatedChatId);
-
-        const chatDocRef = doc(firestore, 'chats', generatedChatId);
-        await setDoc(chatDocRef, {
-            participants: [user.uid, manager.uid],
-            participantNames: {
-                [user.uid]: user.name,
-                [manager.uid]: manager.name
+            if (projectsSnap.empty) {
+                setError("You don't have any projects yet. Please create a project to start a chat.");
+                setLoading(false);
+                return;
             }
-        }, { merge: true });
-        
-        setLoading(false);
+
+            const projects = projectsSnap.docs.map(doc => doc.data() as Project);
+            projects.sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis());
+            const latestProject = projects[0];
+            
+            const assignedSalesId = latestProject.assignedSalesId;
+
+            if (!assignedSalesId) {
+                setError("Your project has not been assigned to a sales manager yet. Please check back later.");
+                setLoading(false);
+                return;
+            }
+
+            // 2. Fetch the sales manager's profile
+            const managerDocRef = doc(firestore, 'users', assignedSalesId);
+            const managerSnap = await getDoc(managerDocRef);
+
+            if (!managerSnap.exists()) {
+                 setError(`Could not find the assigned sales manager (ID: ${assignedSalesId}). Please contact support.`);
+                 setLoading(false);
+                 return;
+            }
+            const manager = { ...managerSnap.data() as UserProfile, uid: managerSnap.id };
+            setSalesManager(manager);
+
+            // 3. Find or create the chat
+            const generatedChatId = [user.uid, manager.uid].sort().join('_');
+            setChatId(generatedChatId);
+
+            const chatDocRef = doc(firestore, 'chats', generatedChatId);
+            await setDoc(chatDocRef, {
+                participants: [user.uid, manager.uid],
+                participantNames: {
+                    [user.uid]: user.name,
+                    [manager.uid]: manager.name
+                }
+            }, { merge: true });
+            
+            setLoading(false);
+
+        } catch (err: any) {
+             if (err.code === 'permission-denied') {
+                const permissionError = new FirestorePermissionError({
+                path: `users collection or projects`,
+                operation: 'list',
+                }, err);
+                errorEmitter.emit('permission-error', permissionError);
+            }
+            console.error("Error finding or creating chat:", err);
+            setError(`An unexpected error occurred: ${err.message}. This could be a permission issue. Please check the console.`);
+            setLoading(false);
+        }
     };
     
-    findOrCreateChat().catch(err => {
-      // Re-throw permission errors to be caught by the error boundary
-      if (err.code === 'permission-denied') {
-        const permissionError = new FirestorePermissionError({
-          path: `projects or users`,
-          operation: 'list',
-        }, err);
-        errorEmitter.emit('permission-error', permissionError);
-      }
-      console.error("Error finding or creating chat:", err);
-      setError(`An unexpected error occurred while setting up the chat. Please check the console for details. Error: ${err.message}`);
-      setLoading(false);
-    });
+    findOrCreateChat();
 
   }, [user, userLoading, firestore]);
 
@@ -113,10 +113,11 @@ export default function ClientChatPage() {
         <div className="p-4 sm:p-6 lg:p-8">
             <Card>
                 <CardHeader>
-                    <CardTitle className="flex items-center gap-2"><AlertCircle /> Chat Unavailable</CardTitle>
+                    <CardTitle className="flex items-center gap-2 text-destructive"><AlertCircle /> Chat Unavailable</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <p className="text-muted-foreground">{error}</p>
+                    <p className="text-muted-foreground">The chat could not be loaded. Here's the reason:</p>
+                    <pre className="mt-2 p-3 bg-secondary rounded-md text-sm text-destructive-foreground whitespace-pre-wrap font-mono">{error}</pre>
                 </CardContent>
             </Card>
         </div>
