@@ -63,7 +63,6 @@ export interface Project {
   wordCount?: number;
   language?: string;
   wantToPublish?: boolean;
-  isPaperReady?: boolean;
   publishWhere?: string;
   status?: ProjectStatus;
   createdAt: Timestamp;

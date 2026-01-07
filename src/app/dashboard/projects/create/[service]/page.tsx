@@ -56,16 +56,6 @@ export default function CreateProjectPage() {
   
   const [formKey, setFormKey] = useState(Date.now()); // Used to reset the form
 
-  const [file, setFile] = useState<File | null>(null);
-  const [uploading, setUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
-
-  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files?.[0]) {
-      setFile(e.target.files[0]);
-    }
-  };
-
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -85,7 +75,7 @@ export default function CreateProjectPage() {
         return;
     }
     
-    const processFormSubmission = async (synopsisUrl = '') => {
+    const processFormSubmission = async () => {
         try {
             const assignedSalesId = await assignLeadToSalesPerson(firestore);
 
@@ -96,14 +86,12 @@ export default function CreateProjectPage() {
               status: 'pending',
               createdAt: serverTimestamp(),
               updatedAt: serverTimestamp(),
-              synopsisFileUrl: synopsisUrl,
               mobile: (rawFormData.mobile as string) || null,
               topic: (rawFormData.topic as string) || null,
               courseLevel: (rawFormData.courseLevel as CourseLevel) || null,
               referencingStyle: (rawFormData.referencingStyle as string) || null,
               language: (rawFormData.language as string) || 'English',
               wantToPublish: rawFormData.wantToPublish === 'on',
-              isPaperReady: rawFormData.isPaperReady === 'on',
               publishWhere: (rawFormData.publishWhere as string) || null,
               assignedSalesId: assignedSalesId, // Add assigned sales ID
             };
@@ -146,29 +134,7 @@ export default function CreateProjectPage() {
     };
 
     try {
-        if (file && storage) {
-            setUploading(true);
-            const storageRef = ref(storage, `projects/${user.uid}/${Date.now()}-${file.name}`);
-            const uploadTask = uploadBytesResumable(storageRef, file);
-    
-            uploadTask.on(
-              'state_changed',
-              (snapshot) => setUploadProgress((snapshot.bytesTransferred / snapshot.totalBytes) * 100),
-              (error) => {
-                console.error("File upload error:", error);
-                setError("Failed to upload file. Please try again.");
-                setUploading(false);
-                setLoading(false);
-              },
-              async () => {
-                const downloadUrl = await getDownloadURL(uploadTask.snapshot.ref);
-                setUploading(false);
-                await processFormSubmission(downloadUrl);
-              }
-            );
-        } else {
-          await processFormSubmission();
-        }
+       await processFormSubmission();
     } catch(err) {
        // Catch any synchronous errors during setup
        console.error(err);
@@ -220,12 +186,6 @@ export default function CreateProjectPage() {
        <div className="space-y-2">
         <Label htmlFor="publishWhere">Where to Publish?</Label>
         <Textarea id="publishWhere" name="publishWhere" placeholder="e.g., Scopus, SCI, specific journal name..." disabled={loading}/>
-      </div>
-      <div className="flex items-center space-x-2 pt-2">
-          <Checkbox id="isPaperReady" name="isPaperReady" disabled={loading}/>
-          <Label htmlFor="isPaperReady" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-              Is your paper ready?
-          </Label>
       </div>
        {commonFields({ mobileRequired: true })}
     </>
@@ -332,14 +292,6 @@ export default function CreateProjectPage() {
           <Label htmlFor="publishWhere">Where to Publish (e.g., Scopus, SCI, specific journal name)</Label>
           <Textarea id="publishWhere" name="publishWhere" placeholder="Let us know your target journal or index..." disabled={loading}/>
         </div>
-
-        <div className="flex items-center space-x-2">
-          <Checkbox id="isPaperReady" name="isPaperReady" disabled={loading}/>
-          <Label htmlFor="isPaperReady" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-            Is your paper ready?
-          </Label>
-        </div>
-
       </div>
     </>
   );
@@ -359,13 +311,6 @@ export default function CreateProjectPage() {
          <div className="space-y-2">
             {commonFields({ mobileRequired: true })}
         </div>
-      </div>
-
-      <div className="flex items-center space-x-2 pt-2">
-        <Checkbox id="isPaperReady" name="isPaperReady" disabled={loading}/>
-        <Label htmlFor="isPaperReady" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-            Is your book ready?
-        </Label>
       </div>
     </>
   );
