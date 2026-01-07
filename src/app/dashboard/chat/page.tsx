@@ -12,6 +12,8 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { format } from 'date-fns';
 import type { Chat, ChatMessage, UserProfile, Project } from '@/lib/types';
 import { cn } from '@/lib/utils';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 export default function ClientChatPage() {
   const { user, loading: userLoading } = useUser();
@@ -27,67 +29,74 @@ export default function ClientChatPage() {
     const findOrCreateChat = async () => {
         setLoading(true);
         setError(null);
-        try {
-            // 1. Find the user's projects without sorting in the query
-            const projectsQuery = query(
-                collection(firestore, 'projects'),
-                where('userId', '==', user.uid)
-            );
-            const projectsSnap = await getDocs(projectsQuery);
+        
+        // 1. Find the user's most recent project
+        const projectsQuery = query(
+            collection(firestore, 'projects'),
+            where('userId', '==', user.uid),
+            orderBy('createdAt', 'desc'),
+            limit(1)
+        );
+        const projectsSnap = await getDocs(projectsQuery);
 
-            if (projectsSnap.empty) {
-                setError("You don't have any projects yet. Please create a project to start a chat.");
-                setLoading(false);
-                return;
-            }
-            
-            // 2. Sort projects on the client to find the most recent one
-            const userProjects = projectsSnap.docs.map(doc => doc.data() as Project);
-            userProjects.sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis());
-            const latestProject = userProjects[0];
-            
-            const assignedSalesId = latestProject.assignedSalesId;
-
-            if (!assignedSalesId) {
-                setError("Your project has not been assigned to a sales manager yet. Please check back later.");
-                setLoading(false);
-                return;
-            }
-
-            // 3. Fetch the sales manager's profile
-            const managerDocRef = doc(firestore, 'users', assignedSalesId);
-            const managerSnap = await getDoc(managerDocRef);
-
-            if (!managerSnap.exists()) {
-                setError("Could not find the assigned sales manager. Please contact support.");
-                setLoading(false);
-                return;
-            }
-            const manager = { ...managerSnap.data() as UserProfile, uid: managerSnap.id };
-            setSalesManager(manager);
-
-            // 4. Find or create the chat
-            const generatedChatId = [user.uid, manager.uid].sort().join('_');
-            setChatId(generatedChatId);
-
-            const chatDocRef = doc(firestore, 'chats', generatedChatId);
-            await setDoc(chatDocRef, {
-                participants: [user.uid, manager.uid],
-                participantNames: {
-                    [user.uid]: user.name,
-                    [manager.uid]: manager.name
-                }
-            }, { merge: true });
-
-        } catch (err) {
-            console.error("Error finding or creating chat:", err);
-            setError("An error occurred while setting up the chat.");
-        } finally {
+        if (projectsSnap.empty) {
+            setError("You don't have any projects yet. Please create a project to start a chat.");
             setLoading(false);
+            return;
         }
+        
+        const latestProject = projectsSnap.docs[0].data() as Project;
+        const assignedSalesId = latestProject.assignedSalesId;
+
+        if (!assignedSalesId) {
+            setError("Your project has not been assigned to a sales manager yet. Please check back later.");
+            setLoading(false);
+            return;
+        }
+
+        // 2. Fetch the sales manager's profile
+        const managerDocRef = doc(firestore, 'users', assignedSalesId);
+        const managerSnap = await getDoc(managerDocRef).catch(serverError => {
+            if (serverError.code === 'permission-denied') {
+                const permissionError = new FirestorePermissionError({
+                    path: managerDocRef.path,
+                    operation: 'get'
+                }, serverError);
+                errorEmitter.emit('permission-error', permissionError);
+            }
+            throw serverError; // Re-throw other errors
+        });
+
+
+        if (!managerSnap.exists()) {
+            setError("Could not find the assigned sales manager. Please contact support.");
+            setLoading(false);
+            return;
+        }
+        const manager = { ...managerSnap.data() as UserProfile, uid: managerSnap.id };
+        setSalesManager(manager);
+
+        // 3. Find or create the chat
+        const generatedChatId = [user.uid, manager.uid].sort().join('_');
+        setChatId(generatedChatId);
+
+        const chatDocRef = doc(firestore, 'chats', generatedChatId);
+        await setDoc(chatDocRef, {
+            participants: [user.uid, manager.uid],
+            participantNames: {
+                [user.uid]: user.name,
+                [manager.uid]: manager.name
+            }
+        }, { merge: true });
+        
+        setLoading(false);
     };
     
-    findOrCreateChat();
+    findOrCreateChat().catch(err => {
+        console.error("Error finding or creating chat:", err);
+        setError("An unexpected error occurred while setting up the chat. Check the console for details.");
+        setLoading(false);
+    });
 
   }, [user, userLoading, firestore]);
 
@@ -168,17 +177,32 @@ function ChatRoom({ chatId, currentUser }: { chatId: string, currentUser: UserPr
         const messagesColRef = collection(firestore, `chats/${chatId}/messages`);
         const chatDocRef = doc(firestore, 'chats', chatId);
 
-        await addDoc(messagesColRef, {
+        addDoc(messagesColRef, {
             senderId: currentUser.uid,
             text: newMessage,
             createdAt: serverTimestamp()
+        }).catch(serverError => {
+             const permissionError = new FirestorePermissionError({
+                path: messagesColRef.path,
+                operation: 'create',
+                requestResourceData: { text: newMessage, senderId: currentUser.uid }
+            }, serverError);
+            errorEmitter.emit('permission-error', permissionError);
         });
 
-        await setDoc(chatDocRef, {
+
+        setDoc(chatDocRef, {
             lastMessage: newMessage,
             lastMessageAt: serverTimestamp(),
             lastMessageSenderId: currentUser.uid
-        }, { merge: true });
+        }, { merge: true }).catch(serverError => {
+             const permissionError = new FirestorePermissionError({
+                path: chatDocRef.path,
+                operation: 'update',
+                requestResourceData: { lastMessage: newMessage }
+            }, serverError);
+            errorEmitter.emit('permission-error', permissionError);
+        });
 
         setNewMessage('');
     }

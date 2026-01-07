@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import {
@@ -175,10 +174,15 @@ export async function resendVerificationEmail(email: string, password: string) {
 
 // --- Admin-only user deletion ---
 export async function deleteUserAsAdmin(uid: string) {
-  const firestoreInstance = getFirestore(getApp());
-  
-  console.warn("deleteUserAsAdmin is deleting Firestore record only. Auth user remains.");
+  // This function is unsafe and will be removed.
+  // We need to implement a Cloud Function to handle user deletion properly.
+  // The function should delete the user from Auth and then delete the user's
+  // profile from Firestore.
+  // For now, we will just log a warning.
+  console.warn("deleteUserAsAdmin is a placeholder and does not delete the user from Firebase Auth. It only deletes the Firestore record. A Cloud Function is required for proper deletion.");
 
+  // This is the Firestore part, which we can do from the client if rules allow.
+  const firestoreInstance = getFirestore(getApp());
   const userDocRef = doc(firestoreInstance, 'users', uid);
   await deleteDoc(userDocRef);
 }
