@@ -4,7 +4,7 @@
 
 import { useMemo, useState, useEffect } from 'react';
 import { collection, query, where, getDocs } from 'firebase/firestore';
-import { useFirestore, useUser } from '@/firebase';
+import { useFirestore, useUser, useCollection } from '@/firebase';
 import type { Task, Project } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoaderCircle, ClipboardList, AlertCircle } from 'lucide-react';
