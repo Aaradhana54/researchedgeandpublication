@@ -7,7 +7,7 @@ import { collection, query, doc, deleteDoc, where, getDocs } from 'firebase/fire
 import { useFirestore, useUser } from '@/firebase';
 import type { UserProfile } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { LoaderCircle, UserPlus, Trash2 } from 'lucide-react';
+import { LoaderCircle, UserPlus, Trash2, Edit } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -24,6 +24,7 @@ import { CreateUserDialog } from '@/components/admin/create-user-dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { deleteUserAsAdmin } from '@/firebase/auth';
+import { EditPartnerDialog } from '@/components/admin/edit-partner-dialog';
 
 const roleVariantMap: { [key: string]: 'default' | 'secondary' | 'destructive' | 'outline' } = {
   admin: 'destructive',
@@ -94,7 +95,7 @@ function UserTable({ users, onDelete }: { users: UserProfile[], onDelete: (user:
     );
 }
 
-function ReferralPartnerTable({ partners, allUsers, onDelete }: { partners: UserProfile[], allUsers: UserProfile[], onDelete: (user: UserProfile) => void }) {
+function ReferralPartnerTable({ partners, allUsers, onDelete, onUpdate }: { partners: UserProfile[], allUsers: UserProfile[], onDelete: (user: UserProfile) => void, onUpdate: () => void }) {
     if (!partners || partners.length === 0) {
         return <p className="text-center text-muted-foreground py-12">No referral partners found.</p>;
     }
@@ -117,8 +118,7 @@ function ReferralPartnerTable({ partners, allUsers, onDelete }: { partners: User
           <TableHeader>
             <TableRow>
               <TableHead>Partner Name</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Referral Code</TableHead>
+              <TableHead>Default Commission</TableHead>
               <TableHead>Referred Clients</TableHead>
               <TableHead>Joined On</TableHead>
                <TableHead className="text-right">Actions</TableHead>
@@ -128,34 +128,38 @@ function ReferralPartnerTable({ partners, allUsers, onDelete }: { partners: User
             {partners.map((partner) => (
               <TableRow key={partner.uid}>
                 <TableCell className="font-medium">{partner.name}</TableCell>
-                <TableCell>{partner.email}</TableCell>
-                <TableCell>
-                  <Badge variant="outline">{partner.referralCode}</Badge>
-                </TableCell>
-                 <TableCell className="font-medium">{referralCounts.get(partner.uid) || 0}</TableCell>
+                <TableCell>{partner.commissionRate ? partner.commissionRate.toLocaleString('en-IN', { style: 'currency', currency: 'INR'}) : 'Not Set'}</TableCell>
+                 <TableCell className="font-medium text-center">{referralCounts.get(partner.uid) || 0}</TableCell>
                 <TableCell>
                     {partner.createdAt ? format(partner.createdAt.toDate(), 'PPP') : 'N/A'}
                 </TableCell>
                  <TableCell className="text-right">
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive hover:bg-destructive/10">
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Are you sure you want to delete this user?</AlertDialogTitle>
-                           <AlertDialogDescription>
-                            This action will permanently delete the user account for <strong>{partner.name}</strong> ({partner.email}). This cannot be undone.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction onClick={() => onDelete(partner)} className="bg-destructive hover:bg-destructive/90">Delete User</AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
+                    <div className="flex items-center justify-end gap-2">
+                        <EditPartnerDialog partner={partner} onPartnerUpdated={onUpdate}>
+                            <Button variant="ghost" size="icon">
+                                <Edit className="h-4 w-4" />
+                            </Button>
+                        </EditPartnerDialog>
+                        <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                            <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive hover:bg-destructive/10">
+                            <Trash2 className="h-4 w-4" />
+                            </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                            <AlertDialogTitle>Are you sure you want to delete this user?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                This action will permanently delete the user account for <strong>{partner.name}</strong> ({partner.email}). This cannot be undone.
+                            </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => onDelete(partner)} className="bg-destructive hover:bg-destructive/90">Delete User</AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                        </AlertDialog>
+                    </div>
                 </TableCell>
               </TableRow>
             ))}
@@ -282,7 +286,7 @@ export default function UserManagementPage() {
                             <UserTable users={filteredUsers.authors} onDelete={handleDeleteUser} />
                         </TabsContent>
                          <TabsContent value="partners">
-                            <ReferralPartnerTable partners={filteredUsers.partners} allUsers={allUsers} onDelete={handleDeleteUser} />
+                            <ReferralPartnerTable partners={filteredUsers.partners} allUsers={allUsers} onDelete={handleDeleteUser} onUpdate={fetchAllUsers} />
                         </TabsContent>
                          <TabsContent value="admins">
                             <UserTable users={filteredUsers.admins} onDelete={handleDeleteUser}/>
