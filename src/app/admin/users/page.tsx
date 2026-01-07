@@ -7,7 +7,7 @@ import { collection, query, doc, deleteDoc, where, getDocs } from 'firebase/fire
 import { useFirestore, useUser } from '@/firebase';
 import type { UserProfile } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { LoaderCircle, UserPlus, Trash2, Edit } from 'lucide-react';
+import { LoaderCircle, UserPlus, Trash2 } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -24,7 +24,6 @@ import { CreateUserDialog } from '@/components/admin/create-user-dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { deleteUserAsAdmin } from '@/firebase/auth';
-import { EditPartnerDialog } from '@/components/admin/edit-partner-dialog';
 
 const roleVariantMap: { [key: string]: 'default' | 'secondary' | 'destructive' | 'outline' } = {
   admin: 'destructive',
@@ -95,80 +94,6 @@ function UserTable({ users, onDelete }: { users: UserProfile[], onDelete: (user:
     );
 }
 
-function ReferralPartnerTable({ partners, allUsers, onDelete, onUpdate }: { partners: UserProfile[], allUsers: UserProfile[], onDelete: (user: UserProfile) => void, onUpdate: () => void }) {
-    if (!partners || partners.length === 0) {
-        return <p className="text-center text-muted-foreground py-12">No referral partners found.</p>;
-    }
-
-    const referralCounts = useMemo(() => {
-        const counts = new Map<string, number>();
-        if (!allUsers || !partners) return counts;
-
-        partners.forEach(partner => {
-            if(partner.referralCode) {
-                const count = allUsers.filter(u => u.referredBy === partner.referralCode).length;
-                counts.set(partner.uid, count);
-            }
-        });
-        return counts;
-    }, [partners, allUsers]);
-
-    return (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Partner Name</TableHead>
-              <TableHead>Default Commission</TableHead>
-              <TableHead>Referred Clients</TableHead>
-              <TableHead>Joined On</TableHead>
-               <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {partners.map((partner) => (
-              <TableRow key={partner.uid}>
-                <TableCell className="font-medium">{partner.name}</TableCell>
-                <TableCell>{partner.commissionRate ? partner.commissionRate.toLocaleString('en-IN', { style: 'currency', currency: 'INR'}) : 'Not Set'}</TableCell>
-                 <TableCell className="font-medium text-center">{referralCounts.get(partner.uid) || 0}</TableCell>
-                <TableCell>
-                    {partner.createdAt ? format(partner.createdAt.toDate(), 'PPP') : 'N/A'}
-                </TableCell>
-                 <TableCell className="text-right">
-                    <div className="flex items-center justify-end gap-2">
-                        <EditPartnerDialog partner={partner} onPartnerUpdated={onUpdate}>
-                            <Button variant="ghost" size="icon">
-                                <Edit className="h-4 w-4" />
-                            </Button>
-                        </EditPartnerDialog>
-                        <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                            <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive hover:bg-destructive/10">
-                            <Trash2 className="h-4 w-4" />
-                            </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                            <AlertDialogHeader>
-                            <AlertDialogTitle>Are you sure you want to delete this user?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                                This action will permanently delete the user account for <strong>{partner.name}</strong> ({partner.email}). This cannot be undone.
-                            </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction onClick={() => onDelete(partner)} className="bg-destructive hover:bg-destructive/90">Delete User</AlertDialogAction>
-                            </AlertDialogFooter>
-                        </AlertDialogContent>
-                        </AlertDialog>
-                    </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-    );
-}
-
-
 export default function UserManagementPage() {
   const firestore = useFirestore();
   const { user: currentUser, loading: userLoading } = useUser();
@@ -233,7 +158,6 @@ export default function UserManagementPage() {
     return {
       clients: allUsers.filter(u => u.role === 'client'),
       authors: allUsers.filter(u => u.role === 'author'),
-      partners: allUsers.filter(u => u.role === 'referral-partner'),
       admins: allUsers.filter(u => u.role === 'admin'),
     };
   }, [allUsers]);
@@ -241,7 +165,6 @@ export default function UserManagementPage() {
   const tabs = [
     { value: 'clients', label: 'Research Clients', data: filteredUsers.clients },
     { value: 'authors', label: 'Authors', data: filteredUsers.authors },
-    { value: 'partners', label: 'Referral Partners', data: filteredUsers.partners },
     { value: 'admins', label: 'Admins', data: filteredUsers.admins },
   ];
 
@@ -250,7 +173,7 @@ export default function UserManagementPage() {
       <div className="mb-8 flex justify-between items-start">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">User Management</h1>
-          <p className="text-muted-foreground">Manage all client, author, partner, and admin users.</p>
+          <p className="text-muted-foreground">Manage all client, author, and admin users.</p>
         </div>
         <CreateUserDialog>
             <Button>
@@ -267,7 +190,7 @@ export default function UserManagementPage() {
         </CardHeader>
         <CardContent>
             <Tabs defaultValue="clients">
-                <TabsList className="grid w-full grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 mb-6 h-auto flex-wrap">
+                <TabsList className="grid w-full grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 mb-6 h-auto flex-wrap">
                    {tabs.map(tab => (
                      <TabsTrigger key={tab.value} value={tab.value} className="flex-1">{tab.label}</TabsTrigger>
                    ))}
@@ -284,9 +207,6 @@ export default function UserManagementPage() {
                         </TabsContent>
                          <TabsContent value="authors">
                             <UserTable users={filteredUsers.authors} onDelete={handleDeleteUser} />
-                        </TabsContent>
-                         <TabsContent value="partners">
-                            <ReferralPartnerTable partners={filteredUsers.partners} allUsers={allUsers} onDelete={handleDeleteUser} onUpdate={fetchAllUsers} />
                         </TabsContent>
                          <TabsContent value="admins">
                             <UserTable users={filteredUsers.admins} onDelete={handleDeleteUser}/>

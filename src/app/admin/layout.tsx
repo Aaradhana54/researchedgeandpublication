@@ -23,6 +23,7 @@ import {
   Star,
   UserCog,
   CheckCircle,
+  Handshake,
 } from 'lucide-react';
 import React from 'react';
 import { useEffect, useMemo } from 'react';
@@ -66,6 +67,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 const adminNavItems = [
   { href: '/admin/dashboard', label: 'Overview', icon: <LayoutGrid /> },
   { href: '/admin/users', label: 'User Management', icon: <Users /> },
+  { href: '/admin/partners', label: 'Partners', icon: <Handshake /> },
   { href: '/admin/team', label: 'Team Management', icon: <Briefcase /> },
   { href: '/admin/leads', label: 'Leads', icon: <FolderKanban /> },
   { href: '/admin/approved-leads', label: 'Approved Leads', icon: <CheckCircle /> },
