@@ -80,6 +80,7 @@ export interface Project {
   rejectionReason?: string;
   referredByPartnerId?: string; // UID of the referral partner for leads converted without signup
   approvalEmailSent?: boolean; // Tracks if the approval email has been sent
+  commissionAmount?: number; // The commission amount awarded to the referral partner
 }
 
 export interface ContactLead {

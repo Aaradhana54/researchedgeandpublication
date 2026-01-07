@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState } from 'react';
@@ -39,6 +40,10 @@ const ConvertLeadSchema = z.object({
     (val) => Number(String(val)),
     z.number().min(0, "Advance can't be negative")
   ),
+  commissionAmount: z.preprocess(
+    (val) => Number(String(val)),
+    z.number().min(0, "Commission can't be negative").optional()
+  ),
   finalDeadline: z.string().min(1, 'Final deadline is required.'),
   discussionNotes: z.string().optional(),
 });
@@ -53,6 +58,8 @@ export function ConvertLeadDialog({ children, contactLead, onLeadConverted }: { 
   const { toast } = useToast();
   const firestore = useFirestore();
   const { user } = useUser();
+  
+  const isReferredProject = !!contactLead?.referredByPartnerId;
 
   const form = useForm<ConvertLeadForm>({
     resolver: zodResolver(ConvertLeadSchema),
@@ -62,6 +69,7 @@ export function ConvertLeadDialog({ children, contactLead, onLeadConverted }: { 
       advanceReceived: 0,
       finalDeadline: '',
       discussionNotes: contactLead?.message || '',
+      commissionAmount: isReferredProject ? 5000 : 0,
     }
   });
 
@@ -98,6 +106,11 @@ export function ConvertLeadDialog({ children, contactLead, onLeadConverted }: { 
           referredByPartnerId: contactLead.referredByPartnerId || null,
           approvalEmailSent: false, // Set to false, email will be sent manually
         };
+
+        if (isReferredProject && data.commissionAmount) {
+            projectData.commissionAmount = data.commissionAmount;
+        }
+
         batch.set(newProjectRef, projectData);
         
         // 2. Update the contact lead status to 'converted'
@@ -205,6 +218,21 @@ export function ConvertLeadDialog({ children, contactLead, onLeadConverted }: { 
                             </FormItem>
                         )}
                     />
+                    {isReferredProject && (
+                        <FormField
+                            control={form.control}
+                            name="commissionAmount"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Partner Commission (INR)</FormLabel>
+                                    <FormControl>
+                                        <Input type="number" placeholder="e.g., 5000" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    )}
                      <FormField
                         control={form.control}
                         name="discussionNotes"

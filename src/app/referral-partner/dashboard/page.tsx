@@ -13,7 +13,6 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { ReferClientDialog } from '@/components/referral-partner/refer-client-dialog';
 
-const COMMISSION_PER_PROJECT = 5000; 
 
 function StatCard({ title, value, icon }: { title: string, value: string | number, icon: React.ReactNode }) {
   return (
@@ -116,7 +115,7 @@ export default function ReferralDashboardPage() {
     });
     const convertedClients = convertedClientIds.size;
     
-    const totalCommissionEarned = (commissionableProjects?.length ?? 0) * COMMISSION_PER_PROJECT;
+    const totalCommissionEarned = commissionableProjects.reduce((acc, p) => acc + (p.commissionAmount || 0), 0);
 
     const totalPaidOut = payouts?.filter(p => p.status === 'paid').reduce((acc, p) => acc + p.amount, 0) ?? 0;
     
@@ -156,7 +155,7 @@ export default function ReferralDashboardPage() {
         <p className="text-lg text-muted-foreground">This is your Referral Partner Dashboard Overview.</p>
       </div>
 
-       <div className="max-w-md mx-auto">
+       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <Card className="shadow-lift">
                 <CardHeader>
                     <CardTitle className="flex items-center gap-3">
@@ -171,6 +170,23 @@ export default function ReferralDashboardPage() {
                     <ReferClientDialog>
                         <Button size="lg" className="w-full">Refer a Client</Button>
                     </ReferClientDialog>
+                </CardContent>
+            </Card>
+             <Card className="shadow-lift">
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-3">
+                        <Copy className="w-6 h-6 text-primary"/>
+                        Your Referral Link
+                    </CardTitle>
+                    <CardDescription>
+                        Share this link with clients to sign up. You'll be credited for their projects automatically.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="flex w-full items-center space-x-2">
+                        <Input value={referralLink} readOnly />
+                        <Button onClick={handleCopyLink} variant="secondary">Copy Link</Button>
+                    </div>
                 </CardContent>
             </Card>
         </div>

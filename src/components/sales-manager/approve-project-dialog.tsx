@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, ChangeEvent } from 'react';
@@ -40,6 +41,10 @@ const ApproveProjectSchema = z.object({
     (val) => Number(String(val)),
     z.number().min(0, "Advance can't be negative")
   ),
+  commissionAmount: z.preprocess(
+    (val) => Number(String(val)),
+    z.number().min(0, "Commission can't be negative").optional()
+  ),
   finalDeadline: z.string().min(1, 'Final deadline is required.'),
   discussionNotes: z.string().optional(),
 });
@@ -59,6 +64,8 @@ export function ApproveProjectDialog({ children, project, clientEmail, onProject
   const storage = useStorage();
   const { user } = useUser();
 
+  const isReferredProject = !!project.referredBy || !!project.referredByPartnerId;
+
   const form = useForm<ApproveProjectForm>({
     resolver: zodResolver(ApproveProjectSchema),
     defaultValues: {
@@ -66,6 +73,7 @@ export function ApproveProjectDialog({ children, project, clientEmail, onProject
       advanceReceived: 0,
       finalDeadline: '',
       discussionNotes: '',
+      commissionAmount: isReferredProject ? 5000 : 0, // Default commission
     }
   });
 
@@ -100,6 +108,10 @@ export function ApproveProjectDialog({ children, project, clientEmail, onProject
                 approvalEmailSent: false, // Set to false so it can be sent manually
             };
             
+            if (isReferredProject && data.commissionAmount) {
+                updateData.commissionAmount = data.commissionAmount;
+            }
+
             await updateDoc(projectDocRef, updateData);
             
             toast({
@@ -208,6 +220,21 @@ export function ApproveProjectDialog({ children, project, clientEmail, onProject
                             </FormItem>
                         )}
                     />
+                    {isReferredProject && (
+                         <FormField
+                            control={form.control}
+                            name="commissionAmount"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Partner Commission (INR)</FormLabel>
+                                    <FormControl>
+                                        <Input type="number" placeholder="e.g., 5000" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    )}
                      <FormField
                         control={form.control}
                         name="discussionNotes"
