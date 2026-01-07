@@ -1,13 +1,13 @@
 
 'use client';
 
-import { useMemo }from 'react';
-import { useUser, useCollection, useFirestore } from '@/firebase';
+import { useMemo, useEffect, useState } from 'react';
+import Link from 'next/link';
+import { useUser, useFirestore } from '@/firebase';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { LoaderCircle, FolderKanban, CheckCircle, Hourglass, DollarSign, ArrowRight } from 'lucide-react';
-import { collection, query, where } from 'firebase/firestore';
+import { collection, query, getDocs } from 'firebase/firestore';
 import type { Project, ContactLead } from '@/lib/types';
-import Link from 'next/link';
 
 function StatCard({
   title,
@@ -47,14 +47,31 @@ function StatCard({
 export default function SalesManagerDashboardPage() {
   const { user, loading: userLoading } = useUser();
   const firestore = useFirestore();
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [contactLeads, setContactLeads] = useState<ContactLead[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const projectsQuery = useMemo(() => firestore ? query(collection(firestore, 'projects')) : null, [firestore]);
-  const contactLeadsQuery = useMemo(() => firestore ? query(collection(firestore, 'contact_leads')) : null, [firestore]);
-  
-  const { data: projects, loading: loadingProjects } = useCollection<Project>(projectsQuery);
-  const { data: contactLeads, loading: loadingContactLeads } = useCollection<ContactLead>(contactLeadsQuery);
+  useEffect(() => {
+    if (!firestore) return;
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const projectsQuery = query(collection(firestore, 'projects'));
+        const projectsSnap = await getDocs(projectsQuery);
+        setProjects(projectsSnap.docs.map(doc => doc.data() as Project));
 
-  const loading = userLoading || loadingProjects || loadingContactLeads;
+        const contactLeadsQuery = query(collection(firestore, 'contact_leads'));
+        const contactLeadsSnap = await getDocs(contactLeadsQuery);
+        setContactLeads(contactLeadsSnap.docs.map(doc => doc.data() as ContactLead));
+      } catch (error) {
+        console.error("Error fetching dashboard data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, [firestore]);
+
 
   const stats = useMemo(() => {
     const allLeads = (projects?.length || 0) + (contactLeads?.length || 0);
@@ -71,7 +88,7 @@ export default function SalesManagerDashboardPage() {
     return { allLeads, completedLeads, pendingLeads, totalSales };
   }, [projects, contactLeads]);
 
-  if (loading || !user) {
+  if (loading || userLoading || !user) {
     return (
        <div className="flex h-[calc(100vh-5rem)] w-full items-center justify-center bg-background">
         <LoaderCircle className="h-10 w-10 animate-spin text-primary" />

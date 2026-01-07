@@ -3,7 +3,7 @@
 
 import { useMemo, useState, useEffect } from 'react';
 import { collection, query, where, updateDoc, doc, serverTimestamp, getDocs } from 'firebase/firestore';
-import { useCollection, useFirestore } from '@/firebase';
+import { useFirestore } from '@/firebase';
 import type { Project, UserProfile, Task } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoaderCircle, CheckCircle, User as UserIcon } from 'lucide-react';
