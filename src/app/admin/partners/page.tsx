@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useMemo, useEffect, useState } from 'react';
@@ -29,27 +30,37 @@ export default function PartnerManagementPage() {
   const { user: currentUser, loading: userLoading } = useUser();
   const { toast } = useToast();
   
-  const [allUsers, setAllUsers] = useState<UserProfile[]>([]);
+  const [partners, setPartners] = useState<UserProfile[]>([]);
   const [allProjects, setAllProjects] = useState<Project[]>([]);
+  const [allUsers, setAllUsers] = useState<UserProfile[]>([]); // For referred user lookups
   const [loading, setLoading] = useState(true);
 
   const fetchData = async () => {
     if (!firestore || !currentUser) return;
     setLoading(true);
     try {
-      const usersQuery = query(collection(firestore, 'users'));
+      const partnersQuery = query(collection(firestore, 'users'), where('role', '==', 'referral-partner'));
       const projectsQuery = query(collection(firestore, 'projects'));
       
-      const [usersSnapshot, projectsSnapshot] = await Promise.all([
-        getDocs(usersQuery),
+      const [partnersSnapshot, projectsSnapshot] = await Promise.all([
+        getDocs(partnersQuery),
         getDocs(projectsQuery)
       ]);
 
-      const usersData = usersSnapshot.docs.map(doc => ({ ...doc.data() as UserProfile, uid: doc.id }));
+      const partnersData = partnersSnapshot.docs.map(doc => ({ ...doc.data() as UserProfile, uid: doc.id }));
       const projectsData = projectsSnapshot.docs.map(doc => ({ ...doc.data() as Project, id: doc.id }));
       
-      setAllUsers(usersData);
+      setPartners(partnersData);
       setAllProjects(projectsData);
+      
+      // Fetch users referred by these partners if needed for stats
+      const referralCodes = partnersData.map(p => p.referralCode).filter(Boolean) as string[];
+      if(referralCodes.length > 0) {
+        const referredUsersQuery = query(collection(firestore, 'users'), where('referredBy', 'in', referralCodes));
+        const referredUsersSnap = await getDocs(referredUsersQuery);
+        const referredUsersData = referredUsersSnap.docs.map(doc => ({ ...doc.data() as UserProfile, uid: doc.id }));
+        setAllUsers(referredUsersData);
+      }
 
     } catch (error) {
       console.error("Failed to fetch data:", error);
@@ -82,11 +93,9 @@ export default function PartnerManagementPage() {
     }
   }
 
-  const partners = useMemo(() => allUsers.filter(u => u.role === 'referral-partner'), [allUsers]);
-
   const partnerStats = useMemo(() => {
     const stats = new Map<string, { referred: number, converted: number }>();
-    if (!partners.length || !allUsers.length) return stats;
+    if (!partners.length) return stats;
 
     partners.forEach(partner => {
       const referredUsers = allUsers.filter(u => u.referredBy === partner.referralCode).map(u => u.uid);

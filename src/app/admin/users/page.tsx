@@ -105,9 +105,16 @@ export default function UserManagementPage() {
     if (!firestore || !currentUser) return;
     setLoading(true);
     try {
-      const q = query(collection(firestore, 'users'));
-      const querySnapshot = await getDocs(q);
-      const usersData = querySnapshot.docs.map(doc => ({ ...doc.data() as UserProfile, uid: doc.id }));
+      const userRoles = ['client', 'author', 'admin'];
+      const userPromises = userRoles.map(role => 
+        getDocs(query(collection(firestore, 'users'), where('role', '==', role)))
+      );
+      const userSnapshots = await Promise.all(userPromises);
+      
+      const usersData = userSnapshots.flatMap(snapshot => 
+        snapshot.docs.map(doc => ({ ...doc.data() as UserProfile, uid: doc.id }))
+      );
+
       setAllUsers(usersData);
     } catch (error) {
       console.error("Failed to fetch users:", error);

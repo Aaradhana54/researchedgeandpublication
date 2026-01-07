@@ -121,7 +121,6 @@ export default function TeamManagementPage() {
     if (firestore && currentUser) {
       fetchTeamUsers();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [firestore, currentUser]);
 
   const handleDeleteUser = async (userToDelete: UserProfile) => {
