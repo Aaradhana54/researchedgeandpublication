@@ -3,11 +3,11 @@
 'use client';
 
 import { useMemo, useState, useEffect } from 'react';
-import { collection, query, where, getDocs, doc, updateDoc, serverTimestamp } from 'firebase/firestore';
-import { useCollection, useFirestore, useUser } from '@/firebase';
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import { useFirestore, useUser } from '@/firebase';
 import type { Task, Project } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { LoaderCircle, ClipboardList, AlertCircle, Check } from 'lucide-react';
+import { LoaderCircle, ClipboardList, AlertCircle } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -20,7 +20,6 @@ import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/use-toast';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 
@@ -42,7 +41,6 @@ const getTaskStatusVariant = (status?: string): 'default' | 'secondary' | 'destr
 export default function MyTasksPage() {
   const { user, loading: userLoading } = useUser();
   const firestore = useFirestore();
-  const { toast } = useToast();
   
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loadingTasks, setLoadingTasks] = useState(true);
@@ -111,37 +109,6 @@ export default function MyTasksPage() {
     return new Map(projects.map((project) => [project.id, project]));
   }, [projects]);
   
-  const handleCompleteTask = async (task: Task) => {
-    if (!firestore || !task.id) return;
-    try {
-        const taskRef = doc(firestore, 'tasks', task.id);
-        const taskUpdateData = {
-            status: 'completed',
-            updatedAt: serverTimestamp(),
-        };
-
-        await updateDoc(taskRef, taskUpdateData);
-        
-        toast({
-            title: 'Task Completed!',
-            description: 'You have successfully marked the task as complete.',
-        });
-        
-        // Refetch tasks to update the UI
-        fetchTasks();
-
-    } catch (error: any) {
-        const permissionError = new FirestorePermissionError({
-            path: `tasks/${task.id}`,
-            operation: 'update',
-            requestResourceData: { status: 'completed' },
-        }, error);
-        errorEmitter.emit('permission-error', permissionError);
-        console.error('Failed to complete task:', error);
-    }
-  }
-
-
   if (!user && !userLoading) {
       return (
          <div className="flex justify-center items-center h-full p-8">
@@ -219,10 +186,6 @@ export default function MyTasksPage() {
                        <TableCell className="text-right space-x-2">
                             <Button asChild size="sm" variant="outline">
                                 <Link href={`/writing/projects/${task.projectId}`}>View Details</Link>
-                            </Button>
-                             <Button size="sm" onClick={() => handleCompleteTask(task)}>
-                                <Check className="mr-2 h-4 w-4" />
-                                Mark as Complete
                             </Button>
                       </TableCell>
                     </TableRow>
