@@ -100,7 +100,7 @@ service cloud.firestore {
                     || isSalesTeam() 
                     || isWritingTeam()
                     || (isReferralPartner() && resource.data.referredBy == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.referralCode)
-                    || isClientReadingAssignedSalesperson(userId);
+                    || (get(/databases/$(database)/documents/users/$(userId)).data.role in ['sales-team', 'sales-manager']);
 
       allow list: if request.auth != null && (
                     get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in 
