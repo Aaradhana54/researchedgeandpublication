@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { getFirebaseErrorMessage } from '@/firebase/errors';
+import { Input } from '@/components/ui/input';
 
 export default function VerifyEmailPage() {
   const { user, loading: userLoading } = useUser();
