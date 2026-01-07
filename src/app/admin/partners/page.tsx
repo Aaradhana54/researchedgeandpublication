@@ -22,6 +22,7 @@ import { useToast } from '@/hooks/use-toast';
 import { deleteUserAsAdmin } from '@/firebase/auth';
 import { EditPartnerDialog } from '@/components/admin/edit-partner-dialog';
 import { CreateUserDialog } from '@/components/admin/create-user-dialog';
+import Link from 'next/link';
 
 export default function PartnerManagementPage() {
   const firestore = useFirestore();
@@ -89,7 +90,7 @@ export default function PartnerManagementPage() {
 
     partners.forEach(partner => {
       const referredUsers = allUsers.filter(u => u.referredBy === partner.referralCode).map(u => u.uid);
-      const convertedProjects = allProjects.filter(p => referredUsers.includes(p.userId) && ['approved', 'in-progress', 'completed'].includes(p.status || ''));
+      const convertedProjects = allProjects.filter(p => (referredUsers.includes(p.userId) || p.referredByPartnerId === partner.uid) && ['approved', 'in-progress', 'completed'].includes(p.status || ''));
       
       stats.set(partner.uid, {
         referred: referredUsers.length,
@@ -141,7 +142,11 @@ export default function PartnerManagementPage() {
                             const stats = partnerStats.get(partner.uid);
                             return (
                                 <TableRow key={partner.uid}>
-                                <TableCell className="font-medium">{partner.name}</TableCell>
+                                <TableCell className="font-medium">
+                                  <Link href={`/admin/partners/${partner.uid}`} className="hover:underline text-primary">
+                                    {partner.name}
+                                  </Link>
+                                </TableCell>
                                 <TableCell>{partner.commissionRate ? partner.commissionRate.toLocaleString('en-IN', { style: 'currency', currency: 'INR'}) : 'Not Set'}</TableCell>
                                 <TableCell className="text-center font-medium">{stats?.referred || 0}</TableCell>
                                 <TableCell className="text-center font-medium">{stats?.converted || 0}</TableCell>
@@ -165,7 +170,7 @@ export default function PartnerManagementPage() {
                                             <AlertDialogHeader>
                                             <AlertDialogTitle>Are you sure you want to delete this partner?</AlertDialogTitle>
                                             <AlertDialogDescription>
-                                                This action will permanently delete the user account for <strong>{partner.name}</strong> ({partner.email}). This cannot be undone.
+                                                This action will permanently delete the user account for strong>{partner.name}</strong> ({partner.email}). This cannot be undone.
                                             </AlertDialogDescription>
                                             </AlertDialogHeader>
                                             <AlertDialogFooter>
