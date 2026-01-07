@@ -28,12 +28,10 @@ export default function ClientChatPage() {
         setLoading(true);
         setError(null);
         try {
-            // 1. Find the user's most recent project to get the assigned sales manager
+            // 1. Find the user's projects without sorting in the query
             const projectsQuery = query(
                 collection(firestore, 'projects'),
-                where('userId', '==', user.uid),
-                orderBy('createdAt', 'desc'),
-                limit(1)
+                where('userId', '==', user.uid)
             );
             const projectsSnap = await getDocs(projectsQuery);
 
@@ -43,7 +41,11 @@ export default function ClientChatPage() {
                 return;
             }
             
-            const latestProject = projectsSnap.docs[0].data() as Project;
+            // 2. Sort projects on the client to find the most recent one
+            const userProjects = projectsSnap.docs.map(doc => doc.data() as Project);
+            userProjects.sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis());
+            const latestProject = userProjects[0];
+            
             const assignedSalesId = latestProject.assignedSalesId;
 
             if (!assignedSalesId) {
@@ -52,7 +54,7 @@ export default function ClientChatPage() {
                 return;
             }
 
-            // 2. Fetch the sales manager's profile
+            // 3. Fetch the sales manager's profile
             const managerDocRef = doc(firestore, 'users', assignedSalesId);
             const managerSnap = await getDoc(managerDocRef);
 
@@ -64,7 +66,7 @@ export default function ClientChatPage() {
             const manager = { ...managerSnap.data() as UserProfile, uid: managerSnap.id };
             setSalesManager(manager);
 
-            // 3. Find or create the chat
+            // 4. Find or create the chat
             const generatedChatId = [user.uid, manager.uid].sort().join('_');
             setChatId(generatedChatId);
 
