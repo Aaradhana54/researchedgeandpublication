@@ -34,6 +34,7 @@ export type UserProfile = {
   createdAt: Timestamp;
   referralCode?: string; // For partners
   referredBy?: string; // For clients
+  commissionRate?: number;
 };
 
 export type ProjectServiceType =

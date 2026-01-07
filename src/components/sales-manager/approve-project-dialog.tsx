@@ -2,7 +2,7 @@
 
 'use client';
 
-import { useState, ChangeEvent } from 'react';
+import { useState, ChangeEvent, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -21,9 +21,9 @@ import { Input } from '../ui/input';
 import { Textarea } from '../ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { CheckCircle, LoaderCircle } from 'lucide-react';
-import type { Project } from '@/lib/types';
+import type { Project, UserProfile } from '@/lib/types';
 import { useFirestore, useUser, useStorage } from '@/firebase';
-import { doc, serverTimestamp, Timestamp, updateDoc } from 'firebase/firestore';
+import { doc, serverTimestamp, Timestamp, updateDoc, getDoc } from 'firebase/firestore';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '../ui/form';
@@ -73,9 +73,28 @@ export function ApproveProjectDialog({ children, project, clientEmail, onProject
       advanceReceived: 0,
       finalDeadline: '',
       discussionNotes: '',
-      commissionAmount: isReferredProject ? 5000 : 0, // Default commission
+      commissionAmount: 0,
     }
   });
+
+  useEffect(() => {
+    const fetchPartnerCommission = async () => {
+        if (isReferredProject && project.referredByPartnerId && firestore) {
+            const partnerRef = doc(firestore, 'users', project.referredByPartnerId);
+            const partnerSnap = await getDoc(partnerRef);
+            if (partnerSnap.exists()) {
+                const partnerData = partnerSnap.data() as UserProfile;
+                form.setValue('commissionAmount', partnerData.commissionRate || 5000);
+            } else {
+                 form.setValue('commissionAmount', 5000);
+            }
+        }
+    };
+    if (open) {
+        fetchPartnerCommission();
+    }
+  }, [open, isReferredProject, project.referredByPartnerId, firestore, form]);
+
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files?.[0]) {
