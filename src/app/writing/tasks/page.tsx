@@ -4,7 +4,7 @@
 
 import { useMemo, useState, useEffect } from 'react';
 import { collection, query, where, getDocs } from 'firebase/firestore';
-import { useFirestore, useUser, useCollection } from '@/firebase';
+import { useFirestore, useUser } from '@/firebase';
 import type { Task, Project } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoaderCircle, ClipboardList, AlertCircle } from 'lucide-react';
@@ -39,69 +39,66 @@ const getTaskStatusVariant = (status?: string): 'default' | 'secondary' | 'destr
 
 
 export default function MyTasksPage() {
-  const { user, loading: userLoading } = useUser();
+  const { user, loading: userLoading } from useUser();
   const firestore = useFirestore();
   
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [loadingTasks, setLoadingTasks] = useState(true);
-  const [tasksError, setTasksError] = useState<Error | null>(null);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
 
-  const projectIds = useMemo(() => {
-    if (!tasks || tasks.length === 0) return [];
-    return Array.from(new Set(tasks.map(t => t.projectId)));
-  }, [tasks]);
-
-  const projectsQuery = useMemo(() => {
-    if (!firestore || projectIds.length === 0) return null;
-    // Firestore 'in' query is limited to 30 items. If you expect more, pagination is needed.
-    return query(collection(firestore, 'projects'), where('__name__', 'in', projectIds));
-  }, [firestore, projectIds]);
-
-
-  const { data: projects, loading: loadingProjects } = useCollection<Project>(projectsQuery);
-
-  const loading = loadingTasks || loadingProjects || userLoading;
-  
-  const fetchTasks = async () => {
+  useEffect(() => {
     if (!firestore || !user) {
         if (!userLoading) {
-            setLoadingTasks(false);
+            setLoading(false);
         }
         return;
     };
-    setLoadingTasks(true);
-    setTasksError(null);
-    try {
-        const tasksQuery = query(
-            collection(firestore, 'tasks'), 
-            where('assignedTo', '==', user.uid)
-        );
-        const querySnapshot = await getDocs(tasksQuery);
-        const fetchedTasks = querySnapshot.docs.map(doc => ({ ...doc.data() as Task, id: doc.id }));
-        
-        const activeTasks = fetchedTasks.filter(task => task.status !== 'completed');
-        
-        activeTasks.sort((a, b) => b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime());
-        
-        setTasks(activeTasks);
-    } catch (error: any) {
-        if (error.code === 'permission-denied') {
-            const permissionError = new FirestorePermissionError({
-                path: `tasks`,
-                operation: 'list',
-            }, error);
-            errorEmitter.emit('permission-error', permissionError);
-        }
-        console.error("Failed to fetch tasks:", error);
-        setTasksError(error);
-    } finally {
-        setLoadingTasks(false);
-    }
-  };
 
-  useEffect(() => {
-    fetchTasks();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    const fetchTasksAndProjects = async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            // 1. Fetch tasks assigned to the user
+            const tasksQuery = query(
+                collection(firestore, 'tasks'), 
+                where('assignedTo', '==', user.uid)
+            );
+            const tasksSnapshot = await getDocs(tasksQuery);
+            const fetchedTasks = tasksSnapshot.docs.map(doc => ({ ...doc.data() as Task, id: doc.id }));
+
+            const activeTasks = fetchedTasks.filter(task => task.status !== 'completed');
+            activeTasks.sort((a, b) => b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime());
+            setTasks(activeTasks);
+
+            // 2. If there are tasks, fetch the associated projects
+            if (activeTasks.length > 0) {
+                const projectIds = Array.from(new Set(activeTasks.map(t => t.projectId)));
+                const projectsQuery = query(collection(firestore, 'projects'), where('__name__', 'in', projectIds));
+                const projectsSnapshot = await getDocs(projectsQuery);
+                const fetchedProjects = projectsSnapshot.docs.map(doc => ({ ...doc.data() as Project, id: doc.id }));
+                setProjects(fetchedProjects);
+            } else {
+                setProjects([]);
+            }
+
+        } catch (err: any) {
+            if (err.code === 'permission-denied') {
+                const permissionError = new FirestorePermissionError({
+                    path: `tasks or projects`,
+                    operation: 'list',
+                }, err);
+                errorEmitter.emit('permission-error', permissionError);
+            }
+            console.error("Failed to fetch tasks or projects:", err);
+            setError(err);
+        } finally {
+            setLoading(false);
+        }
+    };
+    
+    fetchTasksAndProjects();
+
   }, [firestore, user, userLoading]);
 
   const projectsMap = useMemo(() => {
@@ -144,11 +141,11 @@ export default function MyTasksPage() {
             <div className="flex justify-center items-center h-48">
               <LoaderCircle className="w-8 h-8 animate-spin text-primary" />
             </div>
-          ) : tasksError ? (
+          ) : error ? (
              <div className="text-center p-12 text-destructive">
                 <AlertCircle className="mx-auto w-12 h-12 mb-4" />
                 <h3 className="text-lg font-semibold">Failed to Load Tasks</h3>
-                <p>{tasksError.message}</p>
+                <p>{error.message}</p>
             </div>
           ) : tasks && tasks.length > 0 ? (
             <Table>

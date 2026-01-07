@@ -76,8 +76,7 @@ service cloud.firestore {
         ];
         
         let isCreatingOwnProject = request.auth != null && request.auth.uid == data.userId;
-        // Ensure no extra fields are being added by the client on creation
-        let onlyAllowedFields = request.resource.data.keys().hasOnly(allowedKeys);
+        let onlyAllowedFields = data.keys().hasOnly(allowedKeys);
         
         return isCreatingOwnProject && onlyAllowedFields && data.status == 'pending';
     }
@@ -113,9 +112,9 @@ service cloud.firestore {
     match /projects/{projectId} {
       allow create: if isClientCreatingOwnProject() || isSalesTeam();
       allow read: if isOwner(resource.data.userId) || isAdmin() || isSalesTeam() || isWriterAssigned(resource.data.assignedWriterId);
+      allow list: if request.auth != null && request.query.where.userId == request.auth.uid;
       allow update: if isOwner(resource.data.userId) || isAdmin() || isSalesTeam() || (isWriterAssigned(resource.data.assignedWriterId) && request.resource.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt']) && request.resource.data.status == 'completed');
       allow delete: if isOwner(resource.data.userId) || isAdmin();
-      allow list: if request.auth != null;
     }
     
     match /contact_leads/{contactLeadId} {
@@ -194,5 +193,3 @@ service cloud.firestore {
     }
   }
 }
-
-    
