@@ -34,14 +34,17 @@ export default function SalesPage() {
     const fetchSalesData = async () => {
       setLoading(true);
       try {
-        // 1. Fetch all finalized projects
+        // 1. Fetch all potentially finalized projects (based on status)
         const projectsQuery = query(
           collection(firestore, 'projects'),
-          where('status', 'in', ['approved', 'in-progress', 'completed']),
-          where('finalizedBy', '!=', null)
+          where('status', 'in', ['approved', 'in-progress', 'completed'])
         );
         const projectsSnap = await getDocs(projectsQuery);
-        const finalizedProjects = projectsSnap.docs.map(doc => doc.data() as Project);
+        
+        // Filter for projects that also have a 'finalizedBy' field on the client
+        const finalizedProjects = projectsSnap.docs
+            .map(doc => doc.data() as Project)
+            .filter(project => !!project.finalizedBy);
 
         if (finalizedProjects.length === 0) {
           setSalesData([]);
@@ -68,13 +71,15 @@ export default function SalesPage() {
         const idsArray = Array.from(salesPersonIds);
         
         // Batch requests in chunks of 30, as per Firestore 'in' query limits
-        for (let i = 0; i < idsArray.length; i += 30) {
-          const chunk = idsArray.slice(i, i + 30);
-          const usersQuery = query(collection(firestore, 'users'), where('__name__', 'in', chunk));
-          const usersSnap = await getDocs(usersQuery);
-          usersSnap.forEach(doc => {
-            usersMap.set(doc.id, { ...doc.data() as UserProfile, uid: doc.id });
-          });
+        if (idsArray.length > 0) {
+            for (let i = 0; i < idsArray.length; i += 30) {
+                const chunk = idsArray.slice(i, i + 30);
+                const usersQuery = query(collection(firestore, 'users'), where('__name__', 'in', chunk));
+                const usersSnap = await getDocs(usersQuery);
+                usersSnap.forEach(doc => {
+                    usersMap.set(doc.id, { ...doc.data() as UserProfile, uid: doc.id });
+                });
+            }
         }
         
         // 4. Combine data for display
