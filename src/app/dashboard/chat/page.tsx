@@ -1,65 +1,95 @@
 
-
 'use client';
 
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { useUser, useFirestore, useCollection } from '@/firebase';
-import { collection, query, where, doc, setDoc, addDoc, serverTimestamp, orderBy, limit } from 'firebase/firestore';
+import { collection, query, where, doc, setDoc, addDoc, serverTimestamp, orderBy, limit, getDoc, getDocs } from 'firebase/firestore';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { LoaderCircle, Send, UserCircle, AlertCircle } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { format } from 'date-fns';
-import type { Chat, ChatMessage, UserProfile } from '@/lib/types';
+import type { Chat, ChatMessage, UserProfile, Project } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
-
-// This component will find or create a chat between the client and their assigned sales manager.
-// For this demo, we'll assume a client chats with the *first* sales manager found.
-// In a real app, this should be tied to an actual assignment (e.g., on a project).
 export default function ClientChatPage() {
   const { user, loading: userLoading } = useUser();
   const firestore = useFirestore();
   const [chatId, setChatId] = useState<string | null>(null);
-  const [salesManager, setSalesManager] = useState<UserProfile | null>(null);
+  const [salesManager, setSalesManager] =useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // 1. Find a sales manager
-  const salesManagerQuery = useMemo(() => {
-    if (!firestore) return null;
-    return query(collection(firestore, 'users'), where('role', '==', 'sales-manager'), limit(1));
-  }, [firestore]);
-
-  const { data: managers, loading: managersLoading } = useCollection<UserProfile>(salesManagerQuery);
-
-  // 2. Once we have a manager, find or create the chat
   useEffect(() => {
-    if (userLoading || managersLoading || !user) return;
-    
-    if (!managers || managers.length === 0) {
-        setLoading(false);
-        return;
-    }
-    const manager = managers[0];
-    setSalesManager(manager);
+    if (userLoading || !user || !firestore) return;
 
-    const generatedChatId = [user.uid, manager.uid].sort().join('_');
-    setChatId(generatedChatId);
+    const findOrCreateChat = async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            // 1. Find the user's most recent project to get the assigned sales manager
+            const projectsQuery = query(
+                collection(firestore, 'projects'),
+                where('userId', '==', user.uid),
+                orderBy('createdAt', 'desc'),
+                limit(1)
+            );
+            const projectsSnap = await getDocs(projectsQuery);
 
-    const chatDocRef = doc(firestore, 'chats', generatedChatId);
-    setDoc(chatDocRef, {
-        participants: [user.uid, manager.uid],
-        participantNames: {
-            [user.uid]: user.name,
-            [manager.uid]: manager.name
+            if (projectsSnap.empty) {
+                setError("You don't have any projects yet. Please create a project to start a chat.");
+                setLoading(false);
+                return;
+            }
+
+            const project = projectsSnap.docs[0].data() as Project;
+            const assignedSalesId = project.assignedSalesId;
+
+            if (!assignedSalesId) {
+                setError("Your project has not been assigned to a sales manager yet. Please check back later.");
+                setLoading(false);
+                return;
+            }
+
+            // 2. Fetch the sales manager's profile
+            const managerDocRef = doc(firestore, 'users', assignedSalesId);
+            const managerSnap = await getDoc(managerDocRef);
+
+            if (!managerSnap.exists()) {
+                setError("Could not find the assigned sales manager. Please contact support.");
+                setLoading(false);
+                return;
+            }
+            const manager = managerSnap.data() as UserProfile;
+            setSalesManager(manager);
+
+            // 3. Find or create the chat
+            const generatedChatId = [user.uid, manager.uid].sort().join('_');
+            setChatId(generatedChatId);
+
+            const chatDocRef = doc(firestore, 'chats', generatedChatId);
+            await setDoc(chatDocRef, {
+                participants: [user.uid, manager.uid],
+                participantNames: {
+                    [user.uid]: user.name,
+                    [manager.uid]: manager.name
+                }
+            }, { merge: true });
+
+        } catch (err) {
+            console.error("Error finding or creating chat:", err);
+            setError("An error occurred while setting up the chat.");
+        } finally {
+            setLoading(false);
         }
-    }, { merge: true }).finally(() => setLoading(false));
+    };
+    
+    findOrCreateChat();
 
-  }, [user, managers, userLoading, managersLoading, firestore]);
-  
+  }, [user, userLoading, firestore]);
 
-  if (loading || userLoading || managersLoading) {
+  if (loading) {
     return (
       <div className="flex h-[calc(100vh-5rem)] w-full items-center justify-center bg-background">
         <LoaderCircle className="h-10 w-10 animate-spin text-primary" />
@@ -67,8 +97,23 @@ export default function ClientChatPage() {
     );
   }
 
-  if (!salesManager) {
+  if (error) {
      return (
+        <div className="p-4 sm:p-6 lg:p-8">
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2"><AlertCircle /> Chat Unavailable</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <p className="text-muted-foreground">{error}</p>
+                </CardContent>
+            </Card>
+        </div>
+     )
+  }
+
+  if (!salesManager) {
+      return (
         <div className="p-4 sm:p-6 lg:p-8">
             <Card>
                 <CardHeader>
@@ -90,7 +135,7 @@ export default function ClientChatPage() {
           <CardDescription>You are chatting with {salesManager.name}.</CardDescription>
         </CardHeader>
         <CardContent>
-            {chatId && <ChatRoom chatId={chatId} currentUser={user!} />}
+            {chatId && user && <ChatRoom chatId={chatId} currentUser={user} />}
         </CardContent>
       </Card>
     </div>
@@ -180,4 +225,3 @@ function ChatRoom({ chatId, currentUser }: { chatId: string, currentUser: UserPr
         </div>
     );
 }
-

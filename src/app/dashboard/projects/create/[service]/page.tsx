@@ -23,6 +23,7 @@ import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { Progress } from '@/components/ui/progress';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
+import { assignLeadToSalesPerson } from '@/firebase/utils';
 
 
 const serviceDisplayNames: Record<ProjectServiceType, string> = {
@@ -86,6 +87,8 @@ export default function CreateProjectPage() {
     
     const processFormSubmission = async (synopsisUrl = '') => {
         try {
+            const assignedSalesId = await assignLeadToSalesPerson(firestore);
+
             const dataToSave: any = {
               userId: user.uid,
               title: rawFormData.title as string,
@@ -102,6 +105,7 @@ export default function CreateProjectPage() {
               wantToPublish: rawFormData.wantToPublish === 'on',
               isPaperReady: rawFormData.isPaperReady === 'on',
               publishWhere: (rawFormData.publishWhere as string) || null,
+              assignedSalesId: assignedSalesId, // Add assigned sales ID
             };
 
             // Conditionally add fields that might be null or numbers
