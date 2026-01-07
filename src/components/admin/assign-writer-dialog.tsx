@@ -85,6 +85,7 @@ export function AssignWriterDialog({ children, project, writers, onTaskCreated }
       const projectDocRef = doc(firestore, 'projects', project.id);
       batch.update(projectDocRef, {
         assignedWriterId: data.assignedTo,
+        status: 'in-progress'
       });
 
       // 3. Commit the batch
@@ -92,7 +93,7 @@ export function AssignWriterDialog({ children, project, writers, onTaskCreated }
 
       toast({
         title: 'Task Created!',
-        description: `The project has been assigned.`,
+        description: `The project has been assigned and moved to 'In Progress'.`,
       });
 
       // Notify parent component that task is created
@@ -191,3 +192,5 @@ export function AssignWriterDialog({ children, project, writers, onTaskCreated }
     </Dialog>
   );
 }
+
+    
