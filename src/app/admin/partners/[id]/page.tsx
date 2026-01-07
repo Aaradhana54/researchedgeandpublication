@@ -7,7 +7,7 @@ import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firesto
 import { useFirestore } from '@/firebase';
 import type { Project, UserProfile } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { LoaderCircle, ArrowLeft } from 'lucide-react';
+import { LoaderCircle, ArrowLeft, Edit } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -20,6 +20,7 @@ import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { EditCommissionDialog } from '@/components/admin/edit-commission-dialog';
 
 const getProjectStatusVariant = (status?: string): 'default' | 'secondary' | 'destructive' | 'outline' => {
     switch (status) {
@@ -42,66 +43,66 @@ export default function PartnerDetailPage() {
   const [usersMap, setUsersMap] = useState<Map<string, UserProfile>>(new Map());
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const fetchData = async () => {
     if (!firestore || !partnerId) return;
 
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        // Fetch partner details
-        const partnerDocRef = doc(firestore, 'users', partnerId);
-        const partnerSnap = await getDoc(partnerDocRef);
-        if (!partnerSnap.exists()) {
-          notFound();
-          return;
-        }
-        const partnerData = { ...partnerSnap.data() as UserProfile, uid: partnerSnap.id };
-        setPartner(partnerData);
-
-        // Fetch all projects related to this partner
-        const referredUserQuery = query(collection(firestore, 'users'), where('referredBy', '==', partnerData.referralCode));
-        const directLeadProjectsQuery = query(collection(firestore, 'projects'), where('referredByPartnerId', '==', partnerId));
-
-        const referredUserSnap = await getDocs(referredUserQuery);
-        const referredUserIds = referredUserSnap.docs.map(d => d.id);
-        
-        const queries = [getDocs(directLeadProjectsQuery)];
-        if (referredUserIds.length > 0) {
-            queries.push(getDocs(query(collection(firestore, 'projects'), where('userId', 'in', referredUserIds))));
-        }
-
-        const projectSnapshots = await Promise.all(queries);
-        const allProjects = new Map<string, Project>();
-        projectSnapshots.forEach(snap => {
-            snap.forEach(d => {
-                if (!allProjects.has(d.id)) {
-                    allProjects.set(d.id, { ...d.data() as Project, id: d.id });
-                }
-            })
-        });
-        
-        const projectsData = Array.from(allProjects.values());
-        setProjects(projectsData);
-        
-        // Fetch client details for the projects
-        const clientIds = new Set(projectsData.map(p => p.userId).filter(id => !id.startsWith('unregistered_')));
-        if (clientIds.size > 0) {
-            const clientsQuery = query(collection(firestore, 'users'), where('__name__', 'in', Array.from(clientIds)));
-            const clientsSnap = await getDocs(clientsQuery);
-            const newUsersMap = new Map();
-            clientsSnap.forEach(clientDoc => {
-                newUsersMap.set(clientDoc.id, { ...clientDoc.data() as UserProfile, uid: clientDoc.id });
-            });
-            setUsersMap(newUsersMap);
-        }
-
-      } catch (error) {
-        console.error("Failed to fetch partner details and projects:", error);
-      } finally {
-        setLoading(false);
+    setLoading(true);
+    try {
+      // Fetch partner details
+      const partnerDocRef = doc(firestore, 'users', partnerId);
+      const partnerSnap = await getDoc(partnerDocRef);
+      if (!partnerSnap.exists()) {
+        notFound();
+        return;
       }
-    };
+      const partnerData = { ...partnerSnap.data() as UserProfile, uid: partnerSnap.id };
+      setPartner(partnerData);
 
+      // Fetch all projects related to this partner
+      const referredUserQuery = query(collection(firestore, 'users'), where('referredBy', '==', partnerData.referralCode));
+      const directLeadProjectsQuery = query(collection(firestore, 'projects'), where('referredByPartnerId', '==', partnerId));
+
+      const referredUserSnap = await getDocs(referredUserQuery);
+      const referredUserIds = referredUserSnap.docs.map(d => d.id);
+      
+      const queries = [getDocs(directLeadProjectsQuery)];
+      if (referredUserIds.length > 0) {
+          queries.push(getDocs(query(collection(firestore, 'projects'), where('userId', 'in', referredUserIds))));
+      }
+
+      const projectSnapshots = await Promise.all(queries);
+      const allProjects = new Map<string, Project>();
+      projectSnapshots.forEach(snap => {
+          snap.forEach(d => {
+              if (!allProjects.has(d.id)) {
+                  allProjects.set(d.id, { ...d.data() as Project, id: d.id });
+              }
+          })
+      });
+      
+      const projectsData = Array.from(allProjects.values());
+      setProjects(projectsData);
+      
+      // Fetch client details for the projects
+      const clientIds = new Set(projectsData.map(p => p.userId).filter(id => !id.startsWith('unregistered_')));
+      if (clientIds.size > 0) {
+          const clientsQuery = query(collection(firestore, 'users'), where('__name__', 'in', Array.from(clientIds)));
+          const clientsSnap = await getDocs(clientsQuery);
+          const newUsersMap = new Map();
+          clientsSnap.forEach(clientDoc => {
+              newUsersMap.set(clientDoc.id, { ...clientDoc.data() as UserProfile, uid: clientDoc.id });
+          });
+          setUsersMap(newUsersMap);
+      }
+
+    } catch (error) {
+      console.error("Failed to fetch partner details and projects:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  useEffect(() => {
     fetchData();
   }, [firestore, partnerId]);
 
@@ -170,7 +171,14 @@ export default function PartnerDetailPage() {
                       {project.dealAmount ? project.dealAmount.toLocaleString('en-IN', { style: 'currency', currency: 'INR' }) : 'N/A'}
                     </TableCell>
                     <TableCell>
-                      {project.commissionAmount ? project.commissionAmount.toLocaleString('en-IN', { style: 'currency', currency: 'INR' }) : 'N/A'}
+                      <div className="flex items-center gap-2">
+                        <span>{project.commissionAmount ? project.commissionAmount.toLocaleString('en-IN', { style: 'currency', currency: 'INR' }) : 'N/A'}</span>
+                        <EditCommissionDialog project={project} onCommissionUpdated={fetchData}>
+                          <Button variant="ghost" size="icon" className="h-6 w-6">
+                            <Edit className="h-3 w-3" />
+                          </Button>
+                        </EditCommissionDialog>
+                      </div>
                     </TableCell>
                     <TableCell>
                       <Badge variant={getProjectStatusVariant(project.status)} className="capitalize">

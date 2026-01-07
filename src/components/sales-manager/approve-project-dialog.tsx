@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, ChangeEvent, useEffect } from 'react';
@@ -65,6 +64,7 @@ export function ApproveProjectDialog({ children, project, clientEmail, onProject
   const { user } = useUser();
 
   const isReferredProject = !!project.referredBy || !!project.referredByPartnerId;
+  const canSetCommission = user?.role === 'admin' || user?.role === 'sales-manager';
 
   const form = useForm<ApproveProjectForm>({
     resolver: zodResolver(ApproveProjectSchema),
@@ -127,7 +127,7 @@ export function ApproveProjectDialog({ children, project, clientEmail, onProject
                 approvalEmailSent: false, // Set to false so it can be sent manually
             };
             
-            if (isReferredProject && data.commissionAmount) {
+            if (canSetCommission && isReferredProject && data.commissionAmount) {
                 updateData.commissionAmount = data.commissionAmount;
             }
 
@@ -239,7 +239,7 @@ export function ApproveProjectDialog({ children, project, clientEmail, onProject
                             </FormItem>
                         )}
                     />
-                    {isReferredProject && (
+                    {isReferredProject && canSetCommission && (
                          <FormField
                             control={form.control}
                             name="commissionAmount"
