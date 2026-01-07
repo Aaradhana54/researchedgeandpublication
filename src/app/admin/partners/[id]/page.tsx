@@ -58,40 +58,47 @@ export default function PartnerDetailPage() {
       const partnerData = { ...partnerSnap.data() as UserProfile, uid: partnerSnap.id };
       setPartner(partnerData);
 
-      // Fetch all projects related to this partner
-      const referredUserQuery = query(collection(firestore, 'users'), where('referredBy', '==', partnerData.referralCode));
-      const directLeadProjectsQuery = query(collection(firestore, 'projects'), where('referredByPartnerId', '==', partnerId));
-
-      const referredUserSnap = await getDocs(referredUserQuery);
-      const referredUserIds = referredUserSnap.docs.map(d => d.id);
+      const allProjects: Project[] = [];
       
-      const queries = [getDocs(directLeadProjectsQuery)];
-      if (referredUserIds.length > 0) {
-          queries.push(getDocs(query(collection(firestore, 'projects'), where('userId', 'in', referredUserIds))));
+      // Query 1: Projects from users referred by code
+      if (partnerData.referralCode) {
+        const referredUsersQuery = query(collection(firestore, 'users'), where('referredBy', '==', partnerData.referralCode));
+        const referredUserSnap = await getDocs(referredUsersQuery);
+        const referredUserIds = referredUserSnap.docs.map(d => d.id);
+        
+        if (referredUserIds.length > 0) {
+           for (let i = 0; i < referredUserIds.length; i += 30) {
+              const chunk = referredUserIds.slice(i, i + 30);
+              const projectsSubQuery = query(collection(firestore, 'projects'), where('userId', 'in', chunk));
+              const projectsSnap = await getDocs(projectsSubQuery);
+              projectsSnap.forEach(d => allProjects.push({ ...d.data() as Project, id: d.id }));
+           }
+        }
       }
-
-      const projectSnapshots = await Promise.all(queries);
-      const allProjects = new Map<string, Project>();
-      projectSnapshots.forEach(snap => {
-          snap.forEach(d => {
-              if (!allProjects.has(d.id)) {
-                  allProjects.set(d.id, { ...d.data() as Project, id: d.id });
-              }
-          })
+      
+      // Query 2: Projects from leads submitted by partner
+      const directLeadProjectsQuery = query(collection(firestore, 'projects'), where('referredByPartnerId', '==', partnerId));
+      const directLeadSnap = await getDocs(directLeadProjectsQuery);
+      directLeadSnap.forEach(d => {
+        if (!allProjects.find(p => p.id === d.id)) {
+          allProjects.push({ ...d.data() as Project, id: d.id });
+        }
       });
       
-      const projectsData = Array.from(allProjects.values());
-      setProjects(projectsData);
+      setProjects(allProjects);
       
-      // Fetch client details for the projects
-      const clientIds = new Set(projectsData.map(p => p.userId).filter(id => !id.startsWith('unregistered_')));
+      const clientIds = new Set(allProjects.map(p => p.userId).filter(id => id && !id.startsWith('unregistered_')));
       if (clientIds.size > 0) {
-          const clientsQuery = query(collection(firestore, 'users'), where('__name__', 'in', Array.from(clientIds)));
-          const clientsSnap = await getDocs(clientsQuery);
-          const newUsersMap = new Map();
-          clientsSnap.forEach(clientDoc => {
-              newUsersMap.set(clientDoc.id, { ...clientDoc.data() as UserProfile, uid: clientDoc.id });
-          });
+          const newUsersMap = new Map<string, UserProfile>();
+          const clientIdsArray = Array.from(clientIds);
+          for (let i = 0; i < clientIdsArray.length; i+=30) {
+            const chunk = clientIdsArray.slice(i, i + 30);
+            const clientsQuery = query(collection(firestore, 'users'), where('__name__', 'in', chunk));
+            const clientsSnap = await getDocs(clientsQuery);
+            clientsSnap.forEach(clientDoc => {
+                newUsersMap.set(clientDoc.id, { ...clientDoc.data() as UserProfile, uid: clientDoc.id });
+            });
+          }
           setUsersMap(newUsersMap);
       }
 
@@ -108,7 +115,7 @@ export default function PartnerDetailPage() {
 
   const getClientName = (project: Project) => {
     if (project.userId.startsWith('unregistered_')) {
-        return project.userId.split('_')[1]; // Email
+        return `Unregistered (${project.userId.split('_')[1]})`;
     }
     return usersMap.get(project.userId)?.name || 'Unknown Client';
   }

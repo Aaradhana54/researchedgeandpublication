@@ -53,13 +53,18 @@ export default function PartnerManagementPage() {
       setPartners(partnersData);
       setAllProjects(projectsData);
       
-      // Fetch users referred by these partners if needed for stats
       const referralCodes = partnersData.map(p => p.referralCode).filter(Boolean) as string[];
       if(referralCodes.length > 0) {
-        const referredUsersQuery = query(collection(firestore, 'users'), where('referredBy', 'in', referralCodes));
-        const referredUsersSnap = await getDocs(referredUsersQuery);
-        const referredUsersData = referredUsersSnap.docs.map(doc => ({ ...doc.data() as UserProfile, uid: doc.id }));
-        setAllUsers(referredUsersData);
+        const fetchedReferredUsers: UserProfile[] = [];
+        for (let i = 0; i < referralCodes.length; i += 30) {
+            const chunk = referralCodes.slice(i, i + 30);
+            const referredUsersQuery = query(collection(firestore, 'users'), where('referredBy', 'in', chunk));
+            const referredUsersSnap = await getDocs(referredUsersQuery);
+            referredUsersSnap.forEach(doc => {
+              fetchedReferredUsers.push({ ...doc.data() as UserProfile, uid: doc.id });
+            });
+        }
+        setAllUsers(fetchedReferredUsers);
       }
 
     } catch (error) {

@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
   Users,
@@ -21,7 +21,7 @@ import {
   ResponsiveContainer,
   Legend,
 } from 'recharts';
-import { collection, query } from 'firebase/firestore';
+import { collection, query, getDocs } from 'firebase/firestore';
 
 import { useCollection, useFirestore } from '@/firebase';
 import type { UserProfile, Project, ContactLead } from '@/lib/types';
@@ -79,29 +79,38 @@ const chartConfig = {
 
 export default function AdminDashboardPage() {
   const firestore = useFirestore();
+  const [userCount, setUserCount] = useState(0);
 
-  const usersQuery = useMemo(() => firestore ? query(collection(firestore, 'users')) : null, [firestore]);
   const projectsQuery = useMemo(() => firestore ? query(collection(firestore, 'projects')) : null, [firestore]);
   const contactLeadsQuery = useMemo(() => firestore ? query(collection(firestore, 'contact_leads')) : null, [firestore]);
 
-  const { data: users, loading: loadingUsers } = useCollection<UserProfile>(usersQuery);
   const { data: projects, loading: loadingProjects } = useCollection<Project>(projectsQuery);
   const { data: contactLeads, loading: loadingContactLeads } = useCollection<ContactLead>(contactLeadsQuery);
 
+  useEffect(() => {
+    if (firestore) {
+      getDocs(query(collection(firestore, 'users'))).then(snap => {
+        setUserCount(snap.size);
+      }).catch(err => {
+        console.error("Failed to count users:", err);
+      })
+    }
+  }, [firestore]);
+
+
   const loading =
-    loadingUsers ||
     loadingProjects ||
-    loadingContactLeads;
+    loadingContactLeads ||
+    userCount === 0;
 
   const stats = useMemo(() => {
-    const totalUsers = users?.length ?? 0;
     const totalLeads = (projects?.length ?? 0) + (contactLeads?.length ?? 0);
     const approvedLeads = projects?.filter(p => ['approved', 'in-progress', 'completed'].includes(p.status || '')).length ?? 0;
     const totalSales = projects?.filter(p => ['approved', 'in-progress', 'completed'].includes(p.status || ''))
                                 .reduce((sum, p) => sum + (p.dealAmount || 0), 0) ?? 0;
 
-    return { totalUsers, totalLeads, approvedLeads, totalSales };
-  }, [users, projects, contactLeads]);
+    return { totalLeads, approvedLeads, totalSales };
+  }, [projects, contactLeads]);
 
 
   const projectChartData = useMemo(() => {
@@ -153,7 +162,7 @@ export default function AdminDashboardPage() {
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <StatCard
               title="Total Users"
-              value={stats.totalUsers}
+              value={userCount}
               icon={<Users className="h-4 w-4 text-muted-foreground" />}
               link="/admin/users"
               linkText="Manage Users"
