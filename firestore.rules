@@ -113,12 +113,7 @@ service cloud.firestore {
       // Admins, sales team can update any project. Owners can update their own.
       // Writers can update a project's status to 'completed' IF they are assigned to it.
       // Sales team can update the approvalEmailSent flag.
-      allow update: if isOwner(resource.data.userId) || isAdmin() || isSalesTeam() ||
-                     (isWriterAssigned(resource.data.assignedWriterId) && 
-                      request.resource.data.status == 'completed' &&
-                      request.resource.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt'])) ||
-                     (isSalesTeam() && 
-                      request.resource.diff(resource.data).affectedKeys().hasOnly(['approvalEmailSent']));
+      allow update: if isOwner(resource.data.userId) || isAdmin() || isSalesTeam();
       
       allow delete: if isOwner(resource.data.userId) || isAdmin();
       
@@ -216,11 +211,7 @@ service cloud.firestore {
 
     match /tasks/{taskId} {
       allow read, list, create: if isAdmin() || isWritingTeam();
-      // Allow update if admin, OR if the writer is assigned to the task and is marking it as completed.
-      allow update: if isAdmin() || 
-                     (isWriterAssigned(resource.data.assignedTo) &&
-                      request.resource.data.status == 'completed' &&
-                      request.resource.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt']));
+      allow update: if isAdmin();
       allow delete: if isAdmin() || isWritingTeam();
     }
 
