@@ -112,7 +112,7 @@ service cloud.firestore {
     match /projects/{projectId} {
       allow create: if isClientCreatingOwnProject() || isSalesTeam();
       allow read: if isOwner(resource.data.userId) || isAdmin() || isSalesTeam() || isWriterAssigned(resource.data.assignedWriterId);
-      allow list: if request.auth != null && request.query.where.userId == request.auth.uid;
+      allow list: if request.auth != null && request.query.get('userId') == request.auth.uid;
       allow update: if isOwner(resource.data.userId) || isAdmin() || isSalesTeam() || (isWriterAssigned(resource.data.assignedWriterId) && request.resource.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt']) && request.resource.data.status == 'completed');
       allow delete: if isOwner(resource.data.userId) || isAdmin();
     }
