@@ -118,16 +118,19 @@ export default function MyTasksPage() {
       const projectRef = doc(firestore, 'projects', task.projectId);
 
       try {
-          // Perform sequential updates instead of a batch
-          await updateDoc(taskRef, {
+          const batch = writeBatch(firestore);
+
+          batch.update(taskRef, {
               status: 'completed',
               updatedAt: serverTimestamp(),
           });
 
-          await updateDoc(projectRef, {
+          batch.update(projectRef, {
               status: 'completed',
               updatedAt: serverTimestamp(),
           });
+          
+          await batch.commit();
 
           toast({
               title: 'Project Completed!',
@@ -136,12 +139,10 @@ export default function MyTasksPage() {
           fetchTasks(); // Re-fetch tasks to update the UI
           
       } catch (error: any) {
-          // It's harder to provide perfect contextual error for sequential writes,
-          // but we can still try to give a meaningful message.
           const permissionError = new FirestorePermissionError({
-              path: `tasks/${task.id} or projects/${task.projectId}`,
+              path: `BATCH WRITE: [tasks/${task.id}, projects/${task.projectId}]`,
               operation: 'update',
-              requestResourceData: { status: 'completed' },
+              requestResourceData: "redacted_for_brevity",
           }, error);
           errorEmitter.emit('permission-error', permissionError);
       }
@@ -247,5 +248,7 @@ export default function MyTasksPage() {
     </div>
   );
 }
+
+    
 
     
