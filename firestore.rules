@@ -108,10 +108,10 @@ service cloud.firestore {
 
       // Owners, admins, or sales team can manage projects.
       // Writers can read projects if they are assigned (checked by client-side logic).
-      allow read: if isOwner(resource.data.userId) || isAdmin() || isSalesTeam() || isWriterAssigned(resource.data.assignedWriterId);
+      allow read: if isOwner(resource.data.userId) || isAdmin() || isSalesTeam() || (isWritingTeam() && request.auth.uid == resource.data.assignedWriterId);
       
       // Admins, sales team can update any project. Owners can update their own.
-      allow update: if isOwner(resource.data.userId) || isAdmin() || isSalesTeam();
+      allow update: if isOwner(resource.data.userId) || isAdmin() || isSalesTeam() || (isWriterAssigned(resource.data.assignedWriterId) && request.resource.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt']) && request.resource.data.status == 'completed');
       
       allow delete: if isOwner(resource.data.userId) || isAdmin();
       
@@ -209,7 +209,8 @@ service cloud.firestore {
 
     match /tasks/{taskId} {
       allow read, list, create: if isAdmin() || isWritingTeam();
-      allow update, delete: if isAdmin() || isWritingTeam();
+      allow update: if isAdmin() || (isWriterAssigned(resource.data.assignedTo) && request.resource.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt']));
+      allow delete: if isAdmin() || isWritingTeam();
     }
 
     match /book_sales/{saleId} {
