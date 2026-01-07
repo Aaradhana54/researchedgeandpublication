@@ -170,7 +170,7 @@ export default function PartnerManagementPage() {
                                             <AlertDialogHeader>
                                             <AlertDialogTitle>Are you sure you want to delete this partner?</AlertDialogTitle>
                                             <AlertDialogDescription>
-                                                This action will permanently delete the user account for strong>{partner.name}</strong> ({partner.email}). This cannot be undone.
+                                                This action will permanently delete the user account for <strong>{partner.name}</strong> ({partner.email}). This cannot be undone.
                                             </AlertDialogDescription>
                                             </AlertDialogHeader>
                                             <AlertDialogFooter>
