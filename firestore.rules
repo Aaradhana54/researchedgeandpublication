@@ -215,7 +215,9 @@ service cloud.firestore {
     // --- Admin-only Collections (with exceptions) ---
 
     match /tasks/{taskId} {
-      allow read, write, create, list, update, delete: if isAdmin() || isWritingTeam();
+      allow read, create, list: if isAdmin() || isWritingTeam();
+      allow update: if isAdmin() || (isWritingTeam() && request.resource.data.status == 'completed' && request.resource.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt']));
+      allow delete: if isAdmin() || isWritingTeam();
     }
 
     match /book_sales/{saleId} {

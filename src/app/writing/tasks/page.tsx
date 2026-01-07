@@ -7,7 +7,7 @@ import { collection, query, where, getDocs, doc, writeBatch, serverTimestamp } f
 import { useCollection, useFirestore, useUser } from '@/firebase';
 import type { Task, Project } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { LoaderCircle, ClipboardList, AlertCircle } from 'lucide-react';
+import { LoaderCircle, ClipboardList, AlertCircle, Check } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -219,6 +219,10 @@ export default function MyTasksPage() {
                        <TableCell className="text-right space-x-2">
                              <Button asChild size="sm" variant="outline">
                                 <Link href={`/writing/projects/${task.projectId}`}>View Details</Link>
+                            </Button>
+                            <Button size="sm" onClick={() => handleCompleteTask(task)}>
+                                <Check className="mr-2 h-4 w-4" />
+                                Mark as Complete
                             </Button>
                       </TableCell>
                     </TableRow>
