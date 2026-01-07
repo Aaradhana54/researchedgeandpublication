@@ -46,7 +46,7 @@ export default function ApprovedLeadsPage() {
   const { toast } = useToast();
   
   const [projects, setProjects] = useState<Project[]>([]);
-  const [usersMap, setUsersMap] = useState<Map<string, UserProfile>>(new Map());
+  const [users, setUsers] = useState<UserProfile[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [writingTeam, setWritingTeam] = useState<UserProfile[]>([]);
@@ -65,25 +65,19 @@ export default function ApprovedLeadsPage() {
         const fetchedProjects = projectsSnap.docs.map(doc => ({ ...doc.data() as Project, id: doc.id }));
         setProjects(fetchedProjects);
 
-        // Fetch users (clients and writers)
-        const userIds = new Set<string>();
-        fetchedProjects.forEach(p => {
-            if (p.userId) userIds.add(p.userId);
-            if (p.assignedWriterId) userIds.add(p.assignedWriterId);
-        });
-
+        // Fetch all users to check for existing emails and get roles
         const usersQuery = query(collection(firestore, 'users'));
         const usersSnap = await getDocs(usersQuery);
-        const newUsersMap = new Map<string, UserProfile>();
+        const fetchedUsers: UserProfile[] = [];
         const writers: UserProfile[] = [];
         usersSnap.forEach(doc => {
             const userData = { ...doc.data() as UserProfile, uid: doc.id };
-            newUsersMap.set(doc.id, userData);
+            fetchedUsers.push(userData);
             if (userData.role === 'writing-team') {
                 writers.push(userData);
             }
         });
-        setUsersMap(newUsersMap);
+        setUsers(fetchedUsers);
         setWritingTeam(writers);
 
         // Fetch tasks
@@ -104,6 +98,14 @@ export default function ApprovedLeadsPage() {
     fetchApprovedLeadsData();
   }, [firestore]);
 
+
+  const usersMap = useMemo(() => {
+    return new Map(users.map(user => [user.uid, user]));
+  }, [users]);
+  
+  const emailsSet = useMemo(() => {
+    return new Set(users.map(user => user.email));
+  }, [users]);
 
   const assignedTasksMap = useMemo(() => {
     if (!tasks) return new Map();
@@ -188,7 +190,11 @@ export default function ApprovedLeadsPage() {
                   const client = getClientInfo(project);
                   const assignedTask = assignedTasksMap.get(project.id);
                   const assignedWriter = assignedTask ? usersMap.get(assignedTask.assignedTo) : null;
+                  
                   const isUnregistered = project.userId.startsWith('unregistered_');
+                  const unregisteredEmail = isUnregistered ? project.userId.split('_')[1] : null;
+                  const clientAccountExists = unregisteredEmail ? emailsSet.has(unregisteredEmail) : false;
+
                   return (
                     <TableRow key={project.id}>
                       <TableCell className="font-medium">
@@ -224,7 +230,7 @@ export default function ApprovedLeadsPage() {
                       <TableCell className="text-right">
                          <div className="flex justify-end items-center gap-2">
                             <SendApprovalEmailButton project={project} client={client} onEmailSent={fetchApprovedLeadsData} />
-                            {isUnregistered && (
+                            {isUnregistered && !clientAccountExists && (
                                <CreateClientAccountDialog project={project} onAccountCreated={fetchApprovedLeadsData} />
                             )}
                             {!assignedTask && project.status === 'approved' && !isUnregistered ? (
