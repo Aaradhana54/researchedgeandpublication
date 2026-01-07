@@ -53,13 +53,18 @@ export default function ApprovedLeadsPage() {
 
     setLoading(true);
     try {
+        // Simplified query to avoid composite index
         const projectsQuery = query(
             collection(firestore, 'projects'),
-            where('finalizedBy', '==', user.uid),
-            where('status', 'in', ['approved', 'in-progress', 'completed'])
+            where('finalizedBy', '==', user.uid)
         );
         const projectsSnap = await getDocs(projectsQuery);
-        const fetchedProjects = projectsSnap.docs.map(doc => ({...doc.data() as Project, id: doc.id}));
+        
+        // Filter by status on the client-side
+        const finalizedStatuses = ['approved', 'in-progress', 'completed'];
+        const fetchedProjects = projectsSnap.docs
+            .map(doc => ({...doc.data() as Project, id: doc.id}))
+            .filter(p => p.status && finalizedStatuses.includes(p.status));
 
         const userIds = new Set<string>();
         fetchedProjects.forEach(p => {
@@ -92,6 +97,7 @@ export default function ApprovedLeadsPage() {
 
   useEffect(() => {
     fetchApprovedLeads();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [firestore, user, userLoading]);
 
   const getClientInfo = (project: Project) => {
