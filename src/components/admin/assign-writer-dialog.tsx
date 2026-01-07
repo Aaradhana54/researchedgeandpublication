@@ -23,7 +23,7 @@ import { useToast } from '@/hooks/use-toast';
 import { LoaderCircle } from 'lucide-react';
 import type { Project, UserProfile } from '@/lib/types';
 import { useFirestore, useUser } from '@/firebase';
-import { doc, serverTimestamp, Timestamp, addDoc, collection, updateDoc } from 'firebase/firestore';
+import { doc, serverTimestamp, Timestamp, addDoc, collection, updateDoc, writeBatch } from 'firebase/firestore';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '../ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
@@ -63,6 +63,11 @@ export function AssignWriterDialog({ children, project, writers, onTaskCreated }
     setError(null);
 
     try {
+      const batch = writeBatch(firestore);
+
+      // 1. Define the new task document
+      const tasksCollection = collection(firestore, 'tasks');
+      const taskDocRef = doc(tasksCollection); // Create a reference for the new task
       const taskData: any = {
         projectId: project.id,
         assignedTo: data.assignedTo,
@@ -70,22 +75,20 @@ export function AssignWriterDialog({ children, project, writers, onTaskCreated }
         status: 'pending',
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
-      }
-
-      if(data.dueDate) {
+      };
+      if (data.dueDate) {
         taskData.dueDate = Timestamp.fromDate(new Date(data.dueDate));
       }
+      batch.set(taskDocRef, taskData);
 
-      // Create the task
-      const tasksCollection = collection(firestore, 'tasks');
-      await addDoc(tasksCollection, taskData);
-
-      // Update the project with the assigned writer's ID
+      // 2. Define the update for the project document
       const projectDocRef = doc(firestore, 'projects', project.id);
-      await updateDoc(projectDocRef, {
+      batch.update(projectDocRef, {
         assignedWriterId: data.assignedTo,
       });
 
+      // 3. Commit the batch
+      await batch.commit();
 
       toast({
         title: 'Task Created!',
