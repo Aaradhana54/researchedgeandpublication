@@ -154,11 +154,6 @@ export function Header() {
                         <UserPlus className="mr-2 h-4 w-4" />
                         <span>Client Signup</span>
                     </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onSelect={() => router.push('/referral-partner/login')}>
-                        <Handshake className="mr-2 h-4 w-4" />
-                        <span>Referral Partner</span>
-                    </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
           )}
