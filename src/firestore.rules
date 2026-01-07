@@ -172,9 +172,8 @@ service cloud.firestore {
     }
     
     match /tasks/{taskId} {
-      allow read, list, create: if isAdmin() || isWritingTeam();
-      allow update: if isAdmin() || (isWriterAssigned(resource.data.assignedTo) && request.resource.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt']));
-      allow delete: if isAdmin() || isWritingTeam();
+      allow read, list: if isAdmin() || isWritingTeam();
+      allow create, update, delete: if isAdmin() || isWritingTeam();
     }
 
     match /book_sales/{saleId} {
