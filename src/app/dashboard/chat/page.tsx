@@ -30,12 +30,10 @@ export default function ClientChatPage() {
         setLoading(true);
         setError(null);
         
-        // 1. Find the user's most recent project
+        // 1. Find the user's projects
         const projectsQuery = query(
             collection(firestore, 'projects'),
-            where('userId', '==', user.uid),
-            orderBy('createdAt', 'desc'),
-            limit(1)
+            where('userId', '==', user.uid)
         );
         const projectsSnap = await getDocs(projectsQuery);
 
@@ -44,8 +42,12 @@ export default function ClientChatPage() {
             setLoading(false);
             return;
         }
+
+        // Sort projects on the client-side to find the most recent one
+        const projects = projectsSnap.docs.map(doc => doc.data() as Project);
+        projects.sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis());
+        const latestProject = projects[0];
         
-        const latestProject = projectsSnap.docs[0].data() as Project;
         const assignedSalesId = latestProject.assignedSalesId;
 
         if (!assignedSalesId) {
@@ -56,22 +58,12 @@ export default function ClientChatPage() {
 
         // 2. Fetch the sales manager's profile
         const managerDocRef = doc(firestore, 'users', assignedSalesId);
-        const managerSnap = await getDoc(managerDocRef).catch(serverError => {
-            if (serverError.code === 'permission-denied') {
-                const permissionError = new FirestorePermissionError({
-                    path: managerDocRef.path,
-                    operation: 'get'
-                }, serverError);
-                errorEmitter.emit('permission-error', permissionError);
-            }
-            throw serverError; // Re-throw other errors
-        });
-
+        const managerSnap = await getDoc(managerDocRef);
 
         if (!managerSnap.exists()) {
-            setError("Could not find the assigned sales manager. Please contact support.");
-            setLoading(false);
-            return;
+             setError("Could not find the assigned sales manager. Please contact support.");
+             setLoading(false);
+             return;
         }
         const manager = { ...managerSnap.data() as UserProfile, uid: managerSnap.id };
         setSalesManager(manager);
@@ -93,9 +85,17 @@ export default function ClientChatPage() {
     };
     
     findOrCreateChat().catch(err => {
-        console.error("Error finding or creating chat:", err);
-        setError("An unexpected error occurred while setting up the chat. Check the console for details.");
-        setLoading(false);
+      // Re-throw permission errors to be caught by the error boundary
+      if (err.code === 'permission-denied') {
+        const permissionError = new FirestorePermissionError({
+          path: `projects or users`,
+          operation: 'list',
+        }, err);
+        errorEmitter.emit('permission-error', permissionError);
+      }
+      console.error("Error finding or creating chat:", err);
+      setError(`An unexpected error occurred while setting up the chat. Please check the console for details. Error: ${err.message}`);
+      setLoading(false);
     });
 
   }, [user, userLoading, firestore]);
