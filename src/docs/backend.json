@@ -67,7 +67,8 @@
         "rejectionReason": { "type": "string", "description": "Reason why the project was rejected by the sales team." },
         "referredByPartnerId": { "type": "string", "description": "UID of the referral partner for leads converted without signup." },
         "approvalEmailSent": { "type": "boolean", "description": "Tracks if the approval email has been sent to the client." },
-        "commissionAmount": { "type": "number", "description": "The commission amount awarded to the referral partner for this project." }
+        "commissionAmount": { "type": "number", "description": "The commission amount awarded to the referral partner for this project." },
+        "salesCommissionAmount": { "type": "number", "description": "The commission amount awarded to the sales person for this project." }
       },
       "required": ["userId", "title", "serviceType", "createdAt"]
     },

@@ -82,6 +82,7 @@ export interface Project {
   referredByPartnerId?: string; // UID of the referral partner for leads converted without signup
   approvalEmailSent?: boolean; // Tracks if the approval email has been sent
   commissionAmount?: number; // The commission amount awarded to the referral partner
+  salesCommissionAmount?: number; // The commission amount awarded to the sales person
 }
 
 export interface ContactLead {

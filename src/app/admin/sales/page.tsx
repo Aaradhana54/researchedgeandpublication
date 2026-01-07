@@ -16,6 +16,7 @@ import {
   TableRow,
   TableFooter,
 } from '@/components/ui/table';
+import Link from 'next/link';
 
 interface SalesPerformanceData {
   salesperson: UserProfile;
@@ -34,14 +35,13 @@ export default function SalesPage() {
     const fetchSalesData = async () => {
       setLoading(true);
       try {
-        // 1. Fetch all potentially finalized projects (based on status)
+        // 1. Fetch all projects that have been finalized (have a 'finalizedBy' field)
         const projectsQuery = query(
           collection(firestore, 'projects'),
-          where('status', 'in', ['approved', 'in-progress', 'completed'])
+          where('finalizedBy', '!=', null)
         );
         const projectsSnap = await getDocs(projectsQuery);
         
-        // Filter for projects that also have a 'finalizedBy' field on the client
         const finalizedProjects = projectsSnap.docs
             .map(doc => doc.data() as Project)
             .filter(project => !!project.finalizedBy);
@@ -70,7 +70,6 @@ export default function SalesPage() {
         const usersMap = new Map<string, UserProfile>();
         const idsArray = Array.from(salesPersonIds);
         
-        // Batch requests in chunks of 30, as per Firestore 'in' query limits
         if (idsArray.length > 0) {
             for (let i = 0; i < idsArray.length; i += 30) {
                 const chunk = idsArray.slice(i, i + 30);
@@ -87,7 +86,7 @@ export default function SalesPage() {
           salesperson: usersMap.get(userId)!,
           dealsFinalized: perf.deals,
           totalDealValue: perf.value,
-        })).filter(item => item.salesperson); // Filter out any cases where user data might be missing
+        })).filter(item => item.salesperson); 
 
         finalPerformanceData.sort((a, b) => b.totalDealValue - a.totalDealValue);
         
@@ -137,8 +136,10 @@ export default function SalesPage() {
                 {salesData.map(({ salesperson, dealsFinalized, totalDealValue }) => (
                   <TableRow key={salesperson.uid}>
                     <TableCell className="font-medium">
-                        <div className="font-medium">{salesperson.name}</div>
-                        <div className="text-sm text-muted-foreground">{salesperson.email}</div>
+                        <Link href={`/admin/sales/${salesperson.uid}`} className="hover:underline text-primary">
+                            <div className="font-medium">{salesperson.name}</div>
+                            <div className="text-sm text-muted-foreground">{salesperson.email}</div>
+                        </Link>
                     </TableCell>
                     <TableCell className="text-center font-medium">{dealsFinalized}</TableCell>
                     <TableCell className="text-right font-medium">
