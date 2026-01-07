@@ -25,7 +25,7 @@ type CombinedReferral = {
     email: string;
     phone?: string;
     referredAt: Date;
-    status: 'Signed Up' | 'Converted' | 'Submitted Lead';
+    status: 'Signed Up' | 'Converted' | 'Submitted Lead' | 'Lead Converted';
 }
 
 export default function ReferredClientsPage() {
@@ -52,10 +52,9 @@ export default function ReferredClientsPage() {
       return referredUsers.map(u => u.uid);
   }, [referredUsers]);
 
-  // 3. Find projects ONLY for the users this partner has referred
-  const projectsQuery = useMemo(() => {
+  // 3. Find all projects to check for conversions
+  const projectsFromReferredUsersQuery = useMemo(() => {
     if (!firestore || referredUserIds.length === 0) return null;
-    // We fetch all projects with a status beyond 'pending' to check for conversions.
     return query(
         collection(firestore, 'projects'), 
         where('userId', 'in', referredUserIds),
@@ -63,13 +62,24 @@ export default function ReferredClientsPage() {
     );
   }, [firestore, referredUserIds]);
 
-  const { data: projects, loading: projectsLoading } = useCollection<Project>(projectsQuery);
+  const projectsFromPartnerLeadsQuery = useMemo(() => {
+    if (!firestore || !user) return null;
+    return query(
+      collection(firestore, 'projects'),
+      where('referredByPartnerId', '==', user.uid),
+      where('status', 'in', ['approved', 'in-progress', 'completed'])
+    );
+  }, [firestore, user]);
 
-  const loading = userLoading || referralsLoading || leadsLoading || projectsLoading;
+  const { data: projectsFromUsers } = useCollection<Project>(projectsFromReferredUsersQuery);
+  const { data: projectsFromLeads } = useCollection<Project>(projectsFromPartnerLeadsQuery);
+  
+  const loading = userLoading || referralsLoading || leadsLoading;
   
   const combinedReferrals = useMemo((): CombinedReferral[] => {
     const referrals: CombinedReferral[] = [];
-    const convertedUserIds = new Set(projects?.map(p => p.userId));
+    const convertedUserIds = new Set(projectsFromUsers?.map(p => p.userId));
+    const convertedLeadEmails = new Set(projectsFromLeads?.map(p => p.userId.split('_')[1]));
 
     // Process users who signed up
     referredUsers?.forEach(u => {
@@ -85,26 +95,28 @@ export default function ReferredClientsPage() {
 
     // Process leads submitted by partner
     submittedLeads?.forEach(l => {
-        // A submitted lead is not yet linked to a user account, so it can't be 'Converted' here.
+        const isConverted = l.status === 'converted' || convertedLeadEmails.has(l.email);
         referrals.push({
             id: l.id!,
             name: l.name,
             email: l.email,
             phone: l.phone,
             referredAt: l.createdAt.toDate(),
-            status: 'Submitted Lead',
+            status: isConverted ? 'Lead Converted' : 'Submitted Lead',
         });
     });
 
     // Sort combined list by date
     return referrals.sort((a,b) => b.referredAt.getTime() - a.referredAt.getTime());
 
-  }, [referredUsers, submittedLeads, projects]);
+  }, [referredUsers, submittedLeads, projectsFromUsers, projectsFromLeads]);
 
 
   const getStatusVariant = (status: CombinedReferral['status']) => {
       switch(status) {
-          case 'Converted': return 'default';
+          case 'Converted':
+          case 'Lead Converted': 
+            return 'default';
           case 'Signed Up': return 'secondary';
           case 'Submitted Lead': return 'outline';
           default: return 'outline';
@@ -163,7 +175,7 @@ export default function ReferredClientsPage() {
                      <div className="text-center p-12 text-muted-foreground">
                         <Users className="mx-auto w-10 h-10 mb-4" />
                         <h3 className="text-lg font-semibold">No Referrals Yet</h3>
-                        <p className="text-sm">Share your referral link or submit a lead from the dashboard to start earning commissions.</p>
+                        <p className="text-sm">Submit a lead from the dashboard to start earning commissions.</p>
                     </div>
                 )}
             </CardContent>
