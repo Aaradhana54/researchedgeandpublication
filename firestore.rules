@@ -80,6 +80,15 @@ service cloud.firestore {
         
         return isCreatingOwnProject && noForbiddenFields && data.status == 'pending';
     }
+    
+    // New function to check if a writer is assigned to a project via any task
+    function isWriterAssignedToProjectViaTask(projectId) {
+      return isWritingTeam() && exists(/databases/$(database)/documents/tasks) &&
+             exists(
+               /databases/$(database)/documents/tasks.where("projectId", "==", projectId)
+                                                  .where("assignedTo", "==", request.auth.uid)
+             );
+    }
 
 
     match /users/{userId} {
