@@ -28,10 +28,12 @@ export default function ClientChatPage() {
         setLoading(true);
         setError(null);
         try {
-            // 1. Find the user's projects to get the assigned sales manager
+            // 1. Find the user's most recent project to get the assigned sales manager
             const projectsQuery = query(
                 collection(firestore, 'projects'),
-                where('userId', '==', user.uid)
+                where('userId', '==', user.uid),
+                orderBy('createdAt', 'desc'),
+                limit(1)
             );
             const projectsSnap = await getDocs(projectsQuery);
 
@@ -41,11 +43,7 @@ export default function ClientChatPage() {
                 return;
             }
             
-            // Sort on the client to find the most recent project
-            const projects = projectsSnap.docs.map(doc => doc.data() as Project);
-            projects.sort((a,b) => b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime());
-            const latestProject = projects[0];
-
+            const latestProject = projectsSnap.docs[0].data() as Project;
             const assignedSalesId = latestProject.assignedSalesId;
 
             if (!assignedSalesId) {
