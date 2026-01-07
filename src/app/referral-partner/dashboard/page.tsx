@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useMemo, useState, useEffect }from 'react';
@@ -12,6 +11,7 @@ import type { UserProfile, Payout, Project, ContactLead } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { ReferClientDialog } from '@/components/referral-partner/refer-client-dialog';
+import { Input } from '@/components/ui/input';
 
 
 function StatCard({ title, value, icon }: { title: string, value: string | number, icon: React.ReactNode }) {
@@ -200,3 +200,4 @@ export default function ReferralDashboardPage() {
     </div>
   );
 }
+
