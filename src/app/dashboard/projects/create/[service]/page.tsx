@@ -75,48 +75,50 @@ export default function CreateProjectPage() {
         return;
     }
     
-    const assignedSalesId = await assignLeadToSalesPerson(firestore);
-
-    const dataToSave: any = {
-      userId: user.uid,
-      title: rawFormData.title as string,
-      serviceType: service,
-      status: 'pending',
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-      mobile: (rawFormData.mobile as string) || null,
-      topic: (rawFormData.topic as string) || null,
-      courseLevel: (rawFormData.courseLevel as CourseLevel) || null,
-      referencingStyle: (rawFormData.referencingStyle as string) || null,
-      language: (rawFormData.language as string) || 'English',
-      wantToPublish: rawFormData.wantToPublish === 'on',
-      publishWhere: (rawFormData.publishWhere as string) || null,
-      assignedSalesId: assignedSalesId,
-    };
-
-    // Conditionally add fields that might be null or numbers
-    if (rawFormData.deadline) {
-        dataToSave.deadline = Timestamp.fromDate(new Date(rawFormData.deadline as string));
-    }
-    if (rawFormData.pageCount) {
-        dataToSave.pageCount = Number(rawFormData.pageCount);
-    }
-    if (rawFormData.wordCount) {
-        dataToSave.wordCount = Number(rawFormData.wordCount);
-    }
-    
     const projectsCollection = collection(firestore, 'projects');
-    
-    addDoc(projectsCollection, dataToSave)
-      .then(() => {
-          toast({
-              title: 'Project Submitted!',
-              description: 'Your project has been successfully submitted for review.',
-          });
-          setFormKey(Date.now()); 
-          router.push('/dashboard/projects');
-      })
-      .catch((serverError) => {
+    let dataToSave: any;
+
+    try {
+        const assignedSalesId = await assignLeadToSalesPerson(firestore);
+
+        dataToSave = {
+          userId: user.uid,
+          title: rawFormData.title as string,
+          serviceType: service,
+          status: 'pending',
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+          mobile: (rawFormData.mobile as string) || null,
+          topic: (rawFormData.topic as string) || null,
+          courseLevel: (rawFormData.courseLevel as CourseLevel) || null,
+          referencingStyle: (rawFormData.referencingStyle as string) || null,
+          language: (rawFormData.language as string) || 'English',
+          wantToPublish: rawFormData.wantToPublish === 'on',
+          publishWhere: (rawFormData.publishWhere as string) || null,
+          assignedSalesId: assignedSalesId,
+        };
+
+        // Conditionally add fields that might be null or numbers
+        if (rawFormData.deadline) {
+            dataToSave.deadline = Timestamp.fromDate(new Date(rawFormData.deadline as string));
+        }
+        if (rawFormData.pageCount) {
+            dataToSave.pageCount = Number(rawFormData.pageCount);
+        }
+        if (rawFormData.wordCount) {
+            dataToSave.wordCount = Number(rawFormData.wordCount);
+        }
+        
+        await addDoc(projectsCollection, dataToSave);
+      
+        toast({
+            title: 'Project Submitted!',
+            description: 'Your project has been successfully submitted for review.',
+        });
+        setFormKey(Date.now()); 
+        router.push('/dashboard/projects');
+
+      } catch (serverError: any) {
           const permissionError = new FirestorePermissionError({
             path: projectsCollection.path,
             operation: 'create',
@@ -124,10 +126,10 @@ export default function CreateProjectPage() {
           }, serverError);
 
           errorEmitter.emit('permission-error', permissionError);
-          setError("Failed to create project due to a permissions issue.");
-      }).finally(() => {
+          setError("Failed to create project due to a permissions issue. See console for details.");
+      } finally {
           setLoading(false);
-      });
+      }
   }
 
 

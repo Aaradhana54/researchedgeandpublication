@@ -27,6 +27,8 @@ import { doc, serverTimestamp, Timestamp, addDoc, collection, updateDoc, writeBa
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '../ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 const AssignTaskSchema = z.object({
   assignedTo: z.string().min(1, 'Please select a writer.'),
@@ -61,6 +63,9 @@ export function AssignWriterDialog({ children, project, writers, onTaskCreated }
 
     setLoading(true);
     setError(null);
+    
+    let taskData: any;
+    let projectUpdateData: any;
 
     try {
       const batch = writeBatch(firestore);
@@ -68,7 +73,7 @@ export function AssignWriterDialog({ children, project, writers, onTaskCreated }
       // 1. Define the new task document
       const tasksCollection = collection(firestore, 'tasks');
       const taskDocRef = doc(tasksCollection); // Create a reference for the new task
-      const taskData: any = {
+      taskData = {
         projectId: project.id,
         assignedTo: data.assignedTo,
         description: data.description,
@@ -83,10 +88,11 @@ export function AssignWriterDialog({ children, project, writers, onTaskCreated }
 
       // 2. Define the update for the project document
       const projectDocRef = doc(firestore, 'projects', project.id);
-      batch.update(projectDocRef, {
+      projectUpdateData = {
         assignedWriterId: data.assignedTo,
         status: 'in-progress'
-      });
+      };
+      batch.update(projectDocRef, projectUpdateData);
 
       // 3. Commit the batch
       await batch.commit();
@@ -104,7 +110,17 @@ export function AssignWriterDialog({ children, project, writers, onTaskCreated }
 
     } catch (e: any) {
       console.error(e);
-      setError(e.message || 'An unexpected error occurred.');
+       if (e.code === 'permission-denied') {
+          const permissionError = new FirestorePermissionError({
+            path: `tasks or projects/${project.id}`,
+            operation: 'write',
+            requestResourceData: { task: taskData, projectUpdate: projectUpdateData }
+          }, e);
+          errorEmitter.emit('permission-error', permissionError);
+          setError("Permission denied. Check Firestore rules for 'tasks' and 'projects' collections.");
+      } else {
+         setError(e.message || 'An unexpected error occurred.');
+      }
     } finally {
       setLoading(false);
     }
@@ -192,5 +208,3 @@ export function AssignWriterDialog({ children, project, writers, onTaskCreated }
     </Dialog>
   );
 }
-
-    
