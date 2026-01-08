@@ -125,8 +125,8 @@ export default function CreateProjectPage() {
             requestResourceData: dataToSave,
           }, serverError);
 
-          errorEmitter.emit('permission-error', permissionError);
-          setError("Failed to create project due to a permissions issue. See console for details.");
+          // THIS IS THE FIX: Re-throw the error to make it visible
+          throw permissionError;
       } finally {
           setLoading(false);
       }

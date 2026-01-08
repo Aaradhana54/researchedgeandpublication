@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState } from 'react';
@@ -91,7 +90,8 @@ export function AssignLeadDialog({ children, lead, leadType, salesTeam, onLeadAs
             operation: 'update',
             requestResourceData: { assignedSalesId: data.assignedSalesId },
           }, err);
-          errorEmitter.emit('permission-error', permissionError);
+          // THIS IS THE FIX: Re-throw the error to make it visible
+          throw permissionError;
         }
         console.error(err);
         setError(err.message || 'An unknown error occurred while assigning the lead.');

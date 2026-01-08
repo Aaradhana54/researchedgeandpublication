@@ -92,13 +92,8 @@ service cloud.firestore {
                     || isAdmin() 
                     || isSalesTeam() 
                     || isWritingTeam()
-                    || (isReferralPartner() && resource.data.referredBy == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.referralCode)
-                    || (
-                         resource.data.role in ['sales-team', 'sales-manager'] &&
-                         exists(/databases/$(database)/documents/projects/{projectId}) &&
-                         get(/databases/$(database)/documents/projects/{projectId}).data.userId == request.auth.uid &&
-                         get(/databases/$(database)/documents/projects/{projectId}).data.assignedSalesId == userId
-                       );
+                    || (resource.data.role in ['sales-team', 'sales-manager']) // This allows clients to read salesperson profiles
+                    || (isReferralPartner() && resource.data.referredBy == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.referralCode);
       
       allow list: if request.auth != null && (
                     get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in 
@@ -110,11 +105,11 @@ service cloud.firestore {
     }
     
     match /projects/{projectId} {
-      allow create: if isClientCreatingOwnProject() || isSalesTeam();
+      allow create: if isClientCreatingOwnProject() || isSalesTeam() || isSalesManager() || isAdmin();
       allow read: if isOwner(resource.data.userId) || isAdmin() || isSalesTeam() || isWriterAssigned(resource.data.assignedWriterId);
       allow update: if isOwner(resource.data.userId) || isAdmin() || isSalesTeam() || (isWriterAssigned(resource.data.assignedWriterId) && request.resource.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt']) && request.resource.data.status == 'completed');
       allow delete: if isOwner(resource.data.userId) || isAdmin();
-      allow list: if request.auth != null;
+      allow list: if request.auth != null && (isAdmin() || isSalesManager() || isSalesTeam() || (isOwner(request.query.where.userId)));
     }
     
     match /contact_leads/{contactLeadId} {
