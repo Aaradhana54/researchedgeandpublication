@@ -43,7 +43,7 @@ export default function ClientChatPage() {
                 return;
             }
 
-            const projects = projectsSnap.docs.map(doc => doc.data() as Project);
+            const projects = projectsSnap.docs.map(doc => ({ ...doc.data() as Project, id: doc.id }));
             projects.sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis());
             const latestProject = projects[0];
             
@@ -67,9 +67,9 @@ export default function ClientChatPage() {
             const manager = { ...managerSnap.data() as UserProfile, uid: managerSnap.id };
             setSalesManager(manager);
 
-            // 3. Create or update the chat document (THE CRITICAL FIX)
-            const generatedChatId = [user.uid, manager.uid].sort().join('_');
-            const chatDocRef = doc(firestore, 'chats', generatedChatId);
+            // 3. Create or update the chat document using the PROJECT ID as the chat ID
+            const projectChatId = latestProject.id!;
+            const chatDocRef = doc(firestore, 'chats', projectChatId);
             
             await setDoc(chatDocRef, {
                 participants: [user.uid, manager.uid],
@@ -79,12 +79,12 @@ export default function ClientChatPage() {
                 }
             }, { merge: true });
 
-            setChatId(generatedChatId);
+            setChatId(projectChatId);
             
         } catch (err: any) {
             console.error("CHAT LOAD ERROR:", err);
-             if (err.code === 'permission-denied') {
-                setError(`A permission error occurred: ${err.message}. Please check security rules for 'projects' or 'users' collections.`);
+            if (err.code === 'permission-denied') {
+                setError(`A permission error occurred: ${err.message}. This can happen if the rules for 'projects' or 'users' collections are incorrect.`);
             } else {
                 setError(`An unexpected error occurred: ${err.message}.`);
             }
