@@ -85,7 +85,7 @@ export default function ReferralDashboardPage() {
 
       } catch (error) {
         console.error("Error fetching partner dashboard data:", error);
-        toast({ variant: 'destructive', title: 'Error', description: 'Could not load dashboard data.'});
+        toast({ variant: 'destructive', title: 'Error', description: (error as Error).message || 'Could not load dashboard data.'});
       } finally {
         setLoading(false);
       }
@@ -200,4 +200,3 @@ export default function ReferralDashboardPage() {
     </div>
   );
 }
-
