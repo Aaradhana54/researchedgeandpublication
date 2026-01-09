@@ -114,9 +114,15 @@ service cloud.firestore {
     }
     
     match /contact_leads/{contactLeadId} {
-      allow create: if true; // Public contact form
+      // Public contact form allows anonymous writes, and logged-in partners can create leads
+      allow create: if request.auth == null || isReferralPartner();
+      
+      // Admins, sales team can read/update. Partners can read their own submitted leads.
       allow read, update: if isAdmin() || isSalesTeam() || (isReferralPartner() && resource.data.referredByPartnerId == request.auth.uid);
+      
+      // Admins, sales team can list all. Partners can list leads they submitted.
       allow list: if isAdmin() || isSalesTeam() || (isReferralPartner() && request.query.referredByPartnerId == request.auth.uid);
+      
       allow delete: if isAdmin();
     }
 
