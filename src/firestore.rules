@@ -70,14 +70,13 @@ service cloud.firestore {
         let data = request.resource.data;
         // List of fields a client is ALLOWED to set on creation.
         let allowedKeys = [
-            'userId', 'title', 'mobile', 'serviceType', 'topic', 'courseLevel', 'deadline',
-            'referencingStyle', 'pageCount', 'wordCount', 'language', 'wantToPublish',
-            'publishWhere', 'status', 'createdAt', 'updatedAt'
+            'userId', 'title', 'serviceType', 'status', 'createdAt', 'updatedAt', 
+            'mobile', 'topic', 'courseLevel', 'deadline', 'referencingStyle', 
+            'pageCount', 'wordCount', 'language', 'wantToPublish', 'publishWhere'
         ];
         
-        // Check that the request resource contains only the allowed keys.
-        let onlyAllowedFields = request.resource.data.keys().hasOnly(allowedKeys);
         let isCreatingOwnProject = request.auth != null && request.auth.uid == data.userId;
+        let onlyAllowedFields = request.resource.data.keys().hasOnly(allowedKeys);
         
         return isCreatingOwnProject && onlyAllowedFields && data.status == 'pending';
     }
@@ -94,8 +93,10 @@ service cloud.firestore {
                     || (isReferralPartner() && resource.data.referredBy == getUserData().referralCode);
       
       allow list: if request.auth != null && (
-                    getUserData().role in 
-                    ['admin', 'sales-manager', 'sales-team', 'writing-team'] ||
+                    hasRole('admin') ||
+                    hasRole('sales-manager') ||
+                    hasRole('sales-team') ||
+                    hasRole('writing-team') ||
                     (isReferralPartner() && request.query.where.referredBy == getUserData().referralCode)
                   );
 
@@ -115,16 +116,17 @@ service cloud.firestore {
                     isSalesTeam() || 
                     (hasRole('client') && request.query.userId == request.auth.uid) ||
                     (isReferralPartner() && (
-                        (request.query.userId in get(/databases/$(database)/documents/users?where('referredBy', '==', getUserData().referralCode)).docs.map(d => d.id)) ||
-                        (request.query.referredByPartnerId == request.auth.uid)
+                        (request.query.userId in get(/databases/$(database)/documents/users?where('referredBy','==',getUserData().referralCode)).docs.map(u => u.id)) ||
+                        request.query.referredByPartnerId == request.auth.uid
                     ))
                   );
     }
     
     match /contact_leads/{contactLeadId} {
-      allow create: if true;
-      allow read, list: if isAdmin() || isSalesTeam() || (isReferralPartner() && resource.data.referredByPartnerId == request.auth.uid);
-      allow update: if isSalesTeam();
+      allow create: if true; // Public contact form
+      allow read: if isAdmin() || isSalesTeam() || (isReferralPartner() && resource.data.referredByPartnerId == request.auth.uid);
+      allow list: if isAdmin() || isSalesTeam() || (isReferralPartner() && request.query.referredByPartnerId == request.auth.uid);
+      allow update: if isSalesTeam() || isSalesManager() || isAdmin();
       allow delete: if isAdmin();
     }
 
@@ -132,6 +134,19 @@ service cloud.firestore {
       allow get, list: if true;
       allow create, update, delete: if false;
     }
+    
+     match /chats/{chatId} {
+      allow read, update: if request.auth.uid in resource.data.participants;
+      allow create: if request.auth.uid in request.resource.data.participants;
+      
+      // Sales Manager can see all chats, clients only their own
+      allow list: if hasRole('sales-manager') || (hasRole('client') && request.query.where.participants.includes(request.auth.uid));
+
+      match /messages/{messageId} {
+        allow read, write: if request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participants;
+      }
+    }
+
 
     match /referrals/{referralId} {
         allow create: if isReferralPartner() && request.resource.data.partnerId == request.auth.uid;
@@ -141,7 +156,7 @@ service cloud.firestore {
 
     match /payouts/{payoutId} {
       allow create: if isReferralPartner() && request.resource.data.userId == request.auth.uid;
-      allow read, list: if (isReferralPartner() && resource.data.userId == request.auth.uid) || isAdmin() || isSalesTeam();
+      allow read, list: if (isOwner(resource.data.userId)) || isAdmin() || isSalesTeam();
       allow update, delete: if isAdmin();
     }
 
@@ -154,7 +169,7 @@ service cloud.firestore {
       allow create: if request.resource.data.status == 'pending';
       allow update, delete: if isAdmin();
       allow read: if isAdmin() || resource.data.status == 'approved';
-      allow list: if isAdmin() || (request.query.where.get('status') == 'approved');
+      allow list: if isAdmin() || (request.query.where.status == 'approved');
     }
     
     match /mail/{docId} {
@@ -163,8 +178,8 @@ service cloud.firestore {
     }
     
     match /tasks/{taskId} {
-      allow read, list: if isAdmin() || isWritingTeam();
-      allow create, update, delete: if isAdmin() || isWritingTeam();
+      allow read, list: if isAdmin() || isWritingTeam() || isSalesManager();
+      allow create, update, delete: if isAdmin() || isWritingTeam() || isSalesManager();
     }
 
     match /book_sales/{saleId} {
