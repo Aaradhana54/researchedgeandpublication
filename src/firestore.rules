@@ -92,11 +92,7 @@ service cloud.firestore {
                     || (resource.data.role in ['sales-team', 'sales-manager'])
                     || (isReferralPartner() && resource.data.referredBy == getUserData().referralCode);
       
-      allow list: if isAdmin() ||
-                   isSalesManager() ||
-                   isSalesTeam() ||
-                   isWritingTeam() ||
-                   (isReferralPartner() && request.query.where.referredBy == getUserData().referralCode);
+      allow list: if isAdmin() || isSalesManager() || isSalesTeam() || isWritingTeam() || (isReferralPartner() && request.query.where.referredBy == getUserData().referralCode);
 
       allow update: if (isOwner(userId) || isAdmin()) && request.resource.data.role == resource.data.role;
       allow delete: if isAdmin();
@@ -114,7 +110,6 @@ service cloud.firestore {
                     isSalesTeam() || 
                     (hasRole('client') && request.query.userId == request.auth.uid) ||
                     (isReferralPartner() && (
-                        (request.query.userId in get(/databases/$(database)/documents/users?where('referredBy', '==', getUserData().referralCode)).docs.map(u => u.id)) ||
                         (request.query.referredByPartnerId == request.auth.uid)
                     ))
                   );
@@ -123,7 +118,7 @@ service cloud.firestore {
     match /contact_leads/{contactLeadId} {
       allow create: if true; // Public contact form
       allow read: if isAdmin() || isSalesTeam() || (isReferralPartner() && resource.data.referredByPartnerId == request.auth.uid);
-      allow list: if isAdmin() || isSalesTeam() || (isReferralPartner() && request.query.referredByPartnerId == request.auth.uid);
+      allow list: if isAdmin() || isSalesTeam() || (isReferralPartner() && request.query.where.referredByPartnerId == request.auth.uid);
       allow update: if isSalesTeam() || isSalesManager() || isAdmin();
       allow delete: if isAdmin();
     }
