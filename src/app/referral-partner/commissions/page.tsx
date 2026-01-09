@@ -78,18 +78,22 @@ export default function CommissionsPage() {
             const allPartnerProjects = Array.from(projectsMap.values());
             const clientUserIds = new Set<string>();
             allPartnerProjects.forEach(p => {
-                if(!p.userId.startsWith('unregistered_')) {
+                if(p.userId && !p.userId.startsWith('unregistered_')) {
                     clientUserIds.add(p.userId);
                 }
             });
   
             const usersMap = new Map<string, UserProfile>();
             if (clientUserIds.size > 0) {
-                 const usersQuery = query(collection(firestore, 'users'), where('uid', 'in', Array.from(clientUserIds)));
-                 const usersSnap = await getDocs(usersQuery);
-                 usersSnap.docs.forEach(doc => {
-                     usersMap.set(doc.id, doc.data() as UserProfile);
-                 });
+                 const userIdsArray = Array.from(clientUserIds);
+                 for (let i = 0; i < userIdsArray.length; i += 30) {
+                    const chunk = userIdsArray.slice(i, i + 30);
+                    const usersQuery = query(collection(firestore, 'users'), where('__name__', 'in', chunk));
+                    const usersSnap = await getDocs(usersQuery);
+                    usersSnap.docs.forEach(doc => {
+                        usersMap.set(doc.id, doc.data() as UserProfile);
+                    });
+                 }
             }
   
             const finalProjects: ConvertedProject[] = allPartnerProjects.map(p => {
@@ -146,6 +150,7 @@ export default function CommissionsPage() {
                             <TableRow>
                                 <TableHead>Project Title</TableHead>
                                 <TableHead>Client</TableHead>
+                                <TableHead>Deal Value</TableHead>
                                 <TableHead>Date Finalized</TableHead>
                                 <TableHead className="text-right">Commission Earned</TableHead>
                             </TableRow>
@@ -159,6 +164,9 @@ export default function CommissionsPage() {
                                     <TableCell>
                                         {project.clientName}
                                     </TableCell>
+                                     <TableCell>
+                                      {project.dealAmount ? project.dealAmount.toLocaleString('en-IN', { style: 'currency', currency: 'INR' }) : 'N/A'}
+                                    </TableCell>
                                     <TableCell>
                                         {project.finalizedAt ? format(project.finalizedAt.toDate(), 'PPP') : 'N/A'}
                                     </TableCell>
@@ -170,7 +178,7 @@ export default function CommissionsPage() {
                         </TableBody>
                          <TableFooter>
                             <TableRow>
-                                <TableCell colSpan={3} className="font-bold text-lg">Total Commission Earned</TableCell>
+                                <TableCell colSpan={4} className="font-bold text-lg">Total Commission Earned</TableCell>
                                 <TableCell className="text-right font-bold text-lg text-green-600">
                                     {totalCommission.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}
                                 </TableCell>
