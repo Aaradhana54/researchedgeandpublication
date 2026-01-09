@@ -25,6 +25,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { useFirestore, useUser } from '@/firebase';
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 const services = [
   'Thesis & Dissertation Writing',
@@ -72,16 +74,18 @@ export function ReferClientDialog({ children }: { children: React.ReactNode }) {
     }
     setLoading(true);
     setError(null);
-
-    try {
-      const leadsCollection = collection(firestore, 'contact_leads');
-      await addDoc(leadsCollection, {
+    
+    const leadData: any = {
         ...data,
         referredByPartnerId: partnerUser.uid,
         status: 'new',
         createdAt: serverTimestamp(),
         assignedSalesId: null,
-      });
+      };
+
+    try {
+      const leadsCollection = collection(firestore, 'contact_leads');
+      await addDoc(leadsCollection, leadData);
 
       toast({
         title: 'Lead Submitted!',
@@ -90,8 +94,18 @@ export function ReferClientDialog({ children }: { children: React.ReactNode }) {
       form.reset();
       setOpen(false);
     } catch (e: any) {
-      console.error(e);
-      setError(e.message || 'An unexpected error occurred.');
+      if (e.code === 'permission-denied') {
+        const permissionError = new FirestorePermissionError({
+          path: 'contact_leads',
+          operation: 'create',
+          requestResourceData: leadData,
+        }, e);
+        errorEmitter.emit('permission-error', permissionError);
+        setError('You do not have permission to create a lead.');
+      } else {
+        console.error(e);
+        setError(e.message || 'An unexpected error occurred.');
+      }
     } finally {
       setLoading(false);
     }
