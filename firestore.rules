@@ -62,8 +62,12 @@ service cloud.firestore {
       let data = request.resource.data;
       let isValidRole = data.role == 'client' || data.role == 'referral-partner';
       let uidMatches = data.uid == request.auth.uid;
-
-      return isCreatingOwnDoc && isValidRole && uidMatches;
+      let allowedKeys = ['uid', 'name', 'email', 'role', 'createdAt', 'mobile', 'referredBy', 'referralCode'];
+      
+      return isCreatingOwnDoc 
+          && isValidRole 
+          && uidMatches 
+          && request.resource.data.keys().hasOnly(allowedKeys);
     }
     
     function isClientCreatingOwnProject() {
