@@ -21,7 +21,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { AssignWriterDialog } from '@/components/admin/assign-writer-dialog';
 import { useToast } from '@/hooks/use-toast';
-import { CreateClientAccountDialog } from '@/components/referral-partner/create-client-account-dialog';
+import { CreateClientAccountDialog } from '@/components/admin/create-client-account-dialog';
 import { SendApprovalEmailButton } from '@/components/sales/send-approval-email-button';
 
 const getProjectStatusVariant = (status?: string): 'default' | 'secondary' | 'destructive' | 'outline' => {
