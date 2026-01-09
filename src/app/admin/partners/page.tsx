@@ -56,8 +56,9 @@ export default function PartnerManagementPage() {
       const referralCodes = partnersData.map(p => p.referralCode).filter(Boolean) as string[];
       if(referralCodes.length > 0) {
         const fetchedReferredUsers: UserProfile[] = [];
-        for (let i = 0; i < referralCodes.length; i += 30) {
-            const chunk = referralCodes.slice(i, i + 30);
+        // Batch the 'in' query for referral codes
+        for (let i = 0; i < referralCodes.length; i += 10) { // Using 10 to be safe, max is 30
+            const chunk = referralCodes.slice(i, i + 10);
             const referredUsersQuery = query(collection(firestore, 'users'), where('referredBy', 'in', chunk));
             const referredUsersSnap = await getDocs(referredUsersQuery);
             referredUsersSnap.forEach(doc => {
@@ -79,6 +80,7 @@ export default function PartnerManagementPage() {
     if (firestore && currentUser) {
       fetchData();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [firestore, currentUser]);
 
   const handleDeleteUser = async (userToDelete: UserProfile) => {
