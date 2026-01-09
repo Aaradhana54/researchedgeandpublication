@@ -13,6 +13,9 @@ const playfair = Playfair_Display({ subsets: ['latin'], variable: '--font-playfa
 export const metadata: Metadata = {
   title: 'Research Edge and Publication',
   description: 'From Research to Publication, All in One Place',
+  verification: {
+    google: "9ckCN5sZBAS8y_l397o_wZEIPjhwoYmfsw6Q7DFdEX8"
+  }
 };
 
 export default function RootLayout({
