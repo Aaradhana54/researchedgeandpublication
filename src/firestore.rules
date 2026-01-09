@@ -113,8 +113,18 @@ service cloud.firestore {
                     isSalesManager() || 
                     isSalesTeam() || 
                     (hasRole('client') && request.query.userId == request.auth.uid) ||
-                    (isReferralPartner() && request.query.referredByPartnerId == request.auth.uid) ||
-                    (isReferralPartner() && request.query.userId in get(/databases/$(database)/documents/users?where('referredBy', '==', getUserData().referralCode)).docs.map(d => d.id))
+                    (
+                      isReferralPartner() && 
+                      request.query.referredByPartnerId == request.auth.uid &&
+                      (
+                        request.query.keys().hasOnly(['referredByPartnerId', 'status']) ||
+                        request.query.keys().hasOnly(['referredByPartnerId'])
+                      )
+                    ) ||
+                    (
+                      isReferralPartner() &&
+                      request.query.keys().hasOnly(['userId', 'status'])
+                    )
                   );
     }
     
