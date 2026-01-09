@@ -204,7 +204,7 @@
     },
     "Chat": {
       "title": "Chat",
-      "description": "Represents a chat session between two users.",
+      "description": "Represents a chat session between users.",
       "type": "object",
       "properties": {
         "participants": {
@@ -216,10 +216,7 @@
           "type": "object",
           "additionalProperties": { "type": "string" },
           "description": "Map of participant UIDs to their names."
-        },
-        "lastMessage": { "type": "string", "description": "The content of the last message sent." },
-        "lastMessageAt": { "type": "string", "format": "date-time" },
-        "lastMessageSenderId": { "type": "string" }
+        }
       },
       "required": ["participants", "participantNames"]
     },
@@ -296,8 +293,8 @@
         "description": "Internal metadata for application logic, like round-robin counters."
     },
     "/chats/{chatId}": {
-        "schema": { "$ref": "#/entities/Chat" },
-        "description": "Collection of chat sessions between users."
+      "schema": { "$ref": "#/entities/Chat" },
+      "description": "Collection of chat sessions between users."
     },
     "/chats/{chatId}/messages/{messageId}": {
         "schema": { "$ref": "#/entities/ChatMessage" },

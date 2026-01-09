@@ -76,19 +76,14 @@ service cloud.firestore {
         ];
         
         let isCreatingOwnProject = request.auth != null && request.auth.uid == data.userId;
-        // Ensure that the incoming request data contains ONLY the allowed keys.
-        let onlyAllowedFields = request.resource.data.keys().hasOnly(allowedKeys);
-
+        let onlyAllowedFields = data.keys().hasOnly(allowedKeys);
+        
         return isCreatingOwnProject && onlyAllowedFields && data.status == 'pending';
     }
 
 
     match /users/{userId} {
       allow create: if isAllowedToCreateOwnProfile(userId) || isAdmin();
-
-      // Users can read their own profile. Admins can read any profile.
-      // Sales team can read any user profile.
-      // A client can read the profile of a sales person assigned to one of their projects.
       allow read: if isOwner(userId) 
                     || isAdmin() 
                     || isSalesTeam() 
@@ -173,6 +168,31 @@ service cloud.firestore {
     
     match /metadata/{docId} {
         allow read, write: if isAdmin() || isSalesManager() || isSalesTeam() || isReferralPartner();
+    }
+
+    match /chats/{chatId} {
+      // A user can create a chat if they are one of the participants.
+      // A user can update participant names.
+      allow create, update: if request.auth.uid in request.resource.data.participants;
+      
+      // A user can read a chat if they are a participant. Sales manager can list all chats.
+      allow read: if request.auth.uid in resource.data.participants;
+      allow list: if isSalesManager();
+
+      // Nobody can delete a chat history for now.
+      allow delete: if false;
+
+      match /messages/{messageId} {
+        // A user can read/list messages if they are a participant of the parent chat.
+        allow read, list: if request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participants;
+        
+        // A user can create a message if they are a participant and the senderId is their own UID.
+        allow create: if request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participants
+                      && request.auth.uid == request.resource.data.senderId;
+                      
+        // Nobody can update or delete messages.
+        allow update, delete: if false;
+      }
     }
   }
 }

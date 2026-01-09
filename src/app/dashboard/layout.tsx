@@ -10,6 +10,7 @@ import {
   CreditCard,
   ChevronDown,
   Globe,
+  MessageSquare,
 } from 'lucide-react';
 import React from 'react';
 import { usePathname, useRouter } from 'next/navigation';
@@ -47,6 +48,7 @@ import { useEffect } from 'react';
 const dashboardNavItems = [
   { href: '/dashboard', label: 'Overview', icon: <LayoutGrid /> },
   { href: '/dashboard/projects', label: 'My Projects', icon: <FolderKanban /> },
+  { href: '/dashboard/chat', label: 'Chat', icon: <MessageSquare /> },
   { href: '/dashboard/files', label: 'Files & Deliverables', icon: <FileText /> },
   { href: '/dashboard/payments', label: 'Payment & Invoices', icon: <CreditCard /> },
   { href: '/', label: 'Back to Site', icon: <Globe /> },
@@ -76,7 +78,7 @@ function DashboardSidebar() {
           {dashboardNavItems.map((item) => (
             <SidebarMenuItem key={item.label}>
               <Link href={item.href}>
-                <SidebarMenuButton isActive={pathname.startsWith(item.href) && item.href !== '/'}>
+                <SidebarMenuButton isActive={pathname === item.href && item.href !== '/'}>
                   {item.icon}
                   <span>{item.label}</span>
                 </SidebarMenuButton>
@@ -182,14 +184,16 @@ export default function AuthenticatedLayout({
   return (
     <SidebarProvider>
       <DashboardSidebar />
-      <SidebarInset>
+      <SidebarInset className="flex flex-col">
          <header className="sticky top-0 z-40 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
             <SidebarTrigger />
              <div className="flex-1">
                 {/* Header content can go here if needed */}
             </div>
         </header>
-        {children}
+        <main className="flex-1">
+          {children}
+        </main>
       </SidebarInset>
     </SidebarProvider>
   );

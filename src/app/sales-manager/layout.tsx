@@ -9,6 +9,7 @@ import {
   FolderKanban,
   CheckCircle,
   UserCheck,
+  MessageSquare,
 } from 'lucide-react';
 import React from 'react';
 import { usePathname, useRouter } from 'next/navigation';
@@ -48,6 +49,7 @@ const dashboardNavItems = [
   { href: '/sales-manager/leads', label: 'All Leads', icon: <FolderKanban /> },
   { href: '/sales-manager/assigned-leads', label: 'Assigned Leads', icon: <UserCheck /> },
   { href: '/sales-manager/approved-leads', label: 'Approved Leads', icon: <CheckCircle /> },
+  { href: '/sales-manager/chat', label: 'Client Chats', icon: <MessageSquare /> },
 ];
 
 function SalesManagerSidebar() {
@@ -167,14 +169,16 @@ export default function SalesManagerLayout({
   return (
     <SidebarProvider>
       <SalesManagerSidebar />
-      <SidebarInset>
+      <SidebarInset className="flex flex-col">
          <header className="sticky top-0 z-40 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
             <SidebarTrigger />
             <div className="flex-1">
                 {/* Header content can go here if needed */}
             </div>
         </header>
-        {children}
+        <main className="flex-1">
+            {children}
+        </main>
       </SidebarInset>
     </SidebarProvider>
   );
