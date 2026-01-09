@@ -10,7 +10,6 @@ import {
   CreditCard,
   ChevronDown,
   Globe,
-  MessageSquare,
 } from 'lucide-react';
 import React from 'react';
 import { usePathname, useRouter } from 'next/navigation';

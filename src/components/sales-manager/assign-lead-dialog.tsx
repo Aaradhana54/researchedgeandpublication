@@ -24,6 +24,7 @@ import { doc, updateDoc, writeBatch } from 'firebase/firestore';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '../ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 const AssignLeadSchema = z.object({
   assignedSalesId: z.string().min(1, "You must select a sales team member."),
@@ -79,8 +80,12 @@ export function AssignLeadDialog({ children, lead, leadType, salesTeam, onLeadAs
         setOpen(false);
 
     } catch (err: any) {
-        console.error("ASSIGN LEAD ERROR:", err);
-        setError(err.message || 'An unknown error occurred while assigning the lead.');
+        const permissionError = new FirestorePermissionError({
+            path: `${leadType === 'project' ? 'projects' : 'contact_leads'}/${lead.id}`,
+            operation: 'update',
+            requestResourceData: { assignedSalesId: data.assignedSalesId }
+          }, err);
+        throw permissionError;
     } finally {
         setLoading(false);
     }

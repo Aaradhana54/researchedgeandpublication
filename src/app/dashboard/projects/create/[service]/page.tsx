@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect, ChangeEvent } from 'react';
+import { useState, ChangeEvent } from 'react';
 import { useParams, notFound, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useUser } from '@/firebase/auth/use-user';
@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, LoaderCircle, Upload } from 'lucide-react';
+import { ArrowLeft, LoaderCircle } from 'lucide-react';
 import type { ProjectServiceType, CourseLevel } from '@/lib/types';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
@@ -23,7 +23,6 @@ import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { Progress } from '@/components/ui/progress';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
-import { assignLeadToSalesPerson } from '@/firebase/utils';
 
 
 const serviceDisplayNames: Record<ProjectServiceType, string> = {
@@ -78,8 +77,6 @@ export default function CreateProjectPage() {
     let dataToSave: any;
 
     try {
-        const assignedSalesId = await assignLeadToSalesPerson(firestore);
-
         dataToSave = {
           userId: user.uid,
           title: rawFormData.title as string,
@@ -90,22 +87,15 @@ export default function CreateProjectPage() {
           mobile: (rawFormData.mobile as string) || null,
           topic: (rawFormData.topic as string) || null,
           courseLevel: (rawFormData.courseLevel as CourseLevel) || null,
+          deadline: rawFormData.deadline ? Timestamp.fromDate(new Date(rawFormData.deadline as string)) : null,
           referencingStyle: (rawFormData.referencingStyle as string) || null,
           language: (rawFormData.language as string) || 'English',
+          pageCount: rawFormData.pageCount ? Number(rawFormData.pageCount) : null,
+          wordCount: rawFormData.wordCount ? Number(rawFormData.wordCount) : null,
           wantToPublish: rawFormData.wantToPublish === 'on',
           publishWhere: (rawFormData.publishWhere as string) || null,
-          assignedSalesId: assignedSalesId,
+          assignedSalesId: null, // This should be set by a manager, not the client.
         };
-
-        if (rawFormData.deadline) {
-            dataToSave.deadline = Timestamp.fromDate(new Date(rawFormData.deadline as string));
-        }
-        if (rawFormData.pageCount) {
-            dataToSave.pageCount = Number(rawFormData.pageCount);
-        }
-        if (rawFormData.wordCount) {
-            dataToSave.wordCount = Number(rawFormData.wordCount);
-        }
         
         const projectsCollection = collection(firestore, 'projects');
         await addDoc(projectsCollection, dataToSave);
@@ -114,7 +104,7 @@ export default function CreateProjectPage() {
             title: 'Project Submitted!',
             description: 'Your project has been successfully submitted for review.',
         });
-        setFormKey(Date.now()); 
+        
         router.push('/dashboard/projects');
 
     } catch (serverError: any) {
@@ -123,8 +113,9 @@ export default function CreateProjectPage() {
             operation: 'create',
             requestResourceData: dataToSave,
         }, serverError);
-        errorEmitter.emit('permission-error', permissionError);
-        setError(permissionError.message);
+        // We throw the error here to let Next.js's error overlay catch it in development.
+        // This provides a much better debugging experience than just logging it.
+        throw permissionError;
     } finally {
         setLoading(false);
     }
