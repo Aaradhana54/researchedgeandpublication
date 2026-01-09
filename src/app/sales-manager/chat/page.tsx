@@ -102,7 +102,7 @@ function SalesManagerChatPage() {
 
   if (userLoading) {
     return (
-      <div className="flex h-[calc(100vh-5rem)] w-full items-center justify-center bg-background">
+      <div className="flex h-full w-full items-center justify-center bg-background">
         <LoaderCircle className="h-10 w-10 animate-spin text-primary" />
       </div>
     );
@@ -114,7 +114,7 @@ function SalesManagerChatPage() {
             <h1 className="text-3xl font-bold tracking-tight">Client Chats</h1>
             <p className="text-muted-foreground">Manage all your conversations with clients.</p>
         </div>
-      <div className="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-4 gap-6 flex-1">
+      <div className="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-4 gap-6 flex-1 min-h-0">
         <Card className="lg:col-span-1 xl:col-span-1 flex flex-col shadow-soft">
             <CardHeader>
                 <CardTitle className="flex items-center gap-2"><Users className="w-5 h-5"/> Conversations</CardTitle>
