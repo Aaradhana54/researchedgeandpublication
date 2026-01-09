@@ -96,7 +96,7 @@ service cloud.firestore {
       allow list: if request.auth != null && (
                     getUserData().role in 
                     ['admin', 'sales-manager', 'sales-team', 'writing-team'] ||
-                    (isReferralPartner() && request.query.where.referredBy == getUserData().referralCode)
+                    (isReferralPartner() && request.query.referredBy == getUserData().referralCode)
                   );
 
       allow update: if (isOwner(userId) || isAdmin()) && request.resource.data.role == resource.data.role;
@@ -123,7 +123,7 @@ service cloud.firestore {
     
     match /contact_leads/{contactLeadId} {
       allow create: if true;
-      allow read, list: if isAdmin() || isSalesTeam() || (isReferralPartner() && resource.data.referredByPartnerId == request.auth.uid);
+      allow read, list: if isAdmin() || isSalesTeam() || (isReferralPartner() && request.query.referredByPartnerId == request.auth.uid);
       allow update: if isSalesTeam();
       allow delete: if isAdmin();
     }
@@ -141,7 +141,7 @@ service cloud.firestore {
 
     match /payouts/{payoutId} {
       allow create: if isReferralPartner() && request.resource.data.userId == request.auth.uid;
-      allow read, list: if (isReferralPartner() && resource.data.userId == request.auth.uid) || isAdmin() || isSalesTeam();
+      allow read, list: if (isReferralPartner() && request.query.userId == request.auth.uid) || isAdmin() || isSalesTeam();
       allow update, delete: if isAdmin();
     }
 
