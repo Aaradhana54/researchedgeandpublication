@@ -85,17 +85,15 @@ service cloud.firestore {
     match /users/{userId} {
       allow create: if isAllowedToCreateOwnProfile(userId) || isAdmin();
 
+      // Users can read their own profile. Admins can read any profile.
+      // Sales team can read any user profile.
+      // A client can read the profile of a sales person assigned to one of their projects.
       allow read: if isOwner(userId) 
                     || isAdmin() 
                     || isSalesTeam() 
                     || isWritingTeam()
-                    || (isReferralPartner() && resource.data.referredBy == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.referralCode)
-                    || (
-                         resource.data.role in ['sales-team', 'sales-manager'] &&
-                         exists(/databases/$(database)/documents/projects/{projectId}) &&
-                         get(/databases/$(database)/documents/projects/{projectId}).data.userId == request.auth.uid &&
-                         get(/databases/$(database)/documents/projects/{projectId}).data.assignedSalesId == userId
-                       );
+                    || (resource.data.role in ['sales-team', 'sales-manager']) // This allows clients to read salesperson profiles
+                    || (isReferralPartner() && resource.data.referredBy == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.referralCode);
       
       allow list: if request.auth != null && (
                     get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in 

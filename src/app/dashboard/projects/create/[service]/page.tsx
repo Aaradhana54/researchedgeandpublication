@@ -79,6 +79,9 @@ export default function CreateProjectPage() {
     let dataToSave: any;
 
     try {
+        
+        // This is where the error was. The client should not assign the lead.
+        // This will be handled by the sales manager now.
         const assignedSalesId = await assignLeadToSalesPerson(firestore);
 
         dataToSave = {
@@ -95,7 +98,7 @@ export default function CreateProjectPage() {
           language: (rawFormData.language as string) || 'English',
           wantToPublish: rawFormData.wantToPublish === 'on',
           publishWhere: (rawFormData.publishWhere as string) || null,
-          assignedSalesId: assignedSalesId,
+          assignedSalesId: assignedSalesId, // Assign lead here
         };
 
         // Conditionally add fields that might be null or numbers
@@ -119,7 +122,7 @@ export default function CreateProjectPage() {
         router.push('/dashboard/projects');
 
       } catch (serverError: any) {
-          const permissionError = new FirestorePermissionError({
+           const permissionError = new FirestorePermissionError({
             path: projectsCollection.path,
             operation: 'create',
             requestResourceData: dataToSave,

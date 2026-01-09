@@ -83,11 +83,7 @@ export default function ClientChatPage() {
             
         } catch (err: any) {
             console.error("CHAT LOAD ERROR:", err);
-            if (err.code === 'permission-denied') {
-                setError(`A permission error occurred: ${err.message}. This can happen if the rules for 'projects' or 'users' collections are incorrect.`);
-            } else {
-                setError(`An unexpected error occurred: ${err.message}.`);
-            }
+            setError(`An unexpected error occurred: ${err.message}. This can happen if security rules for 'projects' or 'users' are incorrect.`);
         } finally {
             setLoading(false);
         }
