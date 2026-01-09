@@ -95,7 +95,8 @@ service cloud.firestore {
       
       allow list: if request.auth != null && (
                     getUserData().role in 
-                    ['admin', 'sales-manager', 'sales-team', 'writing-team', 'referral-partner']
+                    ['admin', 'sales-manager', 'sales-team', 'writing-team'] ||
+                    (isReferralPartner() && request.query.where.referredBy == getUserData().referralCode)
                   );
 
       allow update: if (isOwner(userId) || isAdmin()) && request.resource.data.role == resource.data.role;
@@ -183,3 +184,5 @@ service cloud.firestore {
     }
   }
 }
+
+    
