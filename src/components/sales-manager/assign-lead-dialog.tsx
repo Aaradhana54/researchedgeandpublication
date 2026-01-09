@@ -19,14 +19,11 @@ import { Button } from '../ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { LoaderCircle, Users } from 'lucide-react';
 import type { Project, UserProfile, ContactLead } from '@/lib/types';
-import { useFirestore, useUser } from '@/firebase';
-import { doc, updateDoc, writeBatch, serverTimestamp, getDoc } from 'firebase/firestore';
+import { useFirestore } from '@/firebase';
+import { doc, updateDoc, writeBatch } from 'firebase/firestore';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '../ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
-
 
 const AssignLeadSchema = z.object({
   assignedSalesId: z.string().min(1, "You must select a sales team member."),
@@ -66,75 +63,22 @@ export function AssignLeadDialog({ children, lead, leadType, salesTeam, onLeadAs
     setError(null);
 
     try {
-        const batch = writeBatch(firestore);
-        
-        // 1. Update the lead document (project or contact_lead)
         const collectionName = leadType === 'project' ? 'projects' : 'contact_leads';
         const leadDocRef = doc(firestore, collectionName, lead.id);
         
-        batch.update(leadDocRef, {
+        await updateDoc(leadDocRef, {
             assignedSalesId: data.assignedSalesId,
         });
-
-        // 2. Create the chat document, ensuring we have the client's UID
-        const assignedUser = salesTeam.find(member => member.uid === data.assignedSalesId);
-        
-        let clientUid: string | undefined;
-        let clientName: string | undefined;
-
-        if (leadType === 'project') {
-            clientUid = (lead as Project).userId;
-            // To get clientName, we'd need to fetch the user profile, which adds complexity.
-            // We'll rely on the participantNames map being updated by a function or a trigger later if needed.
-            // For now, let's get it from the user document if we can.
-            if (!clientUid.startsWith('unregistered_')) {
-                const userSnap = await getDoc(doc(firestore, 'users', clientUid));
-                clientName = userSnap.data()?.name || 'Client';
-            } else {
-                 clientName = (lead as Project).userId.split('_')[1];
-            }
-        } else {
-            // For contact leads, the client doesn't have a UID yet.
-            // We use a placeholder ID format. The real UID will be backfilled when they register.
-            clientUid = `unregistered_${(lead as ContactLead).email}`;
-            clientName = (lead as ContactLead).name;
-        }
-
-        if (clientUid && assignedUser) {
-            const chatDocRef = doc(firestore, 'chats', lead.id); // Use project/lead ID as chat ID
-            batch.set(chatDocRef, {
-                projectId: lead.id,
-                participants: [clientUid, assignedUser.uid],
-                participantNames: {
-                  [clientUid]: clientName,
-                  [assignedUser.uid]: assignedUser.name,
-                },
-                createdAt: serverTimestamp(),
-                lastMessage: 'A sales representative has been assigned to your project.',
-                lastMessageAt: serverTimestamp(),
-                lastMessageSenderId: assignedUser.uid,
-            });
-        }
-
-        await batch.commit();
         
         toast({
-            title: 'Lead Assigned & Chat Created!',
-            description: 'The lead has been assigned and a chat room is now active.',
+            title: 'Lead Assigned!',
+            description: 'The lead has been assigned to the sales team member.',
         });
         
         onLeadAssigned();
         setOpen(false);
 
     } catch (err: any) {
-         if (err.code === 'permission-denied') {
-          const permissionError = new FirestorePermissionError({
-            path: `${leadType}/${lead.id}`,
-            operation: 'update',
-            requestResourceData: { assignedSalesId: data.assignedSalesId },
-          }, err);
-          throw permissionError;
-        }
         console.error("ASSIGN LEAD ERROR:", err);
         setError(err.message || 'An unknown error occurred while assigning the lead.');
     } finally {

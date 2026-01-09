@@ -75,13 +75,9 @@ export default function CreateProjectPage() {
         return;
     }
     
-    const projectsCollection = collection(firestore, 'projects');
     let dataToSave: any;
 
     try {
-        
-        // This is where the error was. The client should not assign the lead.
-        // This will be handled by the sales manager now.
         const assignedSalesId = await assignLeadToSalesPerson(firestore);
 
         dataToSave = {
@@ -98,10 +94,9 @@ export default function CreateProjectPage() {
           language: (rawFormData.language as string) || 'English',
           wantToPublish: rawFormData.wantToPublish === 'on',
           publishWhere: (rawFormData.publishWhere as string) || null,
-          assignedSalesId: assignedSalesId, // Assign lead here
+          assignedSalesId: assignedSalesId,
         };
 
-        // Conditionally add fields that might be null or numbers
         if (rawFormData.deadline) {
             dataToSave.deadline = Timestamp.fromDate(new Date(rawFormData.deadline as string));
         }
@@ -112,6 +107,7 @@ export default function CreateProjectPage() {
             dataToSave.wordCount = Number(rawFormData.wordCount);
         }
         
+        const projectsCollection = collection(firestore, 'projects');
         await addDoc(projectsCollection, dataToSave);
       
         toast({
@@ -121,18 +117,17 @@ export default function CreateProjectPage() {
         setFormKey(Date.now()); 
         router.push('/dashboard/projects');
 
-      } catch (serverError: any) {
-           const permissionError = new FirestorePermissionError({
-            path: projectsCollection.path,
+    } catch (serverError: any) {
+        const permissionError = new FirestorePermissionError({
+            path: 'projects',
             operation: 'create',
             requestResourceData: dataToSave,
-          }, serverError);
-
-          // THIS IS THE FIX: Re-throw the error to make it visible
-          throw permissionError;
-      } finally {
-          setLoading(false);
-      }
+        }, serverError);
+        errorEmitter.emit('permission-error', permissionError);
+        setError(permissionError.message);
+    } finally {
+        setLoading(false);
+    }
   }
 
 
@@ -329,7 +324,7 @@ export default function CreateProjectPage() {
           <form key={formKey} onSubmit={handleSubmit} className="space-y-6">
              {error && (
                 <Alert variant="destructive">
-                    <AlertTitle>Error</AlertTitle>
+                    <AlertTitle>Submission Error</AlertTitle>
                     <AlertDescription>{error}</AlertDescription>
                 </Alert>
              )}

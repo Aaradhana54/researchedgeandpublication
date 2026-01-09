@@ -3,17 +3,19 @@
 
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { useUser, useFirestore, useCollection } from '@/firebase';
-import { collection, query, where, orderBy, doc, addDoc, serverTimestamp, setDoc } from 'firebase/firestore';
+import { collection, query, where, orderBy, doc, addDoc, serverTimestamp, setDoc, getDocs, getDoc } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { LoaderCircle, Send, User, MessagesSquare, AlertCircle } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { formatDistanceToNow } from 'date-fns';
-import type { Chat, ChatMessage, UserProfile } from '@/lib/types';
+import { formatDistanceToNow, format } from 'date-fns';
+import type { Chat, ChatMessage, UserProfile, Project } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 function ChatList({ chats, activeChatId, onSelectChat }: { chats: Chat[], activeChatId: string | null, onSelectChat: (chatId: string) => void }) {
     const { user } = useUser();
@@ -55,10 +57,51 @@ function ChatList({ chats, activeChatId, onSelectChat }: { chats: Chat[], active
     )
 }
 
-function ChatRoom({ chatId, currentUser }: { chatId: string, currentUser: UserProfile }) {
+function ChatRoom({ chatId, currentUser, onChatCreated }: { chatId: string, currentUser: UserProfile, onChatCreated: () => void }) {
     const firestore = useFirestore();
     const [newMessage, setNewMessage] = useState('');
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const {data: chatDoc, loading: chatDocLoading} = useCollection(query(collection(firestore, 'chats'), where('__name__', '==', chatId)));
+
+
+    useEffect(() => {
+        const setupChat = async () => {
+             if (chatDocLoading || !firestore) return;
+             // If chat does not exist, create it.
+             if ((!chatDoc || chatDoc.length === 0)) {
+                 const projectRef = doc(firestore, 'projects', chatId); // Assuming chatId is projectId
+                 const projectSnap = await getDoc(projectRef);
+
+                 if (projectSnap.exists()) {
+                     const project = projectSnap.data() as Project;
+                     if(project.userId && project.assignedSalesId) {
+                         const clientSnap = await getDoc(doc(firestore, 'users', project.userId));
+                         const salesSnap = await getDoc(doc(firestore, 'users', project.assignedSalesId));
+                         
+                         if(clientSnap.exists() && salesSnap.exists()) {
+                            const chatData = {
+                                projectId: chatId,
+                                participants: [project.userId, project.assignedSalesId],
+                                participantNames: {
+                                [project.userId]: clientSnap.data().name,
+                                [project.assignedSalesId]: salesSnap.data().name,
+                                },
+                                createdAt: serverTimestamp(),
+                            };
+                            try {
+                                await setDoc(doc(firestore, 'chats', chatId), chatData);
+                                onChatCreated(); // Trigger a re-fetch in the parent
+                            } catch(e: any) {
+                                errorEmitter.emit('permission-error', new FirestorePermissionError({path: `chats/${chatId}`, operation: 'create'}, e))
+                            }
+                         }
+                     }
+                 }
+             }
+        };
+        setupChat();
+    }, [chatId, firestore, chatDoc, chatDocLoading, onChatCreated]);
+
 
     const messagesQuery = useMemo(() => {
         if (!firestore) return null;
@@ -140,11 +183,12 @@ export default function SalesManagerChatPage() {
     const { user, loading: userLoading } = useUser();
     const firestore = useFirestore();
     const [activeChatId, setActiveChatId] = useState<string | null>(null);
+    const [_, setForceRefetch] = useState(0);
 
     const chatsQuery = useMemo(() => {
         if (!user || !firestore) return null;
         return query(collection(firestore, 'chats'), where('participants', 'array-contains', user.uid));
-    }, [user, firestore]);
+    }, [user, firestore, _]);
 
     const { data: chats, loading: chatsLoading, error: chatsError } = useCollection<Chat>(chatsQuery);
     
@@ -162,6 +206,10 @@ export default function SalesManagerChatPage() {
             setActiveChatId(sortedChats[0].id!);
         }
     }, [activeChatId, sortedChats]);
+    
+    const handleChatCreated = () => {
+        setForceRefetch(c => c + 1);
+    }
 
     const loading = chatsLoading || userLoading;
 
@@ -200,7 +248,7 @@ export default function SalesManagerChatPage() {
 
                 <Card className="h-full flex flex-col">
                     {activeChatId && user ? (
-                        <ChatRoom chatId={activeChatId} currentUser={user} />
+                        <ChatRoom chatId={activeChatId} currentUser={user} onChatCreated={handleChatCreated}/>
                     ) : (
                         <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground">
                             <MessagesSquare className="w-12 h-12 mb-4"/>
@@ -213,5 +261,3 @@ export default function SalesManagerChatPage() {
         </div>
     )
 }
-
-    

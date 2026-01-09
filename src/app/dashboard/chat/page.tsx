@@ -30,7 +30,6 @@ export default function ClientChatPage() {
         setLoading(true);
         setError(null);
         try {
-            // 1. Find the user's projects and sort on client to find latest
             const projectsQuery = query(
                 collection(firestore, 'projects'),
                 where('userId', '==', user.uid)
@@ -38,7 +37,7 @@ export default function ClientChatPage() {
             const projectsSnap = await getDocs(projectsQuery);
 
             if (projectsSnap.empty) {
-                setError("You don't have any projects yet. A chat will become available once you create a project and it's assigned.");
+                setError("You don't have any projects yet. A chat will become available once your project is assigned to a sales manager.");
                 setLoading(false);
                 return;
             }
@@ -47,31 +46,27 @@ export default function ClientChatPage() {
             projects.sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis());
             const latestProject = projects[0];
             
-            const assignedSalesId = latestProject.assignedSalesId;
-
-            if (!assignedSalesId) {
+            if (!latestProject.assignedSalesId) {
                 setError("Your project has not been assigned to a sales manager yet. Please check back later.");
                 setLoading(false);
                 return;
             }
             
-            // 2. The chat document ID should be the project ID.
             const projectChatId = latestProject.id!;
             const chatDocRef = doc(firestore, 'chats', projectChatId);
             const chatSnap = await getDoc(chatDocRef);
 
             if (!chatSnap.exists()) {
-                setError(`The chat room for this project has not been created by the sales manager yet. Please check back later.`);
+                setError(`The chat room for this project has not been created by the sales manager yet. This happens automatically when they first view your chat. Please check back shortly.`);
                 setLoading(false);
                 return;
             }
             
-            // 3. Fetch the sales manager's profile
-            const managerDocRef = doc(firestore, 'users', assignedSalesId);
+            const managerDocRef = doc(firestore, 'users', latestProject.assignedSalesId);
             const managerSnap = await getDoc(managerDocRef);
 
             if (!managerSnap.exists()) {
-                 setError(`Could not find the assigned sales manager (ID: ${assignedSalesId}). Please contact support.`);
+                 setError(`Could not find the assigned sales manager (ID: ${latestProject.assignedSalesId}). Please contact support.`);
                  setLoading(false);
                  return;
             }
