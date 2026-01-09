@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, ChangeEvent } from 'react';
@@ -94,8 +95,15 @@ export default function CreateProjectPage() {
           wordCount: rawFormData.wordCount ? Number(rawFormData.wordCount) : null,
           wantToPublish: rawFormData.wantToPublish === 'on',
           publishWhere: (rawFormData.publishWhere as string) || null,
-          assignedSalesId: null, // This should be set by a manager, not the client.
+          assignedSalesId: null,
         };
+
+        // Clean up null/empty values to avoid security rule issues with .hasOnly()
+        Object.keys(dataToSave).forEach(key => {
+            if (dataToSave[key] === null || dataToSave[key] === '') {
+                delete dataToSave[key];
+            }
+        });
         
         const projectsCollection = collection(firestore, 'projects');
         await addDoc(projectsCollection, dataToSave);
@@ -113,8 +121,6 @@ export default function CreateProjectPage() {
             operation: 'create',
             requestResourceData: dataToSave,
         }, serverError);
-        // We throw the error here to let Next.js's error overlay catch it in development.
-        // This provides a much better debugging experience than just logging it.
         throw permissionError;
     } finally {
         setLoading(false);
