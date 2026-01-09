@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { useUser, useFirestore, useCollection } from '@/firebase';
+import { useUser, useFirestore, useCollection, useDoc } from '@/firebase';
 import { collection, query, where, doc, setDoc, addDoc, serverTimestamp, orderBy, limit, getDoc, getDocs } from 'firebase/firestore';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -26,7 +26,7 @@ export default function ClientChatPage() {
   useEffect(() => {
     if (userLoading || !user || !firestore) return;
 
-    const findOrCreateChat = async () => {
+    const findChatForLatestProject = async () => {
         setLoading(true);
         setError(null);
         try {
@@ -38,7 +38,7 @@ export default function ClientChatPage() {
             const projectsSnap = await getDocs(projectsQuery);
 
             if (projectsSnap.empty) {
-                setError("You don't have any projects yet. Please create a project to start a chat.");
+                setError("You don't have any projects yet. A chat will become available once you create a project and it's assigned.");
                 setLoading(false);
                 return;
             }
@@ -54,8 +54,19 @@ export default function ClientChatPage() {
                 setLoading(false);
                 return;
             }
+            
+            // 2. The chat document ID should be the project ID.
+            const projectChatId = latestProject.id!;
+            const chatDocRef = doc(firestore, 'chats', projectChatId);
+            const chatSnap = await getDoc(chatDocRef);
 
-            // 2. Fetch the sales manager's profile
+            if (!chatSnap.exists()) {
+                setError(`The chat room for this project has not been created by the sales manager yet. Please check back later.`);
+                setLoading(false);
+                return;
+            }
+            
+            // 3. Fetch the sales manager's profile
             const managerDocRef = doc(firestore, 'users', assignedSalesId);
             const managerSnap = await getDoc(managerDocRef);
 
@@ -66,37 +77,17 @@ export default function ClientChatPage() {
             }
             const manager = { ...managerSnap.data() as UserProfile, uid: managerSnap.id };
             setSalesManager(manager);
-
-            // 3. Create or update the chat document using the PROJECT ID as the chat ID
-            const projectChatId = latestProject.id!;
-            const chatDocRef = doc(firestore, 'chats', projectChatId);
-            
-            await setDoc(chatDocRef, {
-                participants: [user.uid, manager.uid],
-                participantNames: {
-                    [user.uid]: user.name,
-                    [manager.uid]: manager.name
-                }
-            }, { merge: true });
-
             setChatId(projectChatId);
             
         } catch (err: any) {
             console.error("CHAT LOAD ERROR:", err);
-            // Throw the actual error for better debugging
-            if (err.code === 'permission-denied') {
-              throw new FirestorePermissionError({
-                path: 'projects, users, or chats',
-                operation: 'get'
-              }, err);
-            }
-            setError(`An unexpected error occurred: ${err.message}.`);
+            setError(`An unexpected error occurred: ${err.message}. If this persists, please contact support.`);
         } finally {
             setLoading(false);
         }
     };
     
-    findOrCreateChat();
+    findChatForLatestProject();
 
   }, [user, userLoading, firestore]);
 

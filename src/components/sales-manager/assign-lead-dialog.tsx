@@ -19,8 +19,8 @@ import { Button } from '../ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { LoaderCircle, Users } from 'lucide-react';
 import type { Project, UserProfile, ContactLead } from '@/lib/types';
-import { useFirestore } from '@/firebase';
-import { doc, updateDoc, writeBatch, serverTimestamp } from 'firebase/firestore';
+import { useFirestore, useUser } from '@/firebase';
+import { doc, updateDoc, writeBatch, serverTimestamp, getDoc } from 'firebase/firestore';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '../ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
@@ -68,7 +68,7 @@ export function AssignLeadDialog({ children, lead, leadType, salesTeam, onLeadAs
     try {
         const batch = writeBatch(firestore);
         
-        // 1. Update the lead document
+        // 1. Update the lead document (project or contact_lead)
         const collectionName = leadType === 'project' ? 'projects' : 'contact_leads';
         const leadDocRef = doc(firestore, collectionName, lead.id);
         
@@ -76,20 +76,43 @@ export function AssignLeadDialog({ children, lead, leadType, salesTeam, onLeadAs
             assignedSalesId: data.assignedSalesId,
         });
 
-        // 2. Create the chat document
+        // 2. Create the chat document, ensuring we have the client's UID
         const assignedUser = salesTeam.find(member => member.uid === data.assignedSalesId);
-        const project = lead as Project; // Cast to access userId
+        
+        let clientUid: string | undefined;
+        let clientName: string | undefined;
 
-        if (project.userId && assignedUser) {
-            const chatDocRef = doc(firestore, 'chats', lead.id);
+        if (leadType === 'project') {
+            clientUid = (lead as Project).userId;
+            // To get clientName, we'd need to fetch the user profile, which adds complexity.
+            // We'll rely on the participantNames map being updated by a function or a trigger later if needed.
+            // For now, let's get it from the user document if we can.
+            if (!clientUid.startsWith('unregistered_')) {
+                const userSnap = await getDoc(doc(firestore, 'users', clientUid));
+                clientName = userSnap.data()?.name || 'Client';
+            } else {
+                 clientName = (lead as Project).userId.split('_')[1];
+            }
+        } else {
+            // For contact leads, the client doesn't have a UID yet.
+            // We use a placeholder ID format. The real UID will be backfilled when they register.
+            clientUid = `unregistered_${(lead as ContactLead).email}`;
+            clientName = (lead as ContactLead).name;
+        }
+
+        if (clientUid && assignedUser) {
+            const chatDocRef = doc(firestore, 'chats', lead.id); // Use project/lead ID as chat ID
             batch.set(chatDocRef, {
                 projectId: lead.id,
-                participants: [project.userId, assignedUser.uid],
+                participants: [clientUid, assignedUser.uid],
                 participantNames: {
-                  [project.userId]: (project as any).clientName || 'Client',
+                  [clientUid]: clientName,
                   [assignedUser.uid]: assignedUser.name,
                 },
                 createdAt: serverTimestamp(),
+                lastMessage: 'A sales representative has been assigned to your project.',
+                lastMessageAt: serverTimestamp(),
+                lastMessageSenderId: assignedUser.uid,
             });
         }
 
@@ -112,7 +135,7 @@ export function AssignLeadDialog({ children, lead, leadType, salesTeam, onLeadAs
           }, err);
           throw permissionError;
         }
-        console.error(err);
+        console.error("ASSIGN LEAD ERROR:", err);
         setError(err.message || 'An unknown error occurred while assigning the lead.');
     } finally {
         setLoading(false);
