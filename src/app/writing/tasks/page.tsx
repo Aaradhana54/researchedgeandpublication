@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useMemo, useState, useEffect } from 'react';
@@ -39,7 +38,7 @@ const getTaskStatusVariant = (status?: string): 'default' | 'secondary' | 'destr
 
 
 export default function MyTasksPage() {
-  const { user, loading: userLoading } from useUser();
+  const { user, loading: userLoading } = useUser();
   const firestore = useFirestore();
   
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -68,7 +67,7 @@ export default function MyTasksPage() {
             const fetchedTasks = tasksSnapshot.docs.map(doc => ({ ...doc.data() as Task, id: doc.id }));
 
             const activeTasks = fetchedTasks.filter(task => task.status !== 'completed');
-            activeTasks.sort((a, b) => b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime());
+            activeTasks.sort((a, b) => (b.createdAt?.toDate()?.getTime() || 0) - (a.createdAt?.toDate()?.getTime() || 0));
             setTasks(activeTasks);
 
             // 2. If there are tasks, fetch the associated projects
