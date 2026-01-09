@@ -112,7 +112,7 @@ service cloud.firestore {
                     isAdmin() || 
                     isSalesManager() || 
                     isSalesTeam() || 
-                    (hasRole('client') && request.query.where.userId == request.auth.uid) ||
+                    (hasRole('client') && request.query.userId == request.auth.uid) ||
                     (isReferralPartner() && (
                         (request.query.where.userId in get(/databases/$(database)/documents/users?where('referredBy', '==', getUserRole().referralCode)).docs.map(d => d.id)) ||
                         (request.query.where.referredByPartnerId == request.auth.uid)
