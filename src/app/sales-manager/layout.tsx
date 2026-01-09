@@ -9,7 +9,6 @@ import {
   FolderKanban,
   CheckCircle,
   UserCheck,
-  MessageSquare,
 } from 'lucide-react';
 import React from 'react';
 import { usePathname, useRouter } from 'next/navigation';
@@ -49,7 +48,6 @@ const dashboardNavItems = [
   { href: '/sales-manager/leads', label: 'All Leads', icon: <FolderKanban /> },
   { href: '/sales-manager/assigned-leads', label: 'Assigned Leads', icon: <UserCheck /> },
   { href: '/sales-manager/approved-leads', label: 'Approved Leads', icon: <CheckCircle /> },
-  { href: '/sales-manager/chat', label: 'Chat', icon: <MessageSquare /> },
 ];
 
 function SalesManagerSidebar() {

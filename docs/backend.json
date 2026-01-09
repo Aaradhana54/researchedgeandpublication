@@ -13,7 +13,8 @@
         "role": { "type": "string", "enum": ["client", "admin", "author", "referral-partner", "writing-team", "sales-team", "sales-manager"], "description": "The user's role."},
         "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp of when the user account was created." },
         "referralCode": { "type": "string", "description": "Unique code for referral partners to share."},
-        "referredBy": { "type": "string", "description": "The referral code of the partner who referred this user."}
+        "referredBy": { "type": "string", "description": "The referral code of the partner who referred this user."},
+        "commissionRate": { "type": "number", "description": "The default commission rate or amount for a referral partner." }
       },
       "required": ["uid", "name", "email", "role", "createdAt"]
     },
@@ -66,7 +67,8 @@
         "rejectionReason": { "type": "string", "description": "Reason why the project was rejected by the sales team." },
         "referredByPartnerId": { "type": "string", "description": "UID of the referral partner for leads converted without signup." },
         "approvalEmailSent": { "type": "boolean", "description": "Tracks if the approval email has been sent to the client." },
-        "commissionAmount": { "type": "number", "description": "The commission amount awarded to the referral partner for this project." }
+        "commissionAmount": { "type": "number", "description": "The commission amount awarded to the referral partner for this project." },
+        "salesCommissionAmount": { "type": "number", "description": "The commission amount awarded to the sales person for this project." }
       },
       "required": ["userId", "title", "serviceType", "createdAt"]
     },
@@ -199,38 +201,6 @@
         "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp when the feedback was submitted." }
       },
       "required": ["name", "message", "rating", "status", "createdAt"]
-    },
-    "Chat": {
-      "title": "Chat",
-      "description": "Represents a chat session between two users.",
-      "type": "object",
-      "properties": {
-        "participants": {
-          "type": "array",
-          "items": { "type": "string" },
-          "description": "Array of UIDs of the participants in the chat."
-        },
-        "participantNames": {
-          "type": "object",
-          "additionalProperties": { "type": "string" },
-          "description": "Map of participant UIDs to their names."
-        },
-        "lastMessage": { "type": "string", "description": "The content of the last message sent." },
-        "lastMessageAt": { "type": "string", "format": "date-time" },
-        "lastMessageSenderId": { "type": "string" }
-      },
-      "required": ["participants", "participantNames"]
-    },
-    "ChatMessage": {
-      "title": "Chat Message",
-      "description": "Represents a single message within a chat.",
-      "type": "object",
-      "properties": {
-        "senderId": { "type": "string" },
-        "text": { "type": "string" },
-        "createdAt": { "type": "string", "format": "date-time" }
-      },
-      "required": ["senderId", "text", "createdAt"]
     }
   },
   "auth": {
@@ -292,14 +262,6 @@
             }
         },
         "description": "Internal metadata for application logic, like round-robin counters."
-    },
-    "/chats/{chatId}": {
-        "schema": { "$ref": "#/entities/Chat" },
-        "description": "Collection of chat sessions between users."
-    },
-    "/chats/{chatId}/messages/{messageId}": {
-        "schema": { "$ref": "#/entities/ChatMessage" },
-        "description": "Sub-collection of messages within a specific chat."
     }
   }
 }

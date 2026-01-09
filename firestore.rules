@@ -72,7 +72,7 @@ service cloud.firestore {
         let allowedKeys = [
             'userId', 'title', 'mobile', 'serviceType', 'topic', 'courseLevel', 'deadline',
             'referencingStyle', 'pageCount', 'wordCount', 'language', 'wantToPublish',
-            'publishWhere', 'status', 'createdAt', 'updatedAt'
+            'publishWhere', 'status', 'createdAt', 'updatedAt', 'assignedSalesId'
         ];
         
         let isCreatingOwnProject = request.auth != null && request.auth.uid == data.userId;
@@ -146,25 +146,6 @@ service cloud.firestore {
       allow update, delete: if isAdmin();
       allow read: if isAdmin() || resource.data.status == 'approved';
       allow list: if isAdmin() || (request.query.where.get('status') == 'approved');
-    }
-
-    match /chats/{chatId} {
-      // Allow creation only by admin or sales team
-      allow create: if isAdmin() || isSalesManager();
-      
-      // Allow participants to read and update (for lastMessage, etc.)
-      allow read, update: if request.auth != null && request.auth.uid in resource.data.participants;
-
-      // No one can delete a chat from the client-side
-      allow delete: if false;
-
-      match /messages/{messageId} {
-        allow read: if request.auth != null && request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participants;
-        allow create: if request.auth != null 
-                        && request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participants
-                        && request.resource.data.senderId == request.auth.uid;
-        allow update, delete: if false;
-      }
     }
     
     match /mail/{docId} {
