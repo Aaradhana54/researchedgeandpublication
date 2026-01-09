@@ -49,41 +49,50 @@ export default function ReferralDashboardPage() {
     const fetchData = async () => {
       setLoading(true);
       try {
-        // Fetch users referred by code
         const referredUsersQuery = user.referralCode ? query(collection(firestore, 'users'), where('referredBy', '==', user.referralCode)) : null;
-        const referredUsersSnap = referredUsersQuery ? await getDocs(referredUsersQuery) : { docs: [] };
+        
+        const submittedLeadsQuery = query(collection(firestore, 'contact_leads'), where('referredByPartnerId', '==', user.uid));
+        
+        const payoutsQuery = query(collection(firestore, 'payouts'), where('userId', '==', user.uid));
+        
+        const projectsByPartnerIdQuery = query(collection(firestore, 'projects'), where('referredByPartnerId', '==', user.uid));
+
+        const [
+          referredUsersSnap,
+          submittedLeadsSnap,
+          payoutsSnap,
+          projectsByPartnerIdSnap
+        ] = await Promise.all([
+          referredUsersQuery ? getDocs(referredUsersQuery) : Promise.resolve({ docs: [] }),
+          getDocs(submittedLeadsQuery),
+          getDocs(payoutsQuery),
+          getDocs(projectsByPartnerIdQuery),
+        ]);
+
         const fetchedReferredUsers = referredUsersSnap.docs.map(doc => doc.data() as UserProfile);
         setReferredUsers(fetchedReferredUsers);
-        const referredUserIds = fetchedReferredUsers.map(u => u.uid);
         
-        // Fetch leads submitted by the partner directly
-        const submittedLeadsQuery = query(collection(firestore, 'contact_leads'), where('referredByPartnerId', '==', user.uid));
-        const submittedLeadsSnap = await getDocs(submittedLeadsQuery);
         setSubmittedLeads(submittedLeadsSnap.docs.map(doc => ({...doc.data() as ContactLead, id: doc.id})));
-
-        // Fetch payouts
-        const payoutsQuery = query(collection(firestore, 'payouts'), where('userId', '==', user.uid));
-        const payoutsSnap = await getDocs(payoutsQuery);
         setPayouts(payoutsSnap.docs.map(doc => ({...doc.data() as Payout, id: doc.id})));
 
-        // Fetch projects relevant to this partner
-        const projectsQueries: Query<DocumentData>[] = [];
-        if (referredUserIds.length > 0) {
-          // This query is insecure and will fail security rules. We'll rely on the referredByPartnerId query for now.
-          // In a real-world scenario, this might need a Cloud Function to aggregate data.
-          // For the purpose of fixing the current bug, we will primarily rely on referredByPartnerId.
-        }
-        projectsQueries.push(query(collection(firestore, 'projects'), where('referredByPartnerId', '==', user.uid)));
-        
-        const projectSnapshots = await Promise.all(projectsQueries.map(q => getDocs(q)));
         const projectsMap = new Map<string, Project>();
-        projectSnapshots.forEach(snapshot => {
-          snapshot.docs.forEach(doc => {
+        projectsByPartnerIdSnap.forEach(doc => {
             if(!projectsMap.has(doc.id)) {
               projectsMap.set(doc.id, {...doc.data() as Project, id: doc.id});
             }
-          });
         });
+        
+        const referredUserIds = fetchedReferredUsers.map(u => u.uid);
+        if (referredUserIds.length > 0) {
+            const projectsByUserIdsQuery = query(collection(firestore, 'projects'), where('userId', 'in', referredUserIds));
+            const projectsByUserIdsSnap = await getDocs(projectsByUserIdsQuery);
+            projectsByUserIdsSnap.forEach(doc => {
+                if(!projectsMap.has(doc.id)) {
+                  projectsMap.set(doc.id, {...doc.data() as Project, id: doc.id});
+                }
+            });
+        }
+        
         setPartnerProjects(Array.from(projectsMap.values()));
 
       } catch (error: any) {
@@ -91,7 +100,7 @@ export default function ReferralDashboardPage() {
         toast({ 
             variant: 'destructive', 
             title: 'Error Loading Dashboard', 
-            description: error.message 
+            description: getFirebaseErrorMessage(error.code) || error.message 
         });
       } finally {
         setLoading(false);
