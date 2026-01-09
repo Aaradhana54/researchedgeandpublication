@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useMemo, useState, useEffect }from 'react';
@@ -7,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { LoaderCircle, Copy, Users, CheckCircle, DollarSign, Wallet, Share2 } from 'lucide-react';
 import { useFirestore } from '@/firebase';
 import { collection, query, where, getDocs, type Query, type DocumentData } from 'firebase/firestore';
-import type { UserProfile, Payout, Project, ContactLead } from '@/lib/types';
+import type { UserProfile, Project, ContactLead } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { ReferClientDialog } from '@/components/referral-partner/refer-client-dialog';
@@ -36,7 +37,6 @@ export default function ReferralDashboardPage() {
   
   const [referredUsers, setReferredUsers] = useState<UserProfile[]>([]);
   const [submittedLeads, setSubmittedLeads] = useState<ContactLead[]>([]);
-  const [payouts, setPayouts] = useState<Payout[]>([]);
   const [partnerProjects, setPartnerProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -53,19 +53,15 @@ export default function ReferralDashboardPage() {
         
         const submittedLeadsQuery = query(collection(firestore, 'contact_leads'), where('referredByPartnerId', '==', user.uid));
         
-        const payoutsQuery = query(collection(firestore, 'payouts'), where('userId', '==', user.uid));
-
         const projectsByPartnerIdQuery = query(collection(firestore, 'projects'), where('referredByPartnerId', '==', user.uid));
 
         const [
           referredUsersSnap,
           submittedLeadsSnap,
-          payoutsSnap,
           projectsByPartnerIdSnap,
         ] = await Promise.all([
           referredUsersQuery ? getDocs(referredUsersQuery) : Promise.resolve({ docs: [] }),
           getDocs(submittedLeadsQuery),
-          getDocs(payoutsQuery),
           getDocs(projectsByPartnerIdQuery),
         ]);
 
@@ -73,8 +69,7 @@ export default function ReferralDashboardPage() {
         setReferredUsers(fetchedReferredUsers);
         
         setSubmittedLeads(submittedLeadsSnap.docs.map(doc => ({...doc.data() as ContactLead, id: doc.id})));
-        setPayouts(payoutsSnap.docs.map(doc => ({...doc.data() as Payout, id: doc.id})));
-
+        
         const projectsMap = new Map<string, Project>();
         projectsByPartnerIdSnap.forEach(doc => {
             if(!projectsMap.has(doc.id)) {
@@ -118,7 +113,7 @@ export default function ReferralDashboardPage() {
 
   // Calculate statistics based on fetched data
   const stats = useMemo(() => {
-    if (!user) return { totalReferred: 0, convertedClients: 0, availableCommission: 0, totalCommissionEarned: 0 };
+    if (!user) return { totalReferred: 0, convertedClients: 0, totalCommissionEarned: 0 };
     
     const totalReferred = (referredUsers?.length ?? 0) + (submittedLeads?.length ?? 0);
     
@@ -133,17 +128,12 @@ export default function ReferralDashboardPage() {
     
     const totalCommissionEarned = commissionableProjects.reduce((acc, p) => acc + (p.commissionAmount || 0), 0);
 
-    const totalPaidOut = payouts?.filter(p => p.status === 'paid').reduce((acc, p) => acc + p.amount, 0) ?? 0;
-    
-    const availableCommission = totalCommissionEarned - totalPaidOut;
-
     return {
       totalReferred,
       convertedClients,
-      availableCommission,
       totalCommissionEarned,
     };
-  }, [user, referredUsers, submittedLeads, partnerProjects, payouts]);
+  }, [user, referredUsers, submittedLeads, partnerProjects]);
 
   const handleCopyLink = () => {
     if (!referralLink) return;
@@ -207,10 +197,9 @@ export default function ReferralDashboardPage() {
             </Card>
         </div>
       
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <StatCard title="Referred Clients" value={stats.totalReferred} icon={<Users className="h-4 w-4 text-muted-foreground" />} />
         <StatCard title="Converted Clients" value={stats.convertedClients} icon={<CheckCircle className="h-4 w-4 text-muted-foreground" />} />
-        <StatCard title="Available Commission" value={stats.availableCommission.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })} icon={<Wallet className="h-4 w-4 text-muted-foreground" />} />
         <StatCard title="Total Earnings" value={stats.totalCommissionEarned.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })} icon={<DollarSign className="h-4 w-4 text-muted-foreground" />} />
       </div>
     </div>
