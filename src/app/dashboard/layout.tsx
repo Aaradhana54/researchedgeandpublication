@@ -11,6 +11,7 @@ import {
   ChevronDown,
   Globe,
   MessageSquare,
+  CheckCircle,
 } from 'lucide-react';
 import React from 'react';
 import { usePathname, useRouter } from 'next/navigation';
@@ -48,6 +49,7 @@ import { useEffect } from 'react';
 const dashboardNavItems = [
   { href: '/dashboard', label: 'Overview', icon: <LayoutGrid /> },
   { href: '/dashboard/projects', label: 'My Projects', icon: <FolderKanban /> },
+  { href: '/dashboard/approved-leads', label: 'Approved Leads', icon: <CheckCircle /> },
   { href: '/dashboard/chat', label: 'Chat', icon: <MessageSquare /> },
   { href: '/dashboard/files', label: 'Files & Deliverables', icon: <FileText /> },
   { href: '/dashboard/payments', label: 'Payment & Invoices', icon: <CreditCard /> },
