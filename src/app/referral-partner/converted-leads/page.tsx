@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useMemo, useState, useEffect } from 'react';
@@ -31,90 +30,89 @@ export default function ConvertedLeadsPage() {
   const [convertedProjects, setConvertedProjects] = useState<ConvertedProject[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchConvertedLeads = async () => {
-      if (userLoading || !firestore || !user) {
-        if(!userLoading) setLoading(false);
-        return;
-      }
-      setLoading(true);
-      
-      try {
-          const projectsQueries: Query<DocumentData>[] = [];
-          
-          // Query for projects from users who signed up with the partner's code
-          if(user.referralCode) {
-               const referredUsersQuery = query(collection(firestore, 'users'), where('referredBy', '==', user.referralCode));
-               const referredUsersSnap = await getDocs(referredUsersQuery);
-               const referredUserIds = referredUsersSnap.docs.map(doc => doc.id);
-              
-               if (referredUserIds.length > 0) {
-                   projectsQueries.push(query(
-                      collection(firestore, 'projects'),
-                      where('userId', 'in', referredUserIds),
-                      where('status', 'in', ['approved', 'in-progress', 'completed'])
-                  ));
-               }
-          }
-
-          // Query for projects converted from leads submitted directly by the partner
-          projectsQueries.push(query(
-              collection(firestore, 'projects'),
-              where('referredByPartnerId', '==', user.uid),
-              where('status', 'in', ['approved', 'in-progress', 'completed'])
-          ));
-          
-          // Execute all queries
-          const querySnapshots = await Promise.all(projectsQueries.map(q => getDocs(q)));
-          
-          const projectsMap = new Map<string, Project>();
-          querySnapshots.forEach(snapshot => {
-              snapshot.docs.forEach(doc => {
-                  if(!projectsMap.has(doc.id)) {
-                     projectsMap.set(doc.id, { ...doc.data() as Project, id: doc.id });
-                  }
-              });
-          });
-
-          const allPartnerProjects = Array.from(projectsMap.values());
-          const clientUserIds = new Set<string>();
-          allPartnerProjects.forEach(p => {
-              if(!p.userId.startsWith('unregistered_')) {
-                  clientUserIds.add(p.userId);
-              }
-          });
-
-          const usersMap = new Map<string, UserProfile>();
-          if (clientUserIds.size > 0) {
-               const usersQuery = query(collection(firestore, 'users'), where('uid', 'in', Array.from(clientUserIds)));
-               const usersSnap = await getDocs(usersQuery);
-               usersSnap.docs.forEach(doc => {
-                   usersMap.set(doc.id, doc.data() as UserProfile);
-               });
-          }
-
-          const finalProjects: ConvertedProject[] = allPartnerProjects.map(p => {
-              let clientName = `Unregistered Client`;
-              if (p.userId.startsWith('unregistered_')) {
-                  clientName = p.userId.split('_')[1]; // get email
-              } else if (usersMap.has(p.userId)) {
-                  clientName = usersMap.get(p.userId)!.name;
-              }
-              return { ...p, clientName };
-          });
-
-          finalProjects.sort((a,b) => (b.finalizedAt?.toDate()?.getTime() || 0) - (a.finalizedAt?.toDate()?.getTime() || 0));
-          
-          setConvertedProjects(finalProjects);
-
-      } catch (error) {
-          console.error("Failed to fetch converted leads:", error);
-      } finally {
-          setLoading(false);
-      }
-  };
-
-
   useEffect(() => {
+    const fetchConvertedLeads = async () => {
+        if (userLoading || !firestore || !user) {
+          if(!userLoading) setLoading(false);
+          return;
+        }
+        setLoading(true);
+        
+        try {
+            const projectsMap = new Map<string, Project>();
+
+            // Query for projects converted from leads submitted directly by the partner
+            const directLeadsQuery = query(
+                collection(firestore, 'projects'),
+                where('referredByPartnerId', '==', user.uid),
+                where('status', 'in', ['approved', 'in-progress', 'completed'])
+            );
+            const directLeadsSnap = await getDocs(directLeadsQuery);
+            directLeadsSnap.forEach(doc => {
+                if(!projectsMap.has(doc.id)) {
+                   projectsMap.set(doc.id, { ...doc.data() as Project, id: doc.id });
+                }
+            });
+
+            // Query for projects from users who signed up with the partner's code
+            if(user.referralCode) {
+                 const referredUsersQuery = query(collection(firestore, 'users'), where('referredBy', '==', user.referralCode));
+                 const referredUsersSnap = await getDocs(referredUsersQuery);
+                 const referredUserIds = referredUsersSnap.docs.map(doc => doc.id);
+                
+                 if (referredUserIds.length > 0) {
+                     const referredProjectsQuery = query(
+                        collection(firestore, 'projects'),
+                        where('userId', 'in', referredUserIds),
+                        where('status', 'in', ['approved', 'in-progress', 'completed'])
+                    );
+                    const referredProjectsSnap = await getDocs(referredProjectsQuery);
+                    referredProjectsSnap.forEach(doc => {
+                        if(!projectsMap.has(doc.id)) {
+                           projectsMap.set(doc.id, { ...doc.data() as Project, id: doc.id });
+                        }
+                    });
+                 }
+            }
+            
+            const allPartnerProjects = Array.from(projectsMap.values());
+            const clientUserIds = new Set<string>();
+            allPartnerProjects.forEach(p => {
+                if(!p.userId.startsWith('unregistered_')) {
+                    clientUserIds.add(p.userId);
+                }
+            });
+
+            const usersMap = new Map<string, UserProfile>();
+            if (clientUserIds.size > 0) {
+                 const usersQuery = query(collection(firestore, 'users'), where('__name__', 'in', Array.from(clientUserIds)));
+                 const usersSnap = await getDocs(usersQuery);
+                 usersSnap.forEach(doc => {
+                     usersMap.set(doc.id, doc.data() as UserProfile);
+                 });
+            }
+
+            const finalProjects: ConvertedProject[] = allPartnerProjects.map(p => {
+                let clientName = `Unregistered Client`;
+                if (p.userId.startsWith('unregistered_')) {
+                    clientName = p.userId.split('_')[1]; // get email
+                } else if (usersMap.has(p.userId)) {
+                    clientName = usersMap.get(p.userId)!.name;
+                }
+                return { ...p, clientName };
+            });
+
+            finalProjects.sort((a,b) => (b.finalizedAt?.toDate()?.getTime() || 0) - (a.finalizedAt?.toDate()?.getTime() || 0));
+            
+            setConvertedProjects(finalProjects);
+
+        } catch (error) {
+            console.error("Failed to fetch converted leads:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+  
     fetchConvertedLeads();
   }, [user, userLoading, firestore]);
   

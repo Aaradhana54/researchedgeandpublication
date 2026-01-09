@@ -54,14 +54,14 @@ export default function ReferralDashboardPage() {
         const submittedLeadsQuery = query(collection(firestore, 'contact_leads'), where('referredByPartnerId', '==', user.uid));
         
         const payoutsQuery = query(collection(firestore, 'payouts'), where('userId', '==', user.uid));
-        
+
         const projectsByPartnerIdQuery = query(collection(firestore, 'projects'), where('referredByPartnerId', '==', user.uid));
 
         const [
           referredUsersSnap,
           submittedLeadsSnap,
           payoutsSnap,
-          projectsByPartnerIdSnap
+          projectsByPartnerIdSnap,
         ] = await Promise.all([
           referredUsersQuery ? getDocs(referredUsersQuery) : Promise.resolve({ docs: [] }),
           getDocs(submittedLeadsQuery),
@@ -69,7 +69,7 @@ export default function ReferralDashboardPage() {
           getDocs(projectsByPartnerIdQuery),
         ]);
 
-        const fetchedReferredUsers = referredUsersSnap.docs.map(doc => doc.data() as UserProfile);
+        const fetchedReferredUsers = referredUsersSnap.docs.map(doc => ({...doc.data() as UserProfile, uid: doc.id}));
         setReferredUsers(fetchedReferredUsers);
         
         setSubmittedLeads(submittedLeadsSnap.docs.map(doc => ({...doc.data() as ContactLead, id: doc.id})));

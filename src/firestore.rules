@@ -110,16 +110,16 @@ service cloud.firestore {
                     isSalesTeam() || 
                     (hasRole('client') && request.query.userId == request.auth.uid) ||
                     (isReferralPartner() && (
-                        (request.query.referredByPartnerId == request.auth.uid)
+                        (request.query.referredByPartnerId == request.auth.uid) ||
+                        (request.query.userId in get(/databases/$(database)/documents/users?where=referredBy,==,` + getUserData().referralCode + `).docs.map(d => d.id))
                     ))
                   );
     }
     
     match /contact_leads/{contactLeadId} {
       allow create: if true; // Public contact form
-      allow read: if isAdmin() || isSalesTeam() || (isReferralPartner() && resource.data.referredByPartnerId == request.auth.uid);
+      allow read, update: if isAdmin() || isSalesTeam() || (isReferralPartner() && resource.data.referredByPartnerId == request.auth.uid);
       allow list: if isAdmin() || isSalesTeam() || (isReferralPartner() && request.query.where.referredByPartnerId == request.auth.uid);
-      allow update: if isSalesTeam() || isSalesManager() || isAdmin();
       allow delete: if isAdmin();
     }
 
@@ -135,7 +135,7 @@ service cloud.firestore {
       allow read, update: if request.auth.uid in resource.data.participants;
       
       // Sales Manager can see all chats. Clients can only list chats they are a part of.
-      allow list: if hasRole('sales-manager') || (hasRole('client') && request.query.participants.includes(request.auth.uid));
+      allow list: if hasRole('sales-manager') || (hasRole('client') && request.query.where['participants'].includes(request.auth.uid));
 
       match /messages/{messageId} {
         // Anyone in the chat can read or write messages.
@@ -153,7 +153,7 @@ service cloud.firestore {
     match /payouts/{payoutId} {
       allow create: if isReferralPartner() && request.resource.data.userId == request.auth.uid;
       allow read: if (isOwner(resource.data.userId)) || isAdmin() || isSalesTeam();
-      allow list: if isAdmin() || isSalesManager() || (isReferralPartner() && request.query.userId == request.auth.uid);
+      allow list: if isAdmin() || isSalesManager() || (isReferralPartner() && request.query.where.userId == request.auth.uid);
       allow update, delete: if isAdmin();
     }
 

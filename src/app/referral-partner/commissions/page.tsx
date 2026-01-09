@@ -39,7 +39,20 @@ export default function CommissionsPage() {
         setLoading(true);
         
         try {
-            const projectsQueries: Query<DocumentData>[] = [];
+            const projectsMap = new Map<string, Project>();
+
+            // Query for projects converted from leads submitted directly by the partner
+            const directLeadsQuery = query(
+                collection(firestore, 'projects'),
+                where('referredByPartnerId', '==', user.uid),
+                where('status', 'in', ['approved', 'in-progress', 'completed'])
+            );
+            const directLeadsSnap = await getDocs(directLeadsQuery);
+            directLeadsSnap.forEach(doc => {
+                if(!projectsMap.has(doc.id)) {
+                   projectsMap.set(doc.id, { ...doc.data() as Project, id: doc.id });
+                }
+            });
             
             // Query for projects from users who signed up with the partner's code
             if(user.referralCode) {
@@ -48,31 +61,19 @@ export default function CommissionsPage() {
                  const referredUserIds = referredUsersSnap.docs.map(doc => doc.id);
                 
                  if (referredUserIds.length > 0) {
-                     projectsQueries.push(query(
+                     const referredProjectsQuery = query(
                         collection(firestore, 'projects'),
                         where('userId', 'in', referredUserIds),
                         where('status', 'in', ['approved', 'in-progress', 'completed'])
-                    ));
+                    );
+                    const referredProjectsSnap = await getDocs(referredProjectsQuery);
+                    referredProjectsSnap.forEach(doc => {
+                        if(!projectsMap.has(doc.id)) {
+                           projectsMap.set(doc.id, { ...doc.data() as Project, id: doc.id });
+                        }
+                    });
                  }
             }
-  
-            // Query for projects converted from leads submitted directly by the partner
-            projectsQueries.push(query(
-                collection(firestore, 'projects'),
-                where('referredByPartnerId', '==', user.uid),
-                where('status', 'in', ['approved', 'in-progress', 'completed'])
-            ));
-            
-            const querySnapshots = await Promise.all(projectsQueries.map(q => getDocs(q)));
-            
-            const projectsMap = new Map<string, Project>();
-            querySnapshots.forEach(snapshot => {
-                snapshot.docs.forEach(doc => {
-                    if(!projectsMap.has(doc.id)) {
-                       projectsMap.set(doc.id, { ...doc.data() as Project, id: doc.id });
-                    }
-                });
-            });
   
             const allPartnerProjects = Array.from(projectsMap.values());
             const clientUserIds = new Set<string>();
