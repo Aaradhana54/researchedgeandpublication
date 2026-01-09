@@ -19,6 +19,7 @@ import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import Link from 'next/link';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useToast } from '@/hooks/use-toast';
 
 const getProjectStatusVariant = (status?: string): 'default' | 'secondary' | 'destructive' | 'outline' => {
   switch (status) {
@@ -193,6 +194,7 @@ function WebsiteLeadsTable({ leads }: { leads: ContactLead[]}) {
 
 export default function AllLeadsPage() {
   const firestore = useFirestore();
+  const { toast } = useToast();
   const [projects, setProjects] = useState<Project[]>([]);
   const [contactLeads, setContactLeads] = useState<ContactLead[]>([]);
   const [usersMap, setUsersMap] = useState<Map<string, UserProfile>>(new Map());
@@ -214,36 +216,51 @@ export default function AllLeadsPage() {
         const fetchedContactLeads = contactLeadsSnap.docs.map(doc => ({ ...doc.data() as ContactLead, id: doc.id }));
         setContactLeads(fetchedContactLeads);
 
+        // Gather all unique user IDs to fetch their profiles
         const userIds = new Set<string>();
         fetchedProjects.forEach(p => {
-          if (p.userId && !p.userId.startsWith('unregistered_')) userIds.add(p.userId);
+          if (p.userId && !p.userId.startsWith('unregistered_')) {
+            userIds.add(p.userId);
+          }
         });
         fetchedContactLeads.forEach(l => {
-          if (l.referredByPartnerId) userIds.add(l.referredByPartnerId);
+          if (l.referredByPartnerId) {
+            userIds.add(l.referredByPartnerId);
+          }
         });
 
+        // Fetch user profiles in batches of 30 (Firestore 'in' query limit)
         const newUsersMap = new Map<string, UserProfile>();
         if (userIds.size > 0) {
           const userIdsArray = Array.from(userIds);
+          const userFetchPromises = [];
           for (let i = 0; i < userIdsArray.length; i += 30) {
             const chunk = userIdsArray.slice(i, i + 30);
             const usersQuery = query(collection(firestore, 'users'), where('__name__', 'in', chunk));
-            const usersSnap = await getDocs(usersQuery);
-            usersSnap.forEach(doc => {
+            userFetchPromises.push(getDocs(usersQuery));
+          }
+          const userSnaps = await Promise.all(userFetchPromises);
+          userSnaps.forEach(snap => {
+            snap.forEach(doc => {
               newUsersMap.set(doc.id, { ...doc.data() as UserProfile, uid: doc.id });
             });
-          }
+          });
         }
         setUsersMap(newUsersMap);
-      } catch (error) {
+      } catch (error: any) {
         console.error("Error fetching leads data:", error);
+        toast({
+            variant: "destructive",
+            title: "Failed to Load Data",
+            description: error.message || "An unexpected error occurred while fetching leads."
+        })
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-  }, [firestore]);
+  }, [firestore, toast]);
 
 
   const clientLeads = useMemo(() => {
