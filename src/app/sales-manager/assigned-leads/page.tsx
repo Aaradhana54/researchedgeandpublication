@@ -32,6 +32,7 @@ export default function AssignedLeadsPage() {
   const [contactLeads, setContactLeads] = useState<ContactLead[]>([]);
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
     if (userLoading || !firestore) {
@@ -41,16 +42,15 @@ export default function AssignedLeadsPage() {
 
     const fetchData = async () => {
       setLoading(true);
+      setError(null);
       try {
         const projectsQuery = query(
           collection(firestore, 'projects'), 
-          where('assignedSalesId', '!=', null),
-          orderBy('assignedSalesId')
+          where('assignedSalesId', '!=', null)
         );
         const contactLeadsQuery = query(
           collection(firestore, 'contact_leads'), 
-          where('assignedSalesId', '!=', null),
-          orderBy('assignedSalesId')
+          where('assignedSalesId', '!=', null)
         );
         
         const [projectsSnap, contactLeadsSnap] = await Promise.all([
@@ -76,17 +76,24 @@ export default function AssignedLeadsPage() {
         const newUsers: UserProfile[] = [];
         if (userIds.size > 0) {
           const ids = Array.from(userIds);
+          const userFetchPromises = [];
           for (let i = 0; i < ids.length; i += 30) {
             const chunk = ids.slice(i, i+30);
             const usersQuery = query(collection(firestore, 'users'), where('__name__', 'in', chunk));
-            const usersSnap = await getDocs(usersQuery);
-            usersSnap.forEach(doc => newUsers.push({ ...doc.data() as UserProfile, uid: doc.id }));
+            userFetchPromises.push(getDocs(usersQuery));
           }
+           const userSnaps = await Promise.all(userFetchPromises);
+           userSnaps.forEach(snap => {
+                snap.forEach(doc => {
+                    newUsers.push({ ...doc.data() as UserProfile, uid: doc.id });
+                });
+           });
         }
         setUsers(newUsers);
 
-      } catch (error) {
-        console.error("Error fetching assigned leads:", error);
+      } catch (err: any) {
+        console.error("Error fetching assigned leads:", err);
+        setError(err);
       } finally {
         setLoading(false);
       }
