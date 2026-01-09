@@ -62,8 +62,12 @@ service cloud.firestore {
       let data = request.resource.data;
       let isValidRole = data.role == 'client' || data.role == 'referral-partner';
       let uidMatches = data.uid == request.auth.uid;
-
-      return isCreatingOwnDoc && isValidRole && uidMatches;
+      let allowedKeys = ['uid', 'name', 'email', 'role', 'createdAt', 'mobile', 'referredBy', 'referralCode'];
+      
+      return isCreatingOwnDoc 
+          && isValidRole 
+          && uidMatches 
+          && request.resource.data.keys().hasOnly(allowedKeys);
     }
     
     function isClientCreatingOwnProject() {
@@ -109,20 +113,19 @@ service cloud.firestore {
                     isSalesManager() || 
                     isSalesTeam() || 
                     (hasRole('client') && request.query.userId == request.auth.uid) ||
-                    (isReferralPartner() && (request.query.userId in get(/databases/$(database)/documents/users?where('referredBy', '==', getUserData().referralCode)).docs.map(d => d.id) || request.query.referredByPartnerId == request.auth.uid))
+                    (isReferralPartner() && request.query.referredByPartnerId == request.auth.uid) ||
+                    (isReferralPartner() && request.query.userId in get(/databases/$(database)/documents/users?where('referredBy', '==', getUserData().referralCode)).docs.map(d => d.id))
                   );
     }
     
     match /contact_leads/{contactLeadId} {
-      // Public form can create (anonymous), or a partner can create if they are logged in and own the lead.
       allow create: if request.auth == null || (isReferralPartner() && request.resource.data.referredByPartnerId == request.auth.uid);
       
-      // Admins, sales team can read/update. Partners can read their own submitted leads.
-      allow read, update: if isAdmin() || isSalesTeam() || (isReferralPartner() && resource.data.referredByPartnerId == request.auth.uid);
+      allow read: if isAdmin() || isSalesTeam() || (isReferralPartner() && resource.data.referredByPartnerId == request.auth.uid);
       
-      // Admins, sales team can list all. Partners can list leads they submitted.
       allow list: if isAdmin() || isSalesTeam() || (isReferralPartner() && request.query.referredByPartnerId == request.auth.uid);
       
+      allow update: if isAdmin() || isSalesTeam();
       allow delete: if isAdmin();
     }
 
