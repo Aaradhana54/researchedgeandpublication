@@ -124,7 +124,7 @@ function ClientChatPage() {
 
   if (userLoading || loading) {
     return (
-      <div className="flex h-full w-full items-center justify-center bg-background">
+      <div className="flex h-[calc(100vh-8rem)] w-full items-center justify-center bg-background">
         <LoaderCircle className="h-10 w-10 animate-spin text-primary" />
         <p className="ml-4 text-muted-foreground">Loading Chat...</p>
       </div>
@@ -133,7 +133,7 @@ function ClientChatPage() {
 
   if (error) {
     return (
-      <div className="flex h-full w-full items-center justify-center p-4">
+      <div className="flex h-[calc(100vh-8rem)] w-full items-center justify-center p-4">
         <Alert variant="destructive" className="max-w-md">
             <AlertTitle>Chat Unavailable</AlertTitle>
             <AlertDescription>{error}</AlertDescription>
@@ -143,7 +143,7 @@ function ClientChatPage() {
   }
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 flex flex-col h-full">
+    <div className="p-4 sm:p-6 lg:p-8 flex flex-col h-full max-h-[calc(100vh-5rem)]">
         <div className="mb-8">
             <h1 className="text-3xl font-bold tracking-tight">Chat with Sales Manager</h1>
             <p className="text-muted-foreground">Your direct line of communication for any questions.</p>
