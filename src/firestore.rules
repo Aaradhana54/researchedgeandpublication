@@ -114,8 +114,8 @@ service cloud.firestore {
     }
     
     match /contact_leads/{contactLeadId} {
-      // Public contact form allows anonymous writes, and logged-in partners can create leads
-      allow create: if request.auth == null || isReferralPartner();
+      // Public form can create (anonymous), or a partner can create if they are logged in and own the lead.
+      allow create: if request.auth == null || (isReferralPartner() && request.resource.data.referredByPartnerId == request.auth.uid);
       
       // Admins, sales team can read/update. Partners can read their own submitted leads.
       allow read, update: if isAdmin() || isSalesTeam() || (isReferralPartner() && resource.data.referredByPartnerId == request.auth.uid);
@@ -125,6 +125,7 @@ service cloud.firestore {
       
       allow delete: if isAdmin();
     }
+
 
     match /testimonials/{testimonialId} {
       allow get, list: if true;
