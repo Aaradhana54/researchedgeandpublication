@@ -14,14 +14,14 @@ service cloud.firestore {
       return exists(/databases/$(database)/documents/users/$(request.auth.uid));
     }
     
-    function getUserRole() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
     }
 
     function hasRole(role) {
       return request.auth != null
         && userDocExists()
-        && getUserRole() == role;
+        && getUserData().role == role;
     }
 
     function isReferralPartner() {
@@ -29,7 +29,7 @@ service cloud.firestore {
     }
 
     function isSalesTeam() {
-      let role = getUserRole();
+      let role = getUserData().role;
       return role == 'sales-team' || role == 'sales-manager';
     }
 
@@ -91,10 +91,10 @@ service cloud.firestore {
                     || isSalesTeam() 
                     || isWritingTeam()
                     || (resource.data.role in ['sales-team', 'sales-manager'])
-                    || (isReferralPartner() && resource.data.referredBy == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.referralCode);
+                    || (isReferralPartner() && resource.data.referredBy == getUserData().referralCode);
       
       allow list: if request.auth != null && (
-                    get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in 
+                    getUserData().role in 
                     ['admin', 'sales-manager', 'sales-team', 'writing-team', 'referral-partner']
                   );
 
@@ -114,8 +114,8 @@ service cloud.firestore {
                     isSalesTeam() || 
                     (hasRole('client') && request.query.userId == request.auth.uid) ||
                     (isReferralPartner() && (
-                        (request.query.where.userId in get(/databases/$(database)/documents/users?where('referredBy', '==', getUserRole().referralCode)).docs.map(d => d.id)) ||
-                        (request.query.where.referredByPartnerId == request.auth.uid)
+                        (request.query.userId in get(/databases/$(database)/documents/users?where('referredBy', '==', getUserData().referralCode)).docs.map(d => d.id)) ||
+                        (request.query.referredByPartnerId == request.auth.uid)
                     ))
                   );
     }
