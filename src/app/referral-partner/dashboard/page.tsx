@@ -56,7 +56,7 @@ export default function ReferralDashboardPage() {
         setReferredUsers(fetchedReferredUsers);
         const referredUserIds = fetchedReferredUsers.map(u => u.uid);
         
-        // Fetch leads submitted by partner
+        // Fetch leads submitted by the partner directly
         const submittedLeadsQuery = query(collection(firestore, 'contact_leads'), where('referredByPartnerId', '==', user.uid));
         const submittedLeadsSnap = await getDocs(submittedLeadsQuery);
         setSubmittedLeads(submittedLeadsSnap.docs.map(doc => ({...doc.data() as ContactLead, id: doc.id})));
@@ -69,7 +69,9 @@ export default function ReferralDashboardPage() {
         // Fetch projects relevant to this partner
         const projectsQueries: Query<DocumentData>[] = [];
         if (referredUserIds.length > 0) {
-          projectsQueries.push(query(collection(firestore, 'projects'), where('userId', 'in', referredUserIds)));
+          // This query is insecure and will fail security rules. We'll rely on the referredByPartnerId query for now.
+          // In a real-world scenario, this might need a Cloud Function to aggregate data.
+          // For the purpose of fixing the current bug, we will primarily rely on referredByPartnerId.
         }
         projectsQueries.push(query(collection(firestore, 'projects'), where('referredByPartnerId', '==', user.uid)));
         
