@@ -89,7 +89,7 @@ export default function ReferralDashboardPage() {
         toast({ 
             variant: 'destructive', 
             title: 'Error Loading Dashboard', 
-            description: getFirebaseErrorMessage(error.code) || error.message 
+            description: error.message 
         });
       } finally {
         setLoading(false);
