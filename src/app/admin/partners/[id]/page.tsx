@@ -48,45 +48,53 @@ export default function PartnerDetailPage() {
 
     setLoading(true);
     try {
-      // Fetch partner details
+      // 1. Fetch partner details first
       const partnerDocRef = doc(firestore, 'users', partnerId);
       const partnerSnap = await getDoc(partnerDocRef);
-      if (!partnerSnap.exists()) {
+      if (!partnerSnap.exists() || partnerSnap.data().role !== 'referral-partner') {
         notFound();
         return;
       }
       const partnerData = { ...partnerSnap.data() as UserProfile, uid: partnerSnap.id };
       setPartner(partnerData);
 
-      const allProjects: Project[] = [];
-      
-      // Query 1: Projects from users referred by code
+      // 2. Prepare project queries
+      const projectsCollection = collection(firestore, 'projects');
+      const queries = [];
+
+      // Query for projects referred directly by partner ID
+      queries.push(query(projectsCollection, where('referredByPartnerId', '==', partnerId)));
+
+      // Query for projects from users who signed up with the partner's code
       if (partnerData.referralCode) {
         const referredUsersQuery = query(collection(firestore, 'users'), where('referredBy', '==', partnerData.referralCode));
         const referredUserSnap = await getDocs(referredUsersQuery);
         const referredUserIds = referredUserSnap.docs.map(d => d.id);
         
         if (referredUserIds.length > 0) {
-           for (let i = 0; i < referredUserIds.length; i += 30) {
+            // Batch the 'in' query for safety
+            for (let i = 0; i < referredUserIds.length; i += 30) {
               const chunk = referredUserIds.slice(i, i + 30);
-              const projectsSubQuery = query(collection(firestore, 'projects'), where('userId', 'in', chunk));
-              const projectsSnap = await getDocs(projectsSubQuery);
-              projectsSnap.forEach(d => allProjects.push({ ...d.data() as Project, id: d.id }));
-           }
+              queries.push(query(projectsCollection, where('userId', 'in', chunk)));
+            }
         }
       }
       
-      // Query 2: Projects from leads submitted by partner
-      const directLeadProjectsQuery = query(collection(firestore, 'projects'), where('referredByPartnerId', '==', partnerId));
-      const directLeadSnap = await getDocs(directLeadProjectsQuery);
-      directLeadSnap.forEach(d => {
-        if (!allProjects.find(p => p.id === d.id)) {
-          allProjects.push({ ...d.data() as Project, id: d.id });
-        }
+      // 3. Execute all project queries
+      const querySnapshots = await Promise.all(queries.map(q => getDocs(q)));
+
+      const projectsMap = new Map<string, Project>();
+      querySnapshots.forEach(snapshot => {
+        snapshot.forEach(d => {
+          if (!projectsMap.has(d.id)) {
+            projectsMap.set(d.id, { ...d.data() as Project, id: d.id });
+          }
+        });
       });
-      
+      const allProjects = Array.from(projectsMap.values());
       setProjects(allProjects);
       
+      // 4. Fetch client profiles for the fetched projects
       const clientIds = new Set(allProjects.map(p => p.userId).filter(id => id && !id.startsWith('unregistered_')));
       if (clientIds.size > 0) {
           const newUsersMap = new Map<string, UserProfile>();
@@ -111,6 +119,7 @@ export default function PartnerDetailPage() {
   
   useEffect(() => {
     fetchData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [firestore, partnerId]);
 
   const getClientName = (project: Project) => {
