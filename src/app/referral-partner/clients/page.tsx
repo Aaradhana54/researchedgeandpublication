@@ -25,7 +25,7 @@ type CombinedReferral = {
     email: string;
     phone?: string;
     referredAt: Date;
-    status: 'Signed Up' | 'Converted' | 'Submitted Lead' | 'Lead Converted';
+    status: 'Signed Up' | 'Submitted Lead';
 }
 
 export default function ReferredClientsPage() {
@@ -60,7 +60,7 @@ export default function ReferredClientsPage() {
             const submittedLeadsSnap = await getDocs(submittedLeadsQuery);
             setSubmittedLeads(submittedLeadsSnap.docs.map(d => ({ ...d.data() as ContactLead, id: d.id })));
 
-            // Fetch all projects related to this partner
+            // Fetch all projects related to this partner to identify conversions
             const projectsByPartnerIdQuery = query(collection(firestore, 'projects'), where('referredByPartnerId', '==', user.uid));
             const projectsByPartnerIdSnap = await getDocs(projectsByPartnerIdQuery);
             const projectsMap = new Map<string, Project>();
@@ -98,27 +98,33 @@ export default function ReferredClientsPage() {
     const convertedUserIds = new Set(convertedProjects.map(p => p.userId));
     const convertedLeadEmails = new Set(convertedProjects.map(p => p.userId.startsWith('unregistered_') ? p.userId.split('_')[1] : null).filter(Boolean));
 
+    // Add referred users who have NOT converted
     referredUsers.forEach(u => {
-        referrals.push({
-            id: u.uid,
-            name: u.name,
-            email: u.email,
-            phone: u.mobile,
-            referredAt: u.createdAt.toDate(),
-            status: convertedUserIds.has(u.uid) ? 'Converted' : 'Signed Up',
-        });
+        if (!convertedUserIds.has(u.uid)) {
+            referrals.push({
+                id: u.uid,
+                name: u.name,
+                email: u.email,
+                phone: u.mobile,
+                referredAt: u.createdAt.toDate(),
+                status: 'Signed Up',
+            });
+        }
     });
 
+    // Add submitted leads who have NOT converted
     submittedLeads.forEach(l => {
         const isConverted = l.status === 'converted' || convertedLeadEmails.has(l.email);
-        referrals.push({
-            id: l.id!,
-            name: l.name,
-            email: l.email,
-            phone: l.phone,
-            referredAt: l.createdAt.toDate(),
-            status: isConverted ? 'Lead Converted' : 'Submitted Lead',
-        });
+        if (!isConverted) {
+            referrals.push({
+                id: l.id!,
+                name: l.name,
+                email: l.email,
+                phone: l.phone,
+                referredAt: l.createdAt.toDate(),
+                status: 'Submitted Lead',
+            });
+        }
     });
 
     return referrals.sort((a,b) => b.referredAt.getTime() - a.referredAt.getTime());
@@ -128,9 +134,6 @@ export default function ReferredClientsPage() {
 
   const getStatusVariant = (status: CombinedReferral['status']) => {
       switch(status) {
-          case 'Converted':
-          case 'Lead Converted': 
-            return 'default';
           case 'Signed Up': return 'secondary';
           case 'Submitted Lead': return 'outline';
           default: return 'outline';
@@ -155,8 +158,8 @@ export default function ReferredClientsPage() {
       </div>
        <Card>
             <CardHeader>
-                <CardTitle>All Referred Clients & Leads</CardTitle>
-                <CardDescription>This table shows everyone referred by you, either via sign-up or manual submission.</CardDescription>
+                <CardTitle>Prospective Clients & Leads</CardTitle>
+                <CardDescription>This table shows everyone you referred who has not yet converted to a project.</CardDescription>
             </CardHeader>
             <CardContent>
                 {combinedReferrals && combinedReferrals.length > 0 ? (
@@ -188,8 +191,8 @@ export default function ReferredClientsPage() {
                 ) : (
                      <div className="text-center p-12 text-muted-foreground">
                         <Users className="mx-auto w-10 h-10 mb-4" />
-                        <h3 className="text-lg font-semibold">No Referrals Yet</h3>
-                        <p className="text-sm">Submit a lead from the dashboard to start earning commissions.</p>
+                        <h3 className="text-lg font-semibold">No Pending Referrals</h3>
+                        <p className="text-sm">Submit a new lead or wait for existing ones to sign up.</p>
                     </div>
                 )}
             </CardContent>
