@@ -49,6 +49,7 @@ import { useEffect } from 'react';
 const dashboardNavItems = [
   { href: '/referral-partner/dashboard', label: 'Overview', icon: <LayoutGrid /> },
   { href: '/referral-partner/clients', label: 'Referred Clients', icon: <Users /> },
+  { href: '/referral-partner/converted-leads', label: 'Converted Leads', icon: <CheckCircle /> },
   { href: '/referral-partner/marketing', label: 'Marketing Kit', icon: <Paintbrush /> },
   { href: '/', label: 'Back to Site', icon: <Globe /> },
 ];
