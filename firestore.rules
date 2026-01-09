@@ -122,9 +122,9 @@ service cloud.firestore {
     }
     
     match /contact_leads/{contactLeadId} {
-      allow create: if true;
+      allow create: if request.auth == null || (isReferralPartner() && request.resource.data.referredByPartnerId == request.auth.uid);
       allow read, list: if isAdmin() || isSalesTeam() || (isReferralPartner() && request.query.referredByPartnerId == request.auth.uid);
-      allow update: if isSalesTeam();
+      allow update: if isSalesTeam() || isAdmin() || isSalesManager();
       allow delete: if isAdmin();
     }
 
