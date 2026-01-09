@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -22,8 +23,8 @@ import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '../ui/form';
 import type { Project } from '@/lib/types';
 import { createUserAsAdmin } from '@/firebase/auth';
-import { doc, updateDoc, getFirestore } from 'firebase/firestore';
-import { useFirebaseApp } from '@/firebase';
+import { doc, updateDoc } from 'firebase/firestore';
+import { useFirestore } from '@/firebase';
 
 const CreateClientSchema = z.object({
   name: z.string().min(1, 'Client name is required.'),
@@ -43,8 +44,7 @@ export function CreateClientAccountDialog({ project, onAccountCreated }: CreateC
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
-  const app = useFirebaseApp();
-  const firestore = getFirestore(app);
+  const firestore = useFirestore();
 
   const clientEmail = project.userId.startsWith('unregistered_') ? project.userId.split('_')[1] : '';
 
