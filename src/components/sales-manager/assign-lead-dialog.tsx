@@ -20,7 +20,7 @@ import { useToast } from '@/hooks/use-toast';
 import { LoaderCircle, Users } from 'lucide-react';
 import type { Project, UserProfile, ContactLead } from '@/lib/types';
 import { useFirestore } from '@/firebase';
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, updateDoc, writeBatch, serverTimestamp } from 'firebase/firestore';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '../ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
@@ -66,18 +66,38 @@ export function AssignLeadDialog({ children, lead, leadType, salesTeam, onLeadAs
     setError(null);
 
     try {
+        const batch = writeBatch(firestore);
+        
+        // 1. Update the lead document
         const collectionName = leadType === 'project' ? 'projects' : 'contact_leads';
         const leadDocRef = doc(firestore, collectionName, lead.id);
         
-        const updateData = {
+        batch.update(leadDocRef, {
             assignedSalesId: data.assignedSalesId,
-        };
+        });
 
-        await updateDoc(leadDocRef, updateData);
+        // 2. Create the chat document
+        const assignedUser = salesTeam.find(member => member.uid === data.assignedSalesId);
+        const project = lead as Project; // Cast to access userId
+
+        if (project.userId && assignedUser) {
+            const chatDocRef = doc(firestore, 'chats', lead.id);
+            batch.set(chatDocRef, {
+                projectId: lead.id,
+                participants: [project.userId, assignedUser.uid],
+                participantNames: {
+                  [project.userId]: (project as any).clientName || 'Client',
+                  [assignedUser.uid]: assignedUser.name,
+                },
+                createdAt: serverTimestamp(),
+            });
+        }
+
+        await batch.commit();
         
         toast({
-            title: 'Lead Assigned!',
-            description: 'The lead has been assigned to the selected sales team member.',
+            title: 'Lead Assigned & Chat Created!',
+            description: 'The lead has been assigned and a chat room is now active.',
         });
         
         onLeadAssigned();
@@ -90,7 +110,6 @@ export function AssignLeadDialog({ children, lead, leadType, salesTeam, onLeadAs
             operation: 'update',
             requestResourceData: { assignedSalesId: data.assignedSalesId },
           }, err);
-          // THIS IS THE FIX: Re-throw the error to make it visible
           throw permissionError;
         }
         console.error(err);

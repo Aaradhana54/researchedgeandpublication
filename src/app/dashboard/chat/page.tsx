@@ -83,7 +83,14 @@ export default function ClientChatPage() {
             
         } catch (err: any) {
             console.error("CHAT LOAD ERROR:", err);
-            setError(`An unexpected error occurred: ${err.message}. This can happen if security rules for 'projects' or 'users' are incorrect.`);
+            // Throw the actual error for better debugging
+            if (err.code === 'permission-denied') {
+              throw new FirestorePermissionError({
+                path: 'projects, users, or chats',
+                operation: 'get'
+              }, err);
+            }
+            setError(`An unexpected error occurred: ${err.message}.`);
         } finally {
             setLoading(false);
         }
