@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { ReferClientDialog } from '@/components/referral-partner/refer-client-dialog';
 import { Input } from '@/components/ui/input';
+import { getFirebaseErrorMessage } from '@/firebase/errors';
 
 
 function StatCard({ title, value, icon }: { title: string, value: string | number, icon: React.ReactNode }) {
@@ -83,9 +84,13 @@ export default function ReferralDashboardPage() {
         });
         setPartnerProjects(Array.from(projectsMap.values()));
 
-      } catch (error) {
+      } catch (error: any) {
         console.error("Error fetching partner dashboard data:", error);
-        toast({ variant: 'destructive', title: 'Error', description: (error as Error).message || 'Could not load dashboard data.'});
+        toast({ 
+            variant: 'destructive', 
+            title: 'Error Loading Dashboard', 
+            description: getFirebaseErrorMessage(error.code) || error.message 
+        });
       } finally {
         setLoading(false);
       }
