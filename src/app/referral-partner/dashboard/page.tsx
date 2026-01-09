@@ -79,13 +79,17 @@ export default function ReferralDashboardPage() {
         
         const referredUserIds = fetchedReferredUsers.map(u => u.uid);
         if (referredUserIds.length > 0) {
-            const projectsByUserIdsQuery = query(collection(firestore, 'projects'), where('userId', 'in', referredUserIds));
+          // Batch the 'in' query for safety
+          for (let i = 0; i < referredUserIds.length; i += 30) {
+            const chunk = referredUserIds.slice(i, i + 30);
+            const projectsByUserIdsQuery = query(collection(firestore, 'projects'), where('userId', 'in', chunk));
             const projectsByUserIdsSnap = await getDocs(projectsByUserIdsQuery);
             projectsByUserIdsSnap.forEach(doc => {
                 if(!projectsMap.has(doc.id)) {
                   projectsMap.set(doc.id, {...doc.data() as Project, id: doc.id});
                 }
             });
+          }
         }
         
         setPartnerProjects(Array.from(projectsMap.values()));
