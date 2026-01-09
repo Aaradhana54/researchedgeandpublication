@@ -40,12 +40,13 @@ export default function CommissionsPage() {
         
         try {
             const projectsMap = new Map<string, Project>();
+            const convertedStatuses = ['approved', 'in-progress', 'completed'];
 
             // Query for projects converted from leads submitted directly by the partner
             const directLeadsQuery = query(
                 collection(firestore, 'projects'),
                 where('referredByPartnerId', '==', user.uid),
-                where('status', 'in', ['approved', 'in-progress', 'completed'])
+                where('status', 'in', convertedStatuses)
             );
             const directLeadsSnap = await getDocs(directLeadsQuery);
             directLeadsSnap.forEach(doc => {
@@ -64,7 +65,7 @@ export default function CommissionsPage() {
                      const referredProjectsQuery = query(
                         collection(firestore, 'projects'),
                         where('userId', 'in', referredUserIds),
-                        where('status', 'in', ['approved', 'in-progress', 'completed'])
+                        where('status', 'in', convertedStatuses)
                     );
                     const referredProjectsSnap = await getDocs(referredProjectsQuery);
                     referredProjectsSnap.forEach(doc => {
