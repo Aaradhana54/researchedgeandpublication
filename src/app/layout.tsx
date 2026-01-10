@@ -14,9 +14,10 @@ export const metadata: Metadata = {
   title: 'Research Edge and Publication',
   description: 'From Research to Publication, All in One Place',
   verification: {
-    google: "9ckCN5sZBAS8y_l397o_wZEIPjhwoYmfsw6Q7DFdEX8"
+    google: "4-hY1r341SigHpL6-eIC5lwkx3_KvrjaKjNTQ7Qi0q0"
   }
 };
+
 
 export default function RootLayout({
   children,
