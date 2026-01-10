@@ -2,9 +2,9 @@
 'use client';
 
 import { useUser } from '@/firebase/auth/use-user';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { FilePlus, LoaderCircle } from 'lucide-react';
+import { FilePlus, LoaderCircle, ArrowRight } from 'lucide-react';
 import { SelectProjectTypeDialog } from '@/components/dashboard/select-project-type-dialog';
 import { useCollection, useFirestore } from '@/firebase';
 import { collection, query, where, orderBy } from 'firebase/firestore';
@@ -60,20 +60,20 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8">
-      <div className="mb-8">
+    <div className="flex-1 space-y-8 p-4 sm:p-6 lg:p-8 dashboard-bg">
+      <div className="bg-background/80 backdrop-blur-sm rounded-xl p-6 shadow-soft border">
         <h1 className="text-3xl font-bold tracking-tight text-primary">
           {isNewUser ? `Welcome, ${user.name}!` : `Welcome back, ${user.name}!`}
         </h1>
         <p className="text-lg text-muted-foreground">
           {isNewUser
-            ? "You're ready to start your first project."
+            ? "Let's get your first project started."
             : "Here's a quick overview of your account."}
         </p>
       </div>
 
       {isNewUser ? (
-        <Card className="w-full max-w-2xl shadow-soft">
+        <Card className="w-full max-w-2xl shadow-lift border-primary border-2">
           <CardHeader>
             <CardTitle>Start a New Project</CardTitle>
             <CardDescription>
@@ -125,6 +125,13 @@ export default function DashboardPage() {
                                 {project.topic || 'No topic specified'}
                             </p>
                         </CardContent>
+                        <CardFooter>
+                           <Button variant="ghost" size="sm" asChild className="ml-auto">
+                             <Link href={`/dashboard/projects/${project.id}`}>
+                               View Details <ArrowRight className="ml-2"/>
+                             </Link>
+                           </Button>
+                        </CardFooter>
                     </Card>
                 ))}
             </div>
@@ -133,3 +140,5 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+    

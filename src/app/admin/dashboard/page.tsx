@@ -23,7 +23,7 @@ import {
 } from 'recharts';
 import { collection, query, getDocs } from 'firebase/firestore';
 
-import { useCollection, useFirestore } from '@/firebase';
+import { useCollection, useFirestore, useUser } from '@/firebase';
 import type { UserProfile, Project, ContactLead } from '@/lib/types';
 import {
   Card,
@@ -78,6 +78,7 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 export default function AdminDashboardPage() {
+  const { user: currentUser } = useUser();
   const firestore = useFirestore();
   const [userCount, setUserCount] = useState(0);
 
@@ -147,10 +148,12 @@ export default function AdminDashboardPage() {
 
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
-        <p className="text-muted-foreground">An overview of your platform's activity.</p>
+    <div className="flex-1 space-y-8 p-4 sm:p-6 lg:p-8 dashboard-bg">
+      <div className="bg-background/80 backdrop-blur-sm rounded-xl p-6 shadow-soft border">
+        <h1 className="text-3xl font-bold tracking-tight text-primary">Admin Dashboard</h1>
+        <p className="text-lg text-muted-foreground">
+          Welcome back, {currentUser?.name}! Here's an overview of your platform's activity.
+        </p>
       </div>
 
       {loading ? (
@@ -233,3 +236,5 @@ export default function AdminDashboardPage() {
     </div>
   );
 }
+
+    

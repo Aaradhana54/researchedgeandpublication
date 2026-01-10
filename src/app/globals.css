@@ -306,5 +306,18 @@ body {
       -ms-overflow-style: none;  /* IE and Edge */
       scrollbar-width: none;  /* Firefox */
     }
+
+    .dashboard-bg {
+        background-color: hsl(var(--secondary));
+        background-image:
+          radial-gradient(at 88% 3%, hsl(var(--primary) / 0.1) 0px, transparent 50%),
+          radial-gradient(at 62% 63%, hsl(var(--primary) / 0.1) 0px, transparent 50%),
+          radial-gradient(at 95% 79%, hsl(var(--accent) / 0.1) 0px, transparent 50%),
+          radial-gradient(at 12% 98%, hsl(var(--primary) / 0.1) 0px, transparent 50%),
+          radial-gradient(at 35% 2%, hsl(var(--accent) / 0.05) 0px, transparent 50%),
+          radial-gradient(at 8% 39%, hsl(var(--accent) / 0.1) 0px, transparent 50%);
+    }
   
 }
+
+    
