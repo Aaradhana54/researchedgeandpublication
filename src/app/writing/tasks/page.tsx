@@ -50,7 +50,7 @@ export default function MyTasksPage() {
     return query(
       collection(firestore, 'tasks'), 
       where('assignedTo', '==', user.uid),
-      where('status', '!=', 'completed'),
+      where('status', 'in', ['pending', 'in-progress']),
       orderBy('createdAt', 'desc')
     );
   }, [firestore, user]);
