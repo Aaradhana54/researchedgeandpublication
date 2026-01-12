@@ -66,15 +66,15 @@ function SalesSidebar() {
   return (
     <Sidebar>
       <SidebarHeader>
+        <Logo />
+      </SidebarHeader>
+      <SidebarContent>
         <SheetHeader>
           <SheetTitle className="sr-only">Sales Dashboard Menu</SheetTitle>
           <SheetDescription className="sr-only">
             Main navigation for the sales dashboard.
           </SheetDescription>
         </SheetHeader>
-        <Logo />
-      </SidebarHeader>
-      <SidebarContent>
         <SidebarMenu>
           {dashboardNavItems.map((item) => (
             <SidebarMenuItem key={item.label}>

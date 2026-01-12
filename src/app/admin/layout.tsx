@@ -99,15 +99,15 @@ function AdminSidebar() {
   return (
     <Sidebar>
       <SidebarHeader>
+        <Logo />
+      </SidebarHeader>
+      <SidebarContent>
         <SheetHeader>
           <SheetTitle className="sr-only">Admin Menu</SheetTitle>
           <SheetDescription className="sr-only">
             Main navigation for the admin dashboard.
           </SheetDescription>
         </SheetHeader>
-        <Logo />
-      </SidebarHeader>
-      <SidebarContent>
         <SidebarMenu>
           {adminNavItems.map((item) => (
             <SidebarMenuItem key={item.label}>
