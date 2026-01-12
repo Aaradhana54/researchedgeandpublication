@@ -95,7 +95,7 @@ export function Header() {
                   </Button>
                 </SheetTrigger>
                 <SheetContent side="left" className="w-[280px]">
-                  <SheetHeader className="border-b pb-4">
+                  <SheetHeader>
                       <SheetTitle className="sr-only">Main Menu</SheetTitle>
                       <SheetDescription className="sr-only">Navigate the Research Edge and Publication website.</SheetDescription>
                       <Logo />

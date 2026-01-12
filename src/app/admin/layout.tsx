@@ -63,6 +63,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { LoaderCircle } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 
 const adminNavItems = [
   { href: '/admin/dashboard', label: 'Overview', icon: <LayoutGrid /> },
@@ -97,6 +98,12 @@ function AdminSidebar() {
 
   return (
     <Sidebar>
+      <SheetHeader>
+        <SheetTitle className="sr-only">Admin Menu</SheetTitle>
+        <SheetDescription className="sr-only">
+          Main navigation for the admin dashboard.
+        </SheetDescription>
+      </SheetHeader>
       <SidebarHeader>
         <Logo />
       </SidebarHeader>

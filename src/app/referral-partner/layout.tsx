@@ -45,6 +45,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { LoaderCircle } from 'lucide-react';
 import { useEffect } from 'react';
+import { SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 
 const dashboardNavItems = [
   { href: '/referral-partner/dashboard', label: 'Overview', icon: <LayoutGrid /> },
@@ -70,6 +71,12 @@ function PartnerSidebar() {
 
   return (
     <Sidebar>
+      <SheetHeader>
+        <SheetTitle className="sr-only">Partner Dashboard Menu</SheetTitle>
+        <SheetDescription className="sr-only">
+          Main navigation for the referral partner dashboard.
+        </SheetDescription>
+      </SheetHeader>
       <SidebarHeader>
         <Logo />
       </SidebarHeader>

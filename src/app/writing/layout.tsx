@@ -44,6 +44,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { LoaderCircle } from 'lucide-react';
 import { useEffect } from 'react';
+import { SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 
 const dashboardNavItems = [
   { href: '/writing/dashboard', label: 'Overview', icon: <LayoutGrid /> },
@@ -69,6 +70,12 @@ function WritingSidebar() {
 
   return (
     <Sidebar>
+      <SheetHeader>
+        <SheetTitle className="sr-only">Writer Dashboard Menu</SheetTitle>
+        <SheetDescription className="sr-only">
+          Main navigation for the writer dashboard.
+        </SheetDescription>
+      </SheetHeader>
       <SidebarHeader>
         <Logo />
       </SidebarHeader>

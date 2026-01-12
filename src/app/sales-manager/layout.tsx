@@ -43,6 +43,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { LoaderCircle } from 'lucide-react';
 import { useEffect } from 'react';
+import { SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 
 const dashboardNavItems = [
   { href: '/sales-manager/dashboard', label: 'Overview', icon: <LayoutGrid /> },
@@ -68,6 +69,12 @@ function SalesManagerSidebar() {
 
   return (
     <Sidebar>
+      <SheetHeader>
+        <SheetTitle className="sr-only">Sales Manager Dashboard Menu</SheetTitle>
+        <SheetDescription className="sr-only">
+          Main navigation for the sales manager dashboard.
+        </SheetDescription>
+      </SheetHeader>
       <SidebarHeader>
         <Logo />
       </SidebarHeader>

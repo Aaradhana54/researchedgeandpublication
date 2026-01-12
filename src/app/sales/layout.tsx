@@ -41,6 +41,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { LoaderCircle } from 'lucide-react';
 import { useEffect } from 'react';
+import { SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 
 const dashboardNavItems = [
   { href: '/sales/dashboard', label: 'Dashboard', icon: <LayoutGrid /> },
@@ -64,6 +65,12 @@ function SalesSidebar() {
 
   return (
     <Sidebar>
+      <SheetHeader>
+        <SheetTitle className="sr-only">Sales Dashboard Menu</SheetTitle>
+        <SheetDescription className="sr-only">
+          Main navigation for the sales dashboard.
+        </SheetDescription>
+      </SheetHeader>
       <SidebarHeader>
         <Logo />
       </SidebarHeader>
