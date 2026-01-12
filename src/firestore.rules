@@ -111,8 +111,8 @@ service cloud.firestore {
       allow list: if request.auth != null && (
                     isAdmin() || 
                     isSalesManager() || 
-                    isSalesTeam() ||
-                    isWritingTeam() ||
+                    isSalesTeam() || 
+                    (isWritingTeam() && request.query.assignedWriterId == request.auth.uid) ||
                     (hasRole('client') && request.query.userId == request.auth.uid) ||
                     (
                       isReferralPartner() &&
@@ -193,7 +193,8 @@ service cloud.firestore {
     }
     
     match /tasks/{taskId} {
-      allow read, list: if isAdmin() || isWritingTeam() || isSalesManager();
+      allow read: if isAdmin() || isWritingTeam() || isSalesManager();
+      allow list: if isAdmin() || (isWritingTeam() && request.query.assignedTo == request.auth.uid) || isSalesManager();
       allow create, update, delete: if isAdmin() || isWritingTeam() || isSalesManager();
     }
 
