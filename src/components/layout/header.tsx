@@ -85,8 +85,66 @@ export function Header() {
       )}
     >
       <div className="container mx-auto flex h-20 items-center justify-between px-4">
-        <Logo />
-
+        <div className="flex items-center gap-2">
+            <Logo />
+            <div className="md:hidden">
+              <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+                <SheetTrigger asChild>
+                  <Button variant="ghost" size="icon">
+                    <Menu className="h-6 w-6" />
+                    <span className="sr-only">Open menu</span>
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="left" className="w-[280px]">
+                  <SheetHeader className="border-b pb-4">
+                      <SheetTitle className="sr-only">Main Menu</SheetTitle>
+                      <SheetDescription className="sr-only">Navigate the Research Edge and Publication website.</SheetDescription>
+                      <Logo />
+                  </SheetHeader>
+                  <div className="flex flex-col h-full">
+                    <nav className="flex flex-col gap-4 mt-8">
+                      {navItems.map((item) => (
+                        <Link
+                          key={item.href}
+                          href={`/#${item.href}`}
+                          onClick={() => setIsMobileMenuOpen(false)}
+                          className={cn(
+                            'text-lg font-medium text-foreground/80 transition-colors hover:text-primary',
+                            activeId === item.href && 'text-primary'
+                          )}
+                        >
+                          {item.label}
+                        </Link>
+                      ))}
+                    </nav>
+                     <div className="mt-auto flex flex-col gap-2 border-t pt-4">
+                        {!loading && user ? (
+                          <>
+                            <Button asChild onClick={() => setIsMobileMenuOpen(false)}>
+                              <Link href={getPortalPath()}>Go to Portal</Link>
+                            </Button>
+                            <Button variant="outline" onClick={() => { handleLogout(); setIsMobileMenuOpen(false); }}>
+                              <LogIn className="mr-2 h-4 w-4" />
+                              Log Out
+                            </Button>
+                          </>
+                        ) : (
+                           <>
+                             <Button asChild onClick={() => { router.push('/login'); setIsMobileMenuOpen(false); }}>
+                                <Link href="/login">Client Login</Link>
+                              </Button>
+                               <Button variant="outline" asChild onClick={() => { router.push('/admin/login'); setIsMobileMenuOpen(false); }}>
+                                <Link href="/admin/login">Admin Login</Link>
+                              </Button>
+                           </>
+                        )}
+                     </div>
+                  </div>
+                </SheetContent>
+              </Sheet>
+            </div>
+        </div>
+        
         <nav className="hidden md:flex items-center gap-1">
           {navItems.map((item) => (
             <Link
@@ -163,63 +221,6 @@ export function Header() {
             </DropdownMenu>
           )}
 
-
-          <div className="md:hidden">
-            <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon">
-                  <Menu className="h-6 w-6" />
-                  <span className="sr-only">Open menu</span>
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="right" className="w-[280px]">
-                <SheetHeader className="border-b pb-4">
-                    <SheetTitle className="sr-only">Main Menu</SheetTitle>
-                    <SheetDescription className="sr-only">Navigate the Research Edge and Publication website.</SheetDescription>
-                    <Logo />
-                </SheetHeader>
-                <div className="flex flex-col h-full">
-                  <nav className="flex flex-col gap-4 mt-8">
-                    {navItems.map((item) => (
-                      <Link
-                        key={item.href}
-                        href={`/#${item.href}`}
-                        onClick={() => setIsMobileMenuOpen(false)}
-                        className={cn(
-                          'text-lg font-medium text-foreground/80 transition-colors hover:text-primary',
-                          activeId === item.href && 'text-primary'
-                        )}
-                      >
-                        {item.label}
-                      </Link>
-                    ))}
-                  </nav>
-                   <div className="mt-auto flex flex-col gap-2 border-t pt-4">
-                      {!loading && user ? (
-                        <>
-                          <Button asChild onClick={() => setIsMobileMenuOpen(false)}>
-                            <Link href={getPortalPath()}>Go to Portal</Link>
-                          </Button>
-                          <Button variant="outline" onClick={() => { handleLogout(); setIsMobileMenuOpen(false); }}>
-                            <LogIn className="mr-2 h-4 w-4" />
-                            Log Out
-                          </Button>
-                        </>
-                      ) : (
-                         <>
-                           <Button asChild onClick={() => { router.push('/login'); setIsMobileMenuOpen(false); }}>
-                              <Link href="/login">Client Login</Link>
-                            </Button>
-                             <Button variant="outline" asChild onClick={() => { router.push('/admin/login'); setIsMobileMenuOpen(false); }}>
-                              <Link href="/admin/login">Admin Login</Link>
-                            </Button>
-                         </>
-                      )}
-                   </div>
-                </div>
-              </SheetContent>
-            </Sheet>
-          </div>
         </div>
       </div>
     </header>
