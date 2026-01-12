@@ -2,7 +2,7 @@
 'use client';
 
 import { useMemo, useState, useEffect } from 'react';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
 import { useFirestore, useUser } from '@/firebase';
 import type { Task, Project } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -42,7 +42,7 @@ export default function MyTasksPage() {
   const firestore = useFirestore();
   
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [projects, setProjects] = useState<Project[]>([]);
+  const [projectsMap, setProjectsMap] = useState<Map<string, Project>>(new Map());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
@@ -70,15 +70,23 @@ export default function MyTasksPage() {
             activeTasks.sort((a, b) => (b.createdAt?.toDate()?.getTime() || 0) - (a.createdAt?.toDate()?.getTime() || 0));
             setTasks(activeTasks);
 
-            // 2. If there are tasks, fetch the associated projects
+            // 2. If there are tasks, fetch each associated project individually
             if (activeTasks.length > 0) {
-                const projectIds = Array.from(new Set(activeTasks.map(t => t.projectId)));
-                const projectsQuery = query(collection(firestore, 'projects'), where('__name__', 'in', projectIds));
-                const projectsSnapshot = await getDocs(projectsQuery);
-                const fetchedProjects = projectsSnapshot.docs.map(doc => ({ ...doc.data() as Project, id: doc.id }));
-                setProjects(fetchedProjects);
+                const newProjectsMap = new Map<string, Project>();
+                
+                await Promise.all(activeTasks.map(async (task) => {
+                    if (newProjectsMap.has(task.projectId)) return;
+
+                    const projectRef = doc(firestore, 'projects', task.projectId);
+                    const projectSnap = await getDoc(projectRef);
+
+                    if (projectSnap.exists()) {
+                        newProjectsMap.set(task.projectId, { ...projectSnap.data() as Project, id: projectSnap.id });
+                    }
+                }));
+                setProjectsMap(newProjectsMap);
             } else {
-                setProjects([]);
+                setProjectsMap(new Map());
             }
 
         } catch (err: any) {
@@ -99,12 +107,8 @@ export default function MyTasksPage() {
     fetchTasksAndProjects();
 
   }, [firestore, user, userLoading]);
-
-  const projectsMap = useMemo(() => {
-    if (!projects) return new Map();
-    return new Map(projects.map((project) => [project.id, project]));
-  }, [projects]);
   
+
   if (!user && !userLoading) {
       return (
          <div className="flex justify-center items-center h-full p-8">
