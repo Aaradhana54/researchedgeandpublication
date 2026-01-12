@@ -73,12 +73,6 @@ function SalesManagerSidebar() {
         <Logo />
       </SidebarHeader>
       <SidebarContent>
-        <SheetHeader>
-          <SheetTitle className="sr-only">Sales Manager Dashboard Menu</SheetTitle>
-          <SheetDescription className="sr-only">
-            Main navigation for the sales manager dashboard.
-          </SheetDescription>
-        </SheetHeader>
         <SidebarMenu>
           {dashboardNavItems.map((item) => (
             <SidebarMenuItem key={item.label}>

@@ -75,12 +75,6 @@ function PartnerSidebar() {
         <Logo />
       </SidebarHeader>
       <SidebarContent>
-        <SheetHeader>
-          <SheetTitle className="sr-only">Partner Dashboard Menu</SheetTitle>
-          <SheetDescription className="sr-only">
-            Main navigation for the referral partner dashboard.
-          </SheetDescription>
-        </SheetHeader>
         <SidebarMenu>
           {dashboardNavItems.map((item) => (
             <SidebarMenuItem key={item.label}>
