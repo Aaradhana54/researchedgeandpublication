@@ -41,86 +41,81 @@ export default function MyTasksPage() {
   const { user, loading: userLoading } = useUser();
   const firestore = useFirestore();
   
-  const [projectsMap, setProjectsMap] = useState<Map<string, Project>>(new Map());
-  const [loadingProjects, setLoadingProjects] = useState(true);
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [loadingTasks, setLoadingTasks] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  const tasksQuery = useMemo(() => {
+  const projectsQuery = useMemo(() => {
     if (!firestore || !user) return null;
-    // Simplified query to avoid composite index. Filtering will be done on the client.
     return query(
-      collection(firestore, 'tasks'), 
-      where('assignedTo', '==', user.uid)
+        collection(firestore, 'projects'),
+        where('assignedWriterId', '==', user.uid)
     );
   }, [firestore, user]);
-  
-  const { data: allTasks, loading: loadingTasks, error: tasksError } = useCollection<Task>(tasksQuery);
 
-  // Filter and sort tasks on the client-side
-  const tasks = useMemo(() => {
-    if (!allTasks) return [];
-    return allTasks
-      .filter(task => task.status === 'pending' || task.status === 'in-progress')
-      .sort((a, b) => b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime());
-  }, [allTasks]);
-
+  const { data: projects, loading: loadingProjects, error: projectsError } = useCollection<Project>(projectsQuery);
 
   useEffect(() => {
-    if (tasksError) {
-      setError(tasksError);
-    }
-  }, [tasksError]);
-
+      if (projectsError) {
+          setError(projectsError);
+      }
+  }, [projectsError]);
 
   useEffect(() => {
-    if (!firestore || !tasks) {
-        setLoadingProjects(false);
+    if (!firestore || !projects) {
+        if(!loadingProjects) setLoadingTasks(false);
         return;
-    };
+    }
 
-    const fetchProjects = async () => {
-        if (tasks.length === 0) {
-            setProjectsMap(new Map());
-            setLoadingProjects(false);
+    const fetchTasksForProjects = async () => {
+        if (projects.length === 0) {
+            setTasks([]);
+            setLoadingTasks(false);
             return;
         }
-        
-        setLoadingProjects(true);
+
+        setLoadingTasks(true);
         try {
-            const projectIds = Array.from(new Set(tasks.map(t => t.projectId)));
-            const newProjectsMap = new Map<string, Project>();
+            const projectIds = projects.map(p => p.id);
+            const fetchedTasks: Task[] = [];
             
-            // Fetch projects one by one to respect security rules
-            await Promise.all(projectIds.map(async (id) => {
-                if (projectsMap.has(id)) return; // Avoid re-fetching if already present
-                const projectRef = doc(firestore, 'projects', id);
-                const projectSnap = await getDoc(projectRef);
-                if (projectSnap.exists()) {
-                    newProjectsMap.set(id, { ...projectSnap.data() as Project, id: projectSnap.id });
+            // Query for all tasks related to the user's assigned projects
+            const tasksQuery = query(collection(firestore, 'tasks'), where('projectId', 'in', projectIds));
+            const tasksSnapshot = await getDocs(tasksQuery);
+
+            tasksSnapshot.forEach(doc => {
+                const task = { ...doc.data() as Task, id: doc.id };
+                // Also ensure the task is assigned to the current user
+                if (task.assignedTo === user?.uid) {
+                    fetchedTasks.push(task);
                 }
-            }));
+            });
             
-            setProjectsMap(prevMap => new Map([...prevMap, ...newProjectsMap]));
+            const activeTasks = fetchedTasks
+              .filter(task => task.status === 'pending' || task.status === 'in-progress')
+              .sort((a, b) => b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime());
+
+            setTasks(activeTasks);
+
         } catch (err: any) {
-             if (err.code === 'permission-denied') {
-                const permissionError = new FirestorePermissionError({
-                    path: `projects`,
-                    operation: 'get',
-                }, err);
-                errorEmitter.emit('permission-error', permissionError);
-            }
-            console.error("Failed to fetch associated projects:", err);
+            console.error("Failed to fetch tasks for projects:", err);
             setError(err);
         } finally {
-            setLoadingProjects(false);
+            setLoadingTasks(false);
         }
     };
     
-    fetchProjects();
+    fetchTasksForProjects();
 
-  }, [firestore, tasks]);
+  }, [firestore, projects, user?.uid, loadingProjects]);
   
-  const loading = userLoading || loadingTasks || loadingProjects;
+  const projectsMap = useMemo(() => {
+    if (!projects) return new Map();
+    return new Map(projects.map((project) => [project.id, project]));
+  }, [projects]);
+  
+
+  const loading = userLoading || loadingProjects || loadingTasks;
 
   if (!user && !userLoading) {
       return (

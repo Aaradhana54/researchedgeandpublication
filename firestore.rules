@@ -111,9 +111,7 @@ service cloud.firestore {
       allow read: if isOwner(resource.data.userId) 
                     || isAdmin() 
                     || isSalesTeam() 
-                    || isWriterAssigned(resource.data.assignedWriterId)
-                    || isWriterAssignedToTaskForProject(projectId)
-                    || (isReferralPartner() && resource.data.referredByPartnerId == request.auth.uid);
+                    || isWriterAssigned(resource.data.assignedWriterId);
       allow update: if isOwner(resource.data.userId) || isAdmin() || isSalesTeam() || (isWriterAssigned(resource.data.assignedWriterId) && request.resource.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt']) && request.resource.data.status == 'completed');
       allow delete: if isOwner(resource.data.userId) || isAdmin();
       
@@ -202,7 +200,7 @@ service cloud.firestore {
     }
     
     match /tasks/{taskId} {
-      allow read: if isAdmin() || isWritingTeam() || isSalesManager();
+      allow read: if isAdmin() || isWriterAssigned(resource.data.assignedTo) || isSalesManager();
       allow list: if isAdmin() || (isWritingTeam() && request.query.assignedTo == request.auth.uid) || isSalesManager();
       allow create, update, delete: if isAdmin() || isWritingTeam() || isSalesManager();
     }
