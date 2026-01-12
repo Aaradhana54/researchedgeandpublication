@@ -2,8 +2,8 @@
 'use client';
 
 import { useMemo, useState, useEffect } from 'react';
-import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
-import { useFirestore, useUser } from '@/firebase';
+import { collection, query, where, getDocs, doc, getDoc, orderBy } from 'firebase/firestore';
+import { useFirestore, useUser, useCollection } from '@/firebase';
 import type { Task, Project } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoaderCircle, ClipboardList, AlertCircle } from 'lucide-react';
@@ -41,73 +41,79 @@ export default function MyTasksPage() {
   const { user, loading: userLoading } = useUser();
   const firestore = useFirestore();
   
-  const [tasks, setTasks] = useState<Task[]>([]);
   const [projectsMap, setProjectsMap] = useState<Map<string, Project>>(new Map());
-  const [loading, setLoading] = useState(true);
+  const [loadingProjects, setLoadingProjects] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
+  const tasksQuery = useMemo(() => {
+    if (!firestore || !user) return null;
+    return query(
+      collection(firestore, 'tasks'), 
+      where('assignedTo', '==', user.uid),
+      where('status', '!=', 'completed'),
+      orderBy('status'),
+      orderBy('createdAt', 'desc')
+    );
+  }, [firestore, user]);
+  
+  const { data: tasks, loading: loadingTasks, error: tasksError } = useCollection<Task>(tasksQuery);
+
   useEffect(() => {
-    if (!firestore || !user) {
-        if (!userLoading) {
-            setLoading(false);
-        }
+    if (tasksError) {
+      setError(tasksError);
+    }
+  }, [tasksError]);
+
+
+  useEffect(() => {
+    if (!firestore || !tasks) {
+        setLoadingProjects(false);
         return;
     };
 
-    const fetchTasksAndProjects = async () => {
-        setLoading(true);
-        setError(null);
+    const fetchProjects = async () => {
+        if (tasks.length === 0) {
+            setProjectsMap(new Map());
+            setLoadingProjects(false);
+            return;
+        }
+        
+        setLoadingProjects(true);
         try {
-            // 1. Fetch tasks assigned to the user
-            const tasksQuery = query(
-                collection(firestore, 'tasks'), 
-                where('assignedTo', '==', user.uid)
-            );
-            const tasksSnapshot = await getDocs(tasksQuery);
-            const fetchedTasks = tasksSnapshot.docs.map(doc => ({ ...doc.data() as Task, id: doc.id }));
-
-            const activeTasks = fetchedTasks.filter(task => task.status !== 'completed');
-            activeTasks.sort((a, b) => (b.createdAt?.toDate()?.getTime() || 0) - (a.createdAt?.toDate()?.getTime() || 0));
-            setTasks(activeTasks);
-
-            // 2. If there are tasks, fetch each associated project individually
-            if (activeTasks.length > 0) {
-                const newProjectsMap = new Map<string, Project>();
-                
-                await Promise.all(activeTasks.map(async (task) => {
-                    if (newProjectsMap.has(task.projectId)) return;
-
-                    const projectRef = doc(firestore, 'projects', task.projectId);
-                    const projectSnap = await getDoc(projectRef);
-
-                    if (projectSnap.exists()) {
-                        newProjectsMap.set(task.projectId, { ...projectSnap.data() as Project, id: projectSnap.id });
-                    }
-                }));
-                setProjectsMap(newProjectsMap);
-            } else {
-                setProjectsMap(new Map());
-            }
-
+            const projectIds = Array.from(new Set(tasks.map(t => t.projectId)));
+            const newProjectsMap = new Map<string, Project>();
+            
+            // Fetch projects one by one to respect security rules
+            await Promise.all(projectIds.map(async (id) => {
+                if (newProjectsMap.has(id)) return;
+                const projectRef = doc(firestore, 'projects', id);
+                const projectSnap = await getDoc(projectRef);
+                if (projectSnap.exists()) {
+                    newProjectsMap.set(id, { ...projectSnap.data() as Project, id: projectSnap.id });
+                }
+            }));
+            
+            setProjectsMap(newProjectsMap);
         } catch (err: any) {
-            if (err.code === 'permission-denied') {
+             if (err.code === 'permission-denied') {
                 const permissionError = new FirestorePermissionError({
-                    path: `tasks or projects`,
-                    operation: 'list',
+                    path: `projects`,
+                    operation: 'get',
                 }, err);
                 errorEmitter.emit('permission-error', permissionError);
             }
-            console.error("Failed to fetch tasks or projects:", err);
+            console.error("Failed to fetch associated projects:", err);
             setError(err);
         } finally {
-            setLoading(false);
+            setLoadingProjects(false);
         }
     };
     
-    fetchTasksAndProjects();
+    fetchProjects();
 
-  }, [firestore, user, userLoading]);
+  }, [firestore, tasks]);
   
+  const loading = userLoading || loadingTasks || loadingProjects;
 
   if (!user && !userLoading) {
       return (

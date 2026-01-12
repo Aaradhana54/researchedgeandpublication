@@ -47,32 +47,18 @@ export default function WritingDashboardPage() {
   const { user, loading: userLoading } = useUser();
   const firestore = useFirestore();
 
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [loadingTasks, setLoadingTasks] = useState(true);
-  
-  useEffect(() => {
-    if (!user || !firestore) return;
-
-    setLoadingTasks(true);
-    const tasksQuery = query(
-      collection(firestore, 'tasks'),
-      where('assignedTo', '==', user.uid)
-    );
-
-    getDocs(tasksQuery)
-      .then(snapshot => {
-        const userTasks = snapshot.docs.map(doc => doc.data() as Task);
-        setTasks(userTasks);
-      })
-      .catch(console.error)
-      .finally(() => setLoadingTasks(false));
-
+  const tasksQuery = useMemo(() => {
+    if (!user || !firestore) return null;
+    return query(collection(firestore, 'tasks'), where('assignedTo', '==', user.uid));
   }, [user, firestore]);
+  
+  const { data: tasks, loading: loadingTasks } = useCollection<Task>(tasksQuery);
   
 
   const loading = userLoading || loadingTasks;
 
   const stats = useMemo(() => {
+    if (!tasks) return { activeTasks: 0, completedTasks: 0 };
     const activeTasks = tasks.filter(t => t.status !== 'completed').length;
     const completedTasks = tasks.filter(t => t.status === 'completed').length;
     return { activeTasks, completedTasks };
@@ -116,5 +102,3 @@ export default function WritingDashboardPage() {
     </div>
   );
 }
-
-    

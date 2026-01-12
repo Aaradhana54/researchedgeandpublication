@@ -1,10 +1,9 @@
 
-
 'use client';
 
 import { useMemo, useState, useEffect } from 'react';
-import { collection, query, where, getDocs } from 'firebase/firestore';
-import { useFirestore, useUser } from '@/firebase';
+import { collection, query, where, getDocs, doc, getDoc, orderBy } from 'firebase/firestore';
+import { useFirestore, useUser, useCollection } from '@/firebase';
 import type { Task, Project } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoaderCircle, ClipboardList, AlertCircle, CheckCircle2 } from 'lucide-react';
@@ -24,63 +23,84 @@ export default function CompletedTasksPage() {
   const { user, loading: userLoading } = useUser();
   const firestore = useFirestore();
   
-  const [tasks, setTasks] = useState<Task[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loadingProjects, setLoadingProjects] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
+  const tasksQuery = useMemo(() => {
+    if (!firestore || !user) return null;
+    return query(
+      collection(firestore, 'tasks'), 
+      where('assignedTo', '==', user.uid),
+      where('status', '==', 'completed'),
+      orderBy('updatedAt', 'desc')
+    );
+  }, [firestore, user]);
+
+  const { data: tasks, loading: loadingTasks, error: tasksError } = useCollection<Task>(tasksQuery);
+
   useEffect(() => {
-    if (!firestore || !user) {
-        if (!userLoading) {
-            setLoading(false);
+    if (tasksError) {
+      setError(tasksError);
+    }
+  }, [tasksError]);
+
+
+  useEffect(() => {
+    if (!firestore || !tasks) {
+      setLoadingProjects(false);
+      return;
+    }
+
+    const fetchProjects = async () => {
+        if (tasks.length === 0) {
+            setProjects([]);
+            setLoadingProjects(false);
+            return;
         }
-        return;
-    };
 
-    const fetchData = async () => {
-        setLoading(true);
-        setError(null);
+        setLoadingProjects(true);
         try {
-            // 1. Fetch completed tasks for the user
-            const tasksQuery = query(
-                collection(firestore, 'tasks'), 
-                where('assignedTo', '==', user.uid),
-                where('status', '==', 'completed')
-            );
-            const tasksSnapshot = await getDocs(tasksQuery);
-            const fetchedTasks = tasksSnapshot.docs.map(doc => ({ ...doc.data() as Task, id: doc.id }));
-            
-            fetchedTasks.sort((a, b) => (b.updatedAt?.toDate()?.getTime() || 0) - (a.updatedAt?.toDate()?.getTime() || 0));
-            setTasks(fetchedTasks);
+            const projectIds = Array.from(new Set(tasks.map(t => t.projectId)));
+            const fetchedProjects: Project[] = [];
 
-            // 2. If there are tasks, fetch the associated projects in one go
-            if (fetchedTasks.length > 0) {
-                const projectIds = Array.from(new Set(fetchedTasks.map(t => t.projectId)));
-                const projectsQuery = query(collection(firestore, 'projects'), where('__name__', 'in', projectIds));
-                const projectsSnapshot = await getDocs(projectsQuery);
-                const fetchedProjects = projectsSnapshot.docs.map(doc => ({ ...doc.data() as Project, id: doc.id }));
-                setProjects(fetchedProjects);
-            } else {
-                setProjects([]);
+            // Firestore 'in' query is limited to 30 items.
+            // We fetch projects in chunks to stay within this limit and comply with security rules.
+            const projectChunks: string[][] = [];
+            for (let i = 0; i < projectIds.length; i += 30) {
+                projectChunks.push(projectIds.slice(i, i + 30));
             }
 
+            for (const chunk of projectChunks) {
+                if (chunk.length > 0) {
+                    const projectsQuery = query(collection(firestore, 'projects'), where('__name__', 'in', chunk));
+                    const projectsSnapshot = await getDocs(projectsQuery);
+                    projectsSnapshot.forEach(doc => {
+                        fetchedProjects.push({ ...doc.data() as Project, id: doc.id });
+                    });
+                }
+            }
+            setProjects(fetchedProjects);
         } catch (err: any) {
-            console.error("Failed to fetch completed tasks or projects:", err);
+            console.error("Failed to fetch completed task projects:", err);
             setError(err);
         } finally {
-            setLoading(false);
+            setLoadingProjects(false);
         }
     };
     
-    fetchData();
+    fetchProjects();
 
-  }, [firestore, user, userLoading]);
+  }, [firestore, tasks]);
+
 
   const projectsMap = useMemo(() => {
     if (!projects) return new Map();
     return new Map(projects.map((project) => [project.id, project]));
   }, [projects]);
   
+
+  const loading = userLoading || loadingTasks || loadingProjects;
 
   if (!user && !userLoading) {
       return (
