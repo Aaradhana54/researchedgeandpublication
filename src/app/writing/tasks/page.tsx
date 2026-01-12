@@ -51,7 +51,6 @@ export default function MyTasksPage() {
       collection(firestore, 'tasks'), 
       where('assignedTo', '==', user.uid),
       where('status', '!=', 'completed'),
-      orderBy('status'),
       orderBy('createdAt', 'desc')
     );
   }, [firestore, user]);
