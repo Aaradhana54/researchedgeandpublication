@@ -111,7 +111,8 @@ service cloud.firestore {
       allow list: if request.auth != null && (
                     isAdmin() || 
                     isSalesManager() || 
-                    isSalesTeam() || 
+                    isSalesTeam() ||
+                    isWritingTeam() ||
                     (hasRole('client') && request.query.userId == request.auth.uid) ||
                     (
                       isReferralPartner() &&
