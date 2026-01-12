@@ -71,13 +71,13 @@ function PartnerSidebar() {
 
   return (
     <Sidebar>
-      <SheetHeader>
-        <SheetTitle className="sr-only">Partner Dashboard Menu</SheetTitle>
-        <SheetDescription className="sr-only">
-          Main navigation for the referral partner dashboard.
-        </SheetDescription>
-      </SheetHeader>
       <SidebarHeader>
+        <SheetHeader>
+          <SheetTitle className="sr-only">Partner Dashboard Menu</SheetTitle>
+          <SheetDescription className="sr-only">
+            Main navigation for the referral partner dashboard.
+          </SheetDescription>
+        </SheetHeader>
         <Logo />
       </SidebarHeader>
       <SidebarContent>

@@ -98,8 +98,8 @@ export function Header() {
                   <SheetHeader>
                       <SheetTitle className="sr-only">Main Menu</SheetTitle>
                       <SheetDescription className="sr-only">Navigate the Research Edge and Publication website.</SheetDescription>
-                      <Logo />
                   </SheetHeader>
+                  <Logo />
                   <div className="flex flex-col h-full">
                     <nav className="flex flex-col gap-4 mt-8">
                       {navItems.map((item) => (

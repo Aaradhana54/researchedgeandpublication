@@ -69,13 +69,13 @@ function SalesManagerSidebar() {
 
   return (
     <Sidebar>
-      <SheetHeader>
-        <SheetTitle className="sr-only">Sales Manager Dashboard Menu</SheetTitle>
-        <SheetDescription className="sr-only">
-          Main navigation for the sales manager dashboard.
-        </SheetDescription>
-      </SheetHeader>
       <SidebarHeader>
+        <SheetHeader>
+          <SheetTitle className="sr-only">Sales Manager Dashboard Menu</SheetTitle>
+          <SheetDescription className="sr-only">
+            Main navigation for the sales manager dashboard.
+          </SheetDescription>
+        </SheetHeader>
         <Logo />
       </SidebarHeader>
       <SidebarContent>

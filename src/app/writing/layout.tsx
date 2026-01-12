@@ -70,13 +70,13 @@ function WritingSidebar() {
 
   return (
     <Sidebar>
-      <SheetHeader>
-        <SheetTitle className="sr-only">Writer Dashboard Menu</SheetTitle>
-        <SheetDescription className="sr-only">
-          Main navigation for the writer dashboard.
-        </SheetDescription>
-      </SheetHeader>
       <SidebarHeader>
+        <SheetHeader>
+          <SheetTitle className="sr-only">Writer Dashboard Menu</SheetTitle>
+          <SheetDescription className="sr-only">
+            Main navigation for the writer dashboard.
+          </SheetDescription>
+        </SheetHeader>
         <Logo />
       </SidebarHeader>
       <SidebarContent>

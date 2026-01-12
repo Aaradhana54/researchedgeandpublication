@@ -74,13 +74,13 @@ function DashboardSidebar() {
 
   return (
     <Sidebar>
-      <SheetHeader>
-        <SheetTitle className="sr-only">Client Dashboard Menu</SheetTitle>
-        <SheetDescription className="sr-only">
-          Main navigation for the client dashboard.
-        </SheetDescription>
-      </SheetHeader>
       <SidebarHeader>
+        <SheetHeader>
+          <SheetTitle className="sr-only">Client Dashboard Menu</SheetTitle>
+          <SheetDescription className="sr-only">
+            Main navigation for the client dashboard.
+          </SheetDescription>
+        </SheetHeader>
         <Logo />
       </SidebarHeader>
       <SidebarContent>

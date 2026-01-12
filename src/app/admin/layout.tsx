@@ -98,13 +98,13 @@ function AdminSidebar() {
 
   return (
     <Sidebar>
-      <SheetHeader>
-        <SheetTitle className="sr-only">Admin Menu</SheetTitle>
-        <SheetDescription className="sr-only">
-          Main navigation for the admin dashboard.
-        </SheetDescription>
-      </SheetHeader>
       <SidebarHeader>
+        <SheetHeader>
+          <SheetTitle className="sr-only">Admin Menu</SheetTitle>
+          <SheetDescription className="sr-only">
+            Main navigation for the admin dashboard.
+          </SheetDescription>
+        </SheetHeader>
         <Logo />
       </SidebarHeader>
       <SidebarContent>
