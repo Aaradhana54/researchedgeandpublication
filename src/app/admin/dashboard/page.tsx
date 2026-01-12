@@ -148,7 +148,7 @@ export default function AdminDashboardPage() {
 
 
   return (
-    <div className="flex-1 space-y-8 p-4 sm:p-6 lg:p-8 dashboard-bg">
+    <div className="flex-1 space-y-8 p-4 sm:p-6 lg:p-8 dashboard-bg h-full">
       <div className="bg-background/80 backdrop-blur-sm rounded-xl p-6 shadow-soft border">
         <h1 className="text-3xl font-bold tracking-tight text-primary">Admin Dashboard</h1>
         <p className="text-lg text-muted-foreground">

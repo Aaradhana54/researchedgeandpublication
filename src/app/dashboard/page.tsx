@@ -34,7 +34,7 @@ export default function DashboardPage() {
 
   if (!user || loading) {
     return (
-       <div className="flex h-[calc(100vh-5rem)] w-full items-center justify-center bg-background">
+       <div className="flex h-full w-full items-center justify-center bg-background">
         <LoaderCircle className="h-10 w-10 animate-spin text-primary" />
       </div>
     );
@@ -60,7 +60,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="flex-1 space-y-8 p-4 sm:p-6 lg:p-8 dashboard-bg">
+    <div className="flex-1 space-y-8 p-4 sm:p-6 lg:p-8 dashboard-bg h-full">
       <div className="bg-gradient-to-br from-primary/90 to-primary text-primary-foreground rounded-xl p-8 shadow-lift flex items-center justify-between">
         <div>
             <h1 className="text-3xl font-bold tracking-tight">
