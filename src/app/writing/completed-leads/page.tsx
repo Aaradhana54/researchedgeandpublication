@@ -32,12 +32,20 @@ export default function CompletedTasksPage() {
     return query(
       collection(firestore, 'tasks'), 
       where('assignedTo', '==', user.uid),
-      where('status', '==', 'completed'),
-      orderBy('updatedAt', 'desc')
+      where('status', '==', 'completed')
     );
   }, [firestore, user]);
 
   const { data: tasks, loading: loadingTasks, error: tasksError } = useCollection<Task>(tasksQuery);
+
+  const sortedTasks = useMemo(() => {
+    if (!tasks) return [];
+    return [...tasks].sort((a, b) => {
+        if (!a.updatedAt) return 1;
+        if (!b.updatedAt) return -1;
+        return b.updatedAt.toDate().getTime() - a.updatedAt.toDate().getTime();
+    });
+  }, [tasks]);
 
   useEffect(() => {
     if (tasksError) {
@@ -143,7 +151,7 @@ export default function CompletedTasksPage() {
                 <h3 className="text-lg font-semibold">Failed to Load Tasks</h3>
                 <p>{error.message}</p>
             </div>
-          ) : tasks && tasks.length > 0 ? (
+          ) : sortedTasks && sortedTasks.length > 0 ? (
             <Table>
               <TableHeader>
                 <TableRow>
@@ -155,7 +163,7 @@ export default function CompletedTasksPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {tasks.map((task) => {
+                {sortedTasks.map((task) => {
                   if (!task.id) return null;
                   const project = projectsMap.get(task.projectId);
                   return (
