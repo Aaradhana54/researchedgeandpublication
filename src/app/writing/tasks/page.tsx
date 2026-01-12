@@ -47,15 +47,23 @@ export default function MyTasksPage() {
 
   const tasksQuery = useMemo(() => {
     if (!firestore || !user) return null;
+    // Simplified query to avoid composite index. Filtering will be done on the client.
     return query(
       collection(firestore, 'tasks'), 
-      where('assignedTo', '==', user.uid),
-      where('status', 'in', ['pending', 'in-progress']),
-      orderBy('createdAt', 'desc')
+      where('assignedTo', '==', user.uid)
     );
   }, [firestore, user]);
   
-  const { data: tasks, loading: loadingTasks, error: tasksError } = useCollection<Task>(tasksQuery);
+  const { data: allTasks, loading: loadingTasks, error: tasksError } = useCollection<Task>(tasksQuery);
+
+  // Filter and sort tasks on the client-side
+  const tasks = useMemo(() => {
+    if (!allTasks) return [];
+    return allTasks
+      .filter(task => task.status === 'pending' || task.status === 'in-progress')
+      .sort((a, b) => b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime());
+  }, [allTasks]);
+
 
   useEffect(() => {
     if (tasksError) {
@@ -84,7 +92,7 @@ export default function MyTasksPage() {
             
             // Fetch projects one by one to respect security rules
             await Promise.all(projectIds.map(async (id) => {
-                if (newProjectsMap.has(id)) return;
+                if (projectsMap.has(id)) return; // Avoid re-fetching if already present
                 const projectRef = doc(firestore, 'projects', id);
                 const projectSnap = await getDoc(projectRef);
                 if (projectSnap.exists()) {
@@ -92,7 +100,7 @@ export default function MyTasksPage() {
                 }
             }));
             
-            setProjectsMap(newProjectsMap);
+            setProjectsMap(prevMap => new Map([...prevMap, ...newProjectsMap]));
         } catch (err: any) {
              if (err.code === 'permission-denied') {
                 const permissionError = new FirestorePermissionError({
