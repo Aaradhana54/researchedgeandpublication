@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -31,7 +32,7 @@ function DetailItem({ label, value, isBadge = false, badgeVariant, children }: {
     return (
         <div className="grid grid-cols-3 gap-2 py-3 border-b last:border-b-0">
             <div className="font-semibold text-muted-foreground">{label}</div>
-            <div className="col-span-2">{children || displayValue}</div>
+            <div className="col-span-2 break-words">{children || displayValue}</div>
         </div>
     );
 }
@@ -142,7 +143,7 @@ export default function WriterProjectDetailPage() {
                 </Button>
                 <div className="flex justify-between items-start gap-4">
                     <div>
-                        <h1 className="text-3xl font-bold tracking-tight">{project.title}</h1>
+                        <h1 className="text-3xl font-bold tracking-tight break-words">{project.title}</h1>
                         <p className="text-muted-foreground">Detailed view of the project submission.</p>
                     </div>
                 </div>

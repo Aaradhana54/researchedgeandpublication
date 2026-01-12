@@ -175,7 +175,7 @@ export default function MyTasksPage() {
                   const project = projectsMap.get(task.projectId);
                   return (
                     <TableRow key={task.id}>
-                      <TableCell className="font-medium">
+                      <TableCell className="font-medium break-words">
                         {project?.title || 'Loading project...'}
                       </TableCell>
                        <TableCell>

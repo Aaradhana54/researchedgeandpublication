@@ -86,7 +86,7 @@ export default function SalespersonDetailPage() {
             <LoaderCircle className="w-8 h-8 animate-spin text-primary" />
         ) : salesperson ? (
             <div>
-                 <h1 className="text-3xl font-bold tracking-tight">{salesperson.name}'s Deals</h1>
+                 <h1 className="text-3xl font-bold tracking-tight break-words">{salesperson.name}'s Deals</h1>
                  <p className="text-muted-foreground">A list of all projects finalized by {salesperson.name}.</p>
             </div>
         ) : (
@@ -120,7 +120,7 @@ export default function SalespersonDetailPage() {
               <TableBody>
                 {projects.map((project) => (
                   <TableRow key={project.id}>
-                    <TableCell className="font-medium">
+                    <TableCell className="font-medium break-words">
                         <Link href={`/admin/projects/${project.id}`} className="hover:underline text-primary">
                             {project.title}
                         </Link>

@@ -142,7 +142,7 @@ export default function PartnerDetailPage() {
             <LoaderCircle className="w-8 h-8 animate-spin text-primary" />
         ) : partner ? (
             <div>
-                 <h1 className="text-3xl font-bold tracking-tight">{partner.name}'s Referrals</h1>
+                 <h1 className="text-3xl font-bold tracking-tight break-words">{partner.name}'s Referrals</h1>
                  <p className="text-muted-foreground">A list of all projects referred by {partner.name}.</p>
             </div>
         ) : (
@@ -177,12 +177,12 @@ export default function PartnerDetailPage() {
               <TableBody>
                 {projects.map((project) => (
                   <TableRow key={project.id}>
-                    <TableCell className="font-medium">
+                    <TableCell className="font-medium break-words">
                         <Link href={`/admin/projects/${project.id}`} className="hover:underline text-primary">
                             {project.title}
                         </Link>
                     </TableCell>
-                    <TableCell>{getClientName(project)}</TableCell>
+                    <TableCell className="break-words">{getClientName(project)}</TableCell>
                     <TableCell>
                       {project.dealAmount ? project.dealAmount.toLocaleString('en-IN', { style: 'currency', currency: 'INR' }) : 'N/A'}
                     </TableCell>

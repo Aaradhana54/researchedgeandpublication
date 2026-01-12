@@ -156,14 +156,14 @@ export default function ApprovedLeadsPage() {
 
           return (
             <TableRow key={project.id}>
-              <TableCell className="font-medium">
+              <TableCell className="font-medium break-words">
                 <Link href={`/admin/projects/${project.id}`} className="hover:underline text-primary">
                   {project.title}
                 </Link>
               </TableCell>
               <TableCell>
-                <div className="font-medium">{client?.name || 'Unknown User'}</div>
-                <div className="text-sm text-muted-foreground">{client?.email}</div>
+                <div className="font-medium break-words">{client?.name || 'Unknown User'}</div>
+                <div className="text-sm text-muted-foreground break-all">{client?.email}</div>
               </TableCell>
               <TableCell>
                 {project.dealAmount ? project.dealAmount.toLocaleString('en-IN', { style: 'currency', currency: 'INR' }) : 'N/A'}
@@ -180,7 +180,7 @@ export default function ApprovedLeadsPage() {
                  {assignedWriter ? (
                     <div className="flex items-center gap-2">
                         <UserIcon className="w-4 h-4 text-muted-foreground" />
-                        <span>{assignedWriter.name}</span>
+                        <span className="break-words">{assignedWriter.name}</span>
                     </div>
                  ) : (
                     <span className="text-muted-foreground">Not Assigned</span>

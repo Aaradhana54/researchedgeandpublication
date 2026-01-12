@@ -56,8 +56,8 @@ function UserTable({ users, onDelete }: { users: UserProfile[], onDelete: (user:
           <TableBody>
             {users.map((user) => (
               <TableRow key={user.uid}>
-                <TableCell className="font-medium">{user.name}</TableCell>
-                <TableCell>{user.email}</TableCell>
+                <TableCell className="font-medium break-words">{user.name}</TableCell>
+                <TableCell className="break-all">{user.email}</TableCell>
                 <TableCell>
                   <Badge variant={roleVariantMap[user.role] || 'default'} className="capitalize">
                     {user.role.replace('-', ' ')}

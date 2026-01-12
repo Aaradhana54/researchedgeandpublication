@@ -175,9 +175,9 @@ export default function ReferredClientsPage() {
                         <TableBody>
                             {combinedReferrals.map(client => (
                                 <TableRow key={client.id}>
-                                    <TableCell className="font-medium">{client.name}</TableCell>
+                                    <TableCell className="font-medium break-words">{client.name}</TableCell>
                                     <TableCell>
-                                        <div>{client.email}</div>
+                                        <div className="break-all">{client.email}</div>
                                         {client.phone && <div className="text-sm text-muted-foreground">{client.phone}</div>}
                                     </TableCell>
                                     <TableCell>{format(client.referredAt, 'PPP')}</TableCell>

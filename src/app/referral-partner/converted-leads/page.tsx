@@ -137,7 +137,7 @@ export default function ConvertedLeadsPage() {
                         <TableBody>
                             {convertedProjects.map(project => (
                                 <TableRow key={project.id}>
-                                    <TableCell className="font-medium">{project.title}</TableCell>
+                                    <TableCell className="font-medium break-words">{project.title}</TableCell>
                                     <TableCell>{project.dealAmount?.toLocaleString('en-IN', { style: 'currency', currency: 'INR' }) || 'N/A'}</TableCell>
                                     <TableCell className="font-semibold text-primary">{project.commissionAmount?.toLocaleString('en-IN', { style: 'currency', currency: 'INR' }) || 'N/A'}</TableCell>
                                     <TableCell>

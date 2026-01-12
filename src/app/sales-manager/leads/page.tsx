@@ -67,14 +67,14 @@ function ClientLeadsTable({ projects, usersMap }: { projects: Project[], usersMa
               const client = usersMap.get(project.userId);
               return (
                 <TableRow key={project.id}>
-                  <TableCell className="font-medium">
+                  <TableCell className="font-medium break-words">
                     <Link href={`/sales-manager/leads/${project.id}?type=project`} className="hover:underline text-primary">
                       {project.title}
                     </Link>
                   </TableCell>
                   <TableCell>
-                    <div className="font-medium">{client?.name || 'Unknown User'}</div>
-                    <div className="text-sm text-muted-foreground">{client?.email}</div>
+                    <div className="font-medium break-words">{client?.name || 'Unknown User'}</div>
+                    <div className="text-sm text-muted-foreground break-all">{client?.email}</div>
                   </TableCell>
                    <TableCell>
                        <Badge variant="secondary" className="capitalize">
@@ -124,16 +124,16 @@ function PartnerLeadsTable({ leads, usersMap }: { leads: ContactLead[], usersMap
                   const partner = usersMap.get(lead.referredByPartnerId!);
                   return (
                     <TableRow key={lead.id}>
-                        <TableCell className="font-medium">
+                        <TableCell className="font-medium break-words">
                             <Link href={`/sales-manager/leads/${lead.id}?type=contact`} className="hover:underline text-primary">
                                 {lead.name}
                             </Link>
                         </TableCell>
                       <TableCell>
-                        <div className="font-medium">{lead.email}</div>
+                        <div className="font-medium break-all">{lead.email}</div>
                         <div className="text-sm text-muted-foreground">{lead.phone}</div>
                       </TableCell>
-                      <TableCell>{partner?.name || 'Unknown Partner'}</TableCell>
+                      <TableCell className="break-words">{partner?.name || 'Unknown Partner'}</TableCell>
                        <TableCell>
                            <Badge variant={getLeadStatusVariant(lead.status)} className="capitalize">
                             {lead.status}
@@ -174,16 +174,16 @@ function WebsiteLeadsTable({ leads }: { leads: ContactLead[]}) {
             <TableBody>
             {leads.map((lead) => (
                 <TableRow key={lead.id}>
-                    <TableCell className="font-medium">
+                    <TableCell className="font-medium break-words">
                         <Link href={`/sales-manager/leads/${lead.id}?type=contact`} className="hover:underline text-primary">
                             {lead.name}
                         </Link>
                     </TableCell>
                     <TableCell>
-                    <div className="font-medium">{lead.email}</div>
+                    <div className="font-medium break-all">{lead.email}</div>
                     <div className="text-sm text-muted-foreground">{lead.phone}</div>
                     </TableCell>
-                    <TableCell>{lead.serviceType || 'Not specified'}</TableCell>
+                    <TableCell className="break-words">{lead.serviceType || 'Not specified'}</TableCell>
                     <TableCell>
                         <Badge variant={getLeadStatusVariant(lead.status)} className="capitalize">
                         {lead.status}

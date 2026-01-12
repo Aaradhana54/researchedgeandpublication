@@ -166,17 +166,17 @@ export default function AssignedLeadsPage() {
                   return (
                     <TableRow key={`${lead.leadType}-${lead.id}`}>
                       <TableCell className="font-medium">
-                        <Link href={`/sales-manager/leads/${lead.id}?type=${lead.leadType.toLowerCase()}`} className="hover:underline text-primary">
+                        <Link href={`/sales-manager/leads/${lead.id}?type=${lead.leadType.toLowerCase()}`} className="hover:underline text-primary break-words">
                           {(lead as Project).title || lead.clientName}
                         </Link>
-                         <div className="text-sm text-muted-foreground">{lead.leadType === 'Project' ? lead.clientName : (lead as ContactLead).email}</div>
+                         <div className="text-sm text-muted-foreground break-all">{lead.leadType === 'Project' ? lead.clientName : (lead as ContactLead).email}</div>
                       </TableCell>
                        <TableCell>
                            <Badge variant="secondary" className="capitalize">
                             {lead.leadType}
                            </Badge>
                        </TableCell>
-                       <TableCell>{assignedToUser?.name || 'Unknown'}</TableCell>
+                       <TableCell className="break-words">{assignedToUser?.name || 'Unknown'}</TableCell>
                       <TableCell>
                         {/* Note: This shows creation date as we don't have an "assignedAt" timestamp */}
                         {lead.createdAt ? format(lead.createdAt.toDate(), 'PPP') : 'N/A'}

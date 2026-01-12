@@ -152,14 +152,14 @@ export default function ApprovedLeadsPage() {
                   const client = getClientInfo(project);
                   return (
                     <TableRow key={project.id}>
-                      <TableCell className="font-medium">
+                      <TableCell className="font-medium break-words">
                         <Link href={`/sales/projects/${project.id}`} className="hover:underline text-primary">
                           {project.title}
                         </Link>
                       </TableCell>
                       <TableCell>
-                        <div className="font-medium">{client?.name || 'Unknown User'}</div>
-                        <div className="text-sm text-muted-foreground">{client?.email}</div>
+                        <div className="font-medium break-words">{client?.name || 'Unknown User'}</div>
+                        <div className="text-sm text-muted-foreground break-all">{client?.email}</div>
                       </TableCell>
                       <TableCell>
                         {project.dealAmount ? project.dealAmount.toLocaleString('en-IN', { style: 'currency', currency: 'INR' }) : 'N/A'}

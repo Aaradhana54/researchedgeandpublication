@@ -137,8 +137,8 @@ export default function SalesPage() {
                   <TableRow key={salesperson.uid}>
                     <TableCell className="font-medium">
                         <Link href={`/admin/sales/${salesperson.uid}`} className="hover:underline text-primary">
-                            <div className="font-medium">{salesperson.name}</div>
-                            <div className="text-sm text-muted-foreground">{salesperson.email}</div>
+                            <div className="font-medium break-words">{salesperson.name}</div>
+                            <div className="text-sm text-muted-foreground break-all">{salesperson.email}</div>
                         </Link>
                     </TableCell>
                     <TableCell className="text-center font-medium">{dealsFinalized}</TableCell>
