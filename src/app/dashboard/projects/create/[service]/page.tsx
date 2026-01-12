@@ -94,13 +94,14 @@ export default function CreateProjectPage() {
           pageCount: rawFormData.pageCount ? Number(rawFormData.pageCount) : null,
           wordCount: rawFormData.wordCount ? Number(rawFormData.wordCount) : null,
           wantToPublish: rawFormData.wantToPublish === 'on',
+          isPaperReady: rawFormData.isPaperReady === 'on',
           publishWhere: (rawFormData.publishWhere as string) || null,
           assignedSalesId: null,
         };
 
         // Clean up null/empty values to avoid security rule issues with .hasOnly()
         Object.keys(dataToSave).forEach(key => {
-            if (dataToSave[key] === null || dataToSave[key] === '') {
+            if (dataToSave[key] === null || dataToSave[key] === '' || dataToSave[key] === false) {
                 delete dataToSave[key];
             }
         });
@@ -167,6 +168,12 @@ export default function CreateProjectPage() {
   
   const renderResearchPublicationForm = () => (
     <>
+      <div className="flex items-center space-x-2">
+        <Checkbox id="isPaperReady" name="isPaperReady" disabled={loading}/>
+        <Label htmlFor="isPaperReady" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+            My paper is ready
+        </Label>
+      </div>
        <div className="space-y-2">
         <Label htmlFor="publishWhere">Where to Publish?</Label>
         <Textarea id="publishWhere" name="publishWhere" placeholder="e.g., Scopus, SCI, specific journal name..." disabled={loading}/>

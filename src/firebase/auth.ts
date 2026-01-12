@@ -89,6 +89,13 @@ export async function signup(email: string, password: string, name: string, role
   if (role === 'client' && referredByCode) {
       dataToSet.referredBy = referredByCode;
   }
+  
+  // Clean up null/empty values to avoid security rule issues with .hasOnly()
+    Object.keys(dataToSet).forEach(key => {
+        if (dataToSet[key] === null || dataToSet[key] === '') {
+            delete dataToSet[key];
+        }
+    });
 
   const userDocRef = doc(firestore, 'users', user.uid);
 
