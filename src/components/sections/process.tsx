@@ -49,62 +49,57 @@ export function Process() {
           </div>
         </AnimatedWrapper>
         
-        <div className="relative">
-            <div className="flex items-center justify-center md:hidden text-muted-foreground text-sm">
+        <div className="relative md:hidden">
+            <div className="flex items-center justify-center text-muted-foreground text-sm mb-4">
                 <ArrowRight className="mr-2"/> Scroll to view all steps
             </div>
-            <div className="horizontal-scroll-container no-scrollbar overflow-x-auto overflow-y-hidden pb-8 -mb-8">
-                <div className="relative flex items-start justify-start w-max px-8 pt-24 pb-12" style={{ minWidth: `100rem` }}>
-                    
-                    {/* The connecting line path */}
-                    <svg className="absolute top-0 left-0 h-full w-full" >
-                        <path
-                            d="M 160 80 
-                               C 240 80, 240 160, 320 160 
-                               C 400 160, 400 80, 480 80
-                               C 560 80, 560 160, 640 160
-                               C 720 160, 720 80, 800 80
-                               C 880 80, 880 160, 960 160
-                               C 1040 160, 1040 80, 1120 80"
-                            fill="none"
-                            stroke="hsl(var(--primary))"
-                            strokeWidth="4"
-                            className="path-animation"
-                            strokeLinecap="round"
-                        />
-                    </svg>
-
+            <div className="horizontal-scroll-container no-scrollbar overflow-x-auto pb-8 -mb-8">
+                <div className="flex flex-nowrap gap-8 px-4">
                     {processSteps.map((step, index) => (
-                        <AnimatedWrapper 
+                         <AnimatedWrapper 
                             key={index}
                             delay={index * 150}
-                            className={cn(
-                                "relative w-72 px-4 animate-slide-in-left",
-                                index % 2 === 1 ? 'top-20' : '-top-8'
-                            )}
+                            className="w-64 flex-shrink-0"
                         >
-                            {/* Icon Badge */}
-                            <div 
-                                className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full flex items-center justify-center text-primary-foreground shadow-lg"
-                                style={{ background: 'linear-gradient(to top right, hsl(var(--primary)), hsl(var(--accent)))' }}
-                            >
-                                {step.icon}
-                            </div>
-                            
-                            {/* Card */}
-                            <div className="pt-8">
-                                <div className="bg-background rounded-lg shadow-soft p-6 text-center h-full border">
-                                    <h3 className="font-bold text-lg text-primary mb-2">Step {String(index + 1).padStart(2, '0')}</h3>
-                                    <h4 className="font-semibold text-foreground mb-3">{step.title}</h4>
-                                    <p className="text-sm text-muted-foreground">
-                                        {step.description}
-                                    </p>
+                            <div className="bg-background rounded-lg shadow-soft p-6 text-center h-full border">
+                                <div 
+                                    className="mx-auto mb-4 w-16 h-16 rounded-full flex items-center justify-center text-primary-foreground shadow-lg"
+                                    style={{ background: 'linear-gradient(to top right, hsl(var(--primary)), hsl(var(--accent)))' }}
+                                >
+                                    {step.icon}
                                 </div>
+                                <h3 className="font-bold text-lg text-primary mb-2">Step {String(index + 1).padStart(2, '0')}</h3>
+                                <h4 className="font-semibold text-foreground mb-3">{step.title}</h4>
+                                <p className="text-sm text-muted-foreground">
+                                    {step.description}
+                                </p>
                             </div>
                         </AnimatedWrapper>
                     ))}
                 </div>
             </div>
+        </div>
+
+        <div className="relative hidden md:block">
+            <div className="absolute left-1/2 top-10 h-full w-0.5 bg-border -translate-x-1/2"></div>
+            {processSteps.map((step, index) => (
+                <div key={index} className={cn("relative flex items-center w-full my-8", index % 2 === 0 ? "justify-start" : "justify-end")}>
+                    <div className={cn("relative w-5/12", index % 2 === 0 ? "text-right pr-16" : "text-left pl-16")}>
+                        <AnimatedWrapper>
+                            <div className="bg-background p-6 rounded-lg shadow-lift border">
+                                <h3 className="text-xl font-bold text-primary mb-2">{step.title}</h3>
+                                <p className="text-muted-foreground">{step.description}</p>
+                            </div>
+                        </AnimatedWrapper>
+                    </div>
+                    <div className="absolute left-1/2 -translate-x-1/2 z-10">
+                        <div className="bg-primary text-primary-foreground rounded-full w-20 h-20 flex items-center justify-center flex-col shadow-lg border-4 border-background">
+                            {step.icon}
+                             <span className="text-xs font-bold mt-1">STEP {index+1}</span>
+                        </div>
+                    </div>
+                </div>
+            ))}
         </div>
       </div>
     </section>

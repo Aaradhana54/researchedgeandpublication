@@ -72,7 +72,7 @@ export function Hero() {
         </CarouselContent>
       </Carousel>
       
-      <div className="absolute inset-0 bg-[hsl(var(--foreground)_/_0.6)] dark:bg-transparent" />
+      <div className="absolute inset-0 bg-black/50 dark:bg-black/30" />
 
       {/* Foreground Content Layer */}
       <div className="absolute inset-0 z-10 h-full flex flex-col items-center justify-center text-center container mx-auto px-4">
@@ -90,7 +90,7 @@ export function Hero() {
             India’s trusted academic and publishing partner helping students, scholars, educators, and institutions convert ideas into polished, publishable work.
           </p>
         
-          <div className="mt-10 flex justify-center gap-4 opacity-0 animate-fade-slide-in" style={{ animationDelay: '500ms' }}>
+          <div className="mt-10 flex flex-col sm:flex-row justify-center gap-4 opacity-0 animate-fade-slide-in" style={{ animationDelay: '500ms' }}>
             <Button asChild size="lg">
               <Link href="#services">Our Services</Link>
             </Button>
