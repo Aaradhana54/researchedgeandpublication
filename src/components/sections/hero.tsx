@@ -72,21 +72,21 @@ export function Hero() {
         </CarouselContent>
       </Carousel>
       
-      <div className="absolute inset-0 bg-[hsl(var(--foreground)_/_0.6)]" />
+      <div className="absolute inset-0 bg-[hsl(var(--foreground)_/_0.6)] dark:bg-transparent" />
 
       {/* Foreground Content Layer */}
       <div className="absolute inset-0 z-10 h-full flex flex-col items-center justify-center text-center container mx-auto px-4">
         <div key={current} className="space-y-6">
-          <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl md:text-6xl lg:text-7xl font-headline opacity-0 animate-pop-in" style={{ animationDelay: '100ms' }}>
+          <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl md:text-6xl lg:text-7xl font-headline opacity-0 animate-pop-in [text-shadow:0_2px_4px_rgba(0,0,0,0.5)]" style={{ animationDelay: '100ms' }}>
             {headlineText}{' '}
             <span className="gradient-text-shimmer">{animatedWord}</span>
           </h1>
           
-          <p className="mt-4 max-w-3xl mx-auto text-lg md:text-xl lg:text-2xl text-white/90 opacity-0 animate-fade-slide-in" style={{ animationDelay: '300ms' }}>
+          <p className="mt-4 max-w-3xl mx-auto text-lg md:text-xl lg:text-2xl text-white/90 opacity-0 animate-fade-slide-in [text-shadow:0_1px_3px_rgba(0,0,0,0.5)]" style={{ animationDelay: '300ms' }}>
             From Research to Publication, All in One Place
           </p>
           
-          <p className="mt-6 max-w-4xl mx-auto text-base md:text-lg text-white/80 opacity-0 animate-fade-slide-in" style={{ animationDelay: '400ms' }}>
+          <p className="mt-6 max-w-4xl mx-auto text-base md:text-lg text-white/80 opacity-0 animate-fade-slide-in [text-shadow:0_1px_2px_rgba(0,0,0,0.5)]" style={{ animationDelay: '400ms' }}>
             India’s trusted academic and publishing partner helping students, scholars, educators, and institutions convert ideas into polished, publishable work.
           </p>
         
