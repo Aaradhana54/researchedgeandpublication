@@ -13,25 +13,25 @@ body {
 
 @layer base {
   :root {
-    --background: 258 100% 98%;
+    --background: 0 0% 100%;
     --foreground: 258 10% 3.9%;
-    --card: 258 100% 98%;
+    --card: 0 0% 100%;
     --card-foreground: 258 10% 3.9%;
-    --popover: 258 100% 98%;
+    --popover: 0 0% 100%;
     --popover-foreground: 258 10% 3.9%;
-    --primary: 258 60% 55%;
-    --primary-foreground: 258 85% 9.8%;
-    --secondary: 258 60% 94%;
+    --primary: 258 60% 65%;
+    --primary-foreground: 258 85% 98%;
+    --secondary: 258 60% 95%;
     --secondary-foreground: 258 20% 9.8%;
     --muted: 258 40% 97%;
     --muted-foreground: 258 15% 45%;
-    --accent: 258 60% 75%;
+    --accent: 258 60% 85%;
     --accent-foreground: 258 85% 9.8%;
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 98%;
     --border: 258 20% 90%;
     --input: 258 30% 96%;
-    --ring: 258 60% 55%;
+    --ring: 258 60% 65%;
     --chart-1: 258 70% 55%;
     --chart-2: 258 60% 65%;
     --chart-3: 258 50% 75%;
